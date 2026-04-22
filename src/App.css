@@ -1,0 +1,138 @@
+:root {
+  font-family: Inter, Segoe UI, Tahoma, Geneva, Verdana, sans-serif;
+  color: #f8fafc;
+  background: #0f172a;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: linear-gradient(135deg, #0f172a, #1e293b);
+}
+
+.container {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 1.5rem;
+}
+
+header h1 {
+  margin: 0;
+}
+
+header p {
+  margin: 0.35rem 0 1.25rem;
+  color: #cbd5e1;
+}
+
+.layout {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: 320px 1fr;
+}
+
+.sidebar,
+.details {
+  background: rgba(15, 23, 42, 0.7);
+  border: 1px solid #334155;
+  border-radius: 12px;
+  padding: 1rem;
+}
+
+label {
+  display: block;
+  font-size: 0.9rem;
+  margin-bottom: 0.5rem;
+  color: #cbd5e1;
+}
+
+input {
+  width: 100%;
+  padding: 0.65rem 0.75rem;
+  border-radius: 8px;
+  border: 1px solid #475569;
+  background: #0f172a;
+  color: #f8fafc;
+}
+
+.song-list {
+  margin: 0.9rem 0 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 0.6rem;
+}
+
+.song-btn {
+  width: 100%;
+  text-align: left;
+  border: 1px solid #334155;
+  background: #111827;
+  color: #f8fafc;
+  padding: 0.65rem 0.7rem;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.song-btn.active,
+.song-btn:hover {
+  border-color: #38bdf8;
+  background: #0b2538;
+}
+
+.song-title {
+  display: block;
+  font-weight: 600;
+}
+
+.song-meta {
+  display: block;
+  margin-top: 0.2rem;
+  color: #94a3b8;
+  font-size: 0.88rem;
+}
+
+.artist {
+  margin-top: 0;
+  color: #93c5fd;
+}
+
+.song-info {
+  display: flex;
+  gap: 1.2rem;
+  margin: 0.4rem 0 0.9rem;
+}
+
+.chord-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.tag {
+  border: 1px solid #0ea5e9;
+  color: #bae6fd;
+  border-radius: 999px;
+  padding: 0.2rem 0.65rem;
+  font-weight: 600;
+}
+
+.lyrics {
+  background: #020617;
+  border: 1px solid #334155;
+  border-radius: 8px;
+  padding: 0.75rem;
+  white-space: pre-wrap;
+  line-height: 1.5;
+  color: #e2e8f0;
+}
+
+@media (max-width: 860px) {
+  .layout {
+    grid-template-columns: 1fr;
+  }
+}
