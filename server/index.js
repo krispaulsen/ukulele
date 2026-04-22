@@ -14,18 +14,16 @@ app.get("/api/health", (_req, res) => {
 app.get("/api/songs", async (_req, res) => {
   try {
     const db = songsDb();
-    const result = await db.list({ include_docs: true });
-    const songs = result.rows
-      .map((row) => row.doc)
-      .filter(Boolean)
+    const result = await db.find({
+      selector: { songId: { $exists: true } },
+      fields: ["songId", "title", "artist"],
+      limit: 10000
+    });
+    const songs = result.docs
       .map((doc) => ({
         id: doc.songId,
         title: doc.title,
-        artist: doc.artist,
-        key: doc.key,
-        capo: doc.capo,
-        chords: doc.chords ?? [],
-        lyrics: doc.lyrics ?? []
+        artist: doc.artist
       }))
       .sort((a, b) => a.title.localeCompare(b.title));
 
@@ -33,6 +31,32 @@ app.get("/api/songs", async (_req, res) => {
   } catch (error) {
     console.error("Failed to fetch songs:", error);
     res.status(500).json({ error: "Failed to fetch songs" });
+  }
+});
+
+app.get("/api/songs/:songId", async (req, res) => {
+  try {
+    const db = songsDb();
+    const songId = req.params.songId;
+    const doc = await db.get(`song:${songId}`);
+
+    res.json({
+      id: doc.songId,
+      title: doc.title,
+      artist: doc.artist,
+      key: doc.key,
+      capo: doc.capo,
+      chords: doc.chords ?? [],
+      lyrics: doc.lyrics ?? []
+    });
+  } catch (error) {
+    if (error.statusCode === 404) {
+      res.status(404).json({ error: "Song not found" });
+      return;
+    }
+
+    console.error("Failed to fetch song:", error);
+    res.status(500).json({ error: "Failed to fetch song" });
   }
 });
 
