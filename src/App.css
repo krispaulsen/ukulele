@@ -21,16 +21,7 @@ body {
 }
 
 header h1 {
-  margin: 0;
-}
-
-header p {
-  margin: 0.35rem 0 1.25rem;
-  color: #cbd5e1;
-}
-
-.layout {
-  max-width: 720px;
+  margin: 0 0 1rem;
 }
 
 .sidebar,
@@ -61,6 +52,29 @@ input {
   color: #f8fafc;
 }
 
+textarea {
+  width: 100%;
+  padding: 0.65rem 0.75rem;
+  border-radius: 8px;
+  border: 1px solid #475569;
+  background: #0f172a;
+  color: #f8fafc;
+  font-family: inherit;
+}
+
+button {
+  border: 1px solid #334155;
+  background: #111827;
+  color: #f8fafc;
+  border-radius: 8px;
+  padding: 0.5rem 0.75rem;
+  cursor: pointer;
+}
+
+button:hover {
+  border-color: #38bdf8;
+}
+
 .song-list {
   margin: 0.9rem 0 0;
   padding: 0;
@@ -86,6 +100,21 @@ input {
 .song-btn:hover {
   border-color: #38bdf8;
   background: #0b2538;
+}
+
+.song-row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 0.4rem;
+}
+
+.favorite-btn {
+  min-width: 40px;
+}
+
+.favorite-btn.on {
+  border-color: #f59e0b;
+  color: #fbbf24;
 }
 
 .song-title {
@@ -120,6 +149,18 @@ input {
 
 .back-link:hover {
   text-decoration: underline;
+}
+
+.action-link {
+  color: #93c5fd;
+  text-decoration: none;
+  border: 1px solid #334155;
+  padding: 0.45rem 0.6rem;
+  border-radius: 8px;
+}
+
+.action-link:hover {
+  border-color: #38bdf8;
 }
 
 .chord-tags {
@@ -186,8 +227,84 @@ input {
   color: #e2e8f0;
 }
 
-@media (max-width: 860px) {
-  .layout {
-    max-width: 100%;
-  }
+.song-actions {
+  margin: 0.6rem 0 1rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.song-note {
+  color: #94a3b8;
+  margin-top: -0.2rem;
+}
+
+.auth-panel {
+  max-width: 420px;
+}
+
+.auth-form,
+.song-form {
+  display: grid;
+  gap: 0.6rem;
+}
+
+.text-btn {
+  background: transparent;
+  border: none;
+  color: #7dd3fc;
+  padding: 0.2rem 0;
+}
+
+.text-btn:hover {
+  text-decoration: underline;
+  border: none;
+}
+
+.toolbar {
+  margin-bottom: 1rem;
+}
+
+.toolbar-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  align-items: center;
+}
+
+.toolbar-links a {
+  color: #7dd3fc;
+  text-decoration: none;
+}
+
+.toolbar-links a:hover {
+  text-decoration: underline;
+}
+
+.small-text {
+  color: #94a3b8;
+  font-size: 0.9rem;
+}
+
+.popular-list {
+  list-style: none;
+  padding: 0;
+  margin: 0.5rem 0 0;
+  display: grid;
+  gap: 0.4rem;
+}
+
+.popular-list li {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.6rem;
+}
+
+.popular-list a {
+  color: #bfdbfe;
+  text-decoration: none;
+}
+
+.popular-list a:hover {
+  text-decoration: underline;
 }

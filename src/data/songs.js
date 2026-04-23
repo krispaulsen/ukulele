@@ -14,7 +14,7 @@ export const songs = [
     ]
   },
   {
-    id: "im-yours",
+    id: "i-m-yours",
     title: "I'm Yours",
     artist: "Jason Mraz",
     key: "C",

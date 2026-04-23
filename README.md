@@ -1,6 +1,6 @@
 # Ukulele Songbook
 
-This app now reads songs from CouchDB via a small local API.
+This app reads songs from CouchDB via a local API and supports member login, favorites, and owner-based song editing/forking.
 
 ## 1) Start CouchDB
 
@@ -17,6 +17,9 @@ CouchDB will be available at `http://localhost:5984`.
 Create a `.env` file from `.env.example` and adjust values if needed.
 (On PowerShell you can run `copy .env.example .env`.)
 
+Important vars:
+- `SESSION_SECRET`: secret used to sign login cookies
+
 ## 3) Seed song documents
 
 ```bash
@@ -31,3 +34,17 @@ npm run dev
 
 - Frontend: `http://localhost:5173`
 - API: `http://localhost:3001/api/songs`
+
+## Member Features
+
+- Register/Login with email + password
+- Favorite songs and view your favorites
+- View globally most-favorited songs
+- Add songs
+- Edit songs you own
+- Fork songs from other users and edit your copy
+
+## Guest (unauthenticated users) Features
+
+- View songs
+- View globally most-favorited songs

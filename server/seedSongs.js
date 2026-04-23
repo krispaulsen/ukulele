@@ -7,6 +7,7 @@ async function seed() {
 
   for (const song of songs) {
     const docId = `song:${song.id}`;
+    const now = new Date().toISOString();
 
     let existing;
     try {
@@ -21,13 +22,18 @@ async function seed() {
       {
         _id: docId,
         _rev: existing?._rev,
+        type: "song",
         songId: song.id,
         title: song.title,
         artist: song.artist,
         key: song.key,
         capo: song.capo,
         chords: song.chords,
-        lyrics: song.lyrics
+        lyrics: song.lyrics,
+        ownerUserId: existing?.ownerUserId ?? null,
+        originalSongId: existing?.originalSongId ?? null,
+        createdAt: existing?.createdAt ?? now,
+        updatedAt: now
       },
       docId
     );

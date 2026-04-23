@@ -1,7 +1,18 @@
+import { Link } from "react-router-dom";
 import { useMemo } from "react";
 import SongList from "../components/SongList";
 
-export default function SearchPage({ songs, query, onQueryChange }) {
+export default function SearchPage({
+  songs,
+  query,
+  onQueryChange,
+  onToggleFavorite,
+  favoriteSongIds,
+  popularSongs,
+  onLogout,
+  isLoggedIn
+}) {
+  console.log("songs", songs);
   const filteredSongs = useMemo(() => {
     const q = query.trim().toLowerCase();
     if (!q) return songs;
@@ -23,7 +34,21 @@ export default function SearchPage({ songs, query, onQueryChange }) {
         value={query}
         onChange={(event) => onQueryChange(event.target.value)}
       />
-      <SongList items={filteredSongs} />
+      <SongList isLoggedIn={isLoggedIn} items={filteredSongs} favoriteSongIds={favoriteSongIds} onToggleFavorite={onToggleFavorite} />
+
+      <h3>Most Favorited Songs</h3>
+      {popularSongs.length === 0 ? (
+        <p>No favorites yet.</p>
+      ) : (
+        <ul className="popular-list">
+          {popularSongs.map((song) => (
+            <li key={song.songId}>
+              <Link to={`/song/${song.songId}`}>{song.title}</Link>
+              <span>{song.favoriteCount} favorites</span>
+            </li>
+          ))}
+        </ul>
+      )}
     </section>
   );
 }

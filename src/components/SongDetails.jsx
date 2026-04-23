@@ -1,6 +1,6 @@
 import UkuleleChordDiagram from "./UkuleleChordDiagram";
 
-export default function SongDetails({ song }) {
+export default function SongDetails({ song, actions }) {
   if (!song) {
     return (
       <section className="details">
@@ -13,6 +13,7 @@ export default function SongDetails({ song }) {
     <section className="details">
       <h2>{song.title}</h2>
       <p className="artist">{song.artist}</p>
+      {song.originalSongId ? <p className="song-note">Forked from: {song.originalSongId}</p> : null}
       <div className="song-info">
         <span>
           <strong>Key:</strong> {song.key}
@@ -21,6 +22,7 @@ export default function SongDetails({ song }) {
           <strong>Capo:</strong> {song.capo}
         </span>
       </div>
+      {actions ? <div className="song-actions">{actions}</div> : null}
 
       <h3>Chords</h3>
       <div className="chord-tags">
