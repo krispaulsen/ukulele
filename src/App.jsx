@@ -167,7 +167,10 @@ export default function App() {
             <Route path="/song/:songId/fork" element={<SongEditorPage mode="fork" />} />
           </>
         ) : (
-          <Route path="/auth" element={<AuthPage onAuthSuccess={setUser} />} />
+          <>
+            <Route path="/auth" element={<AuthPage onAuthSuccess={setUser} />} />
+            <Route path="/auth/register" element={<AuthPage onAuthSuccess={setUser} defaultMode="register" />} />
+          </>
         )}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>

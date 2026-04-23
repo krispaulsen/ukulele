@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { apiRequest } from "../lib/api";
 
-export default function AuthPage({ onAuthSuccess }) {
-  const [mode, setMode] = useState("login");
+export default function AuthPage({ defaultMode = "login", onAuthSuccess }) {
+  const [mode, setMode] = useState(defaultMode);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -48,6 +48,9 @@ export default function AuthPage({ onAuthSuccess }) {
           minLength={8}
           required
         />
+
+        {/* TODO: if mode === 'register', add inputs for first name, last name, screen name, dark mode preference, chord color preference, chord position preference */}
+        {/* TODO: add profile page, change PW form */}
 
         <button type="submit" disabled={isSubmitting}>
           {isSubmitting ? "Please wait..." : mode === "login" ? "Log in" : "Create account"}

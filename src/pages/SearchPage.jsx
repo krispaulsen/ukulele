@@ -12,7 +12,6 @@ export default function SearchPage({
   onLogout,
   isLoggedIn
 }) {
-  console.log("songs", songs);
   const filteredSongs = useMemo(() => {
     const q = query.trim().toLowerCase();
     if (!q) return songs;
