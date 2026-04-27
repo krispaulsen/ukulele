@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { apiRequest } from "../lib/api";
+import { useUser } from "../context/UserContext";
 
 export default function AuthPage({ defaultMode = "login", onAuthSuccess }) {
   const [mode, setMode] = useState(defaultMode);
@@ -7,6 +8,7 @@ export default function AuthPage({ defaultMode = "login", onAuthSuccess }) {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const { login, logout } = useUser();
 
   async function handleSubmit(event) {
     event.preventDefault();

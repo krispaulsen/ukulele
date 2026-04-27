@@ -1,7 +1,8 @@
 import SongList from "../components/SongList";
+import {useUser} from "../context/UserContext";
 
 export default function FavoritesPage({ songs, favoriteSongIds, onToggleFavorite }) {
-  const favoriteSongs = songs.filter((song) => favoriteSongIds.has(song.id));
+  const { user } = useUser();
 
   return (
     <section className="sidebar page-panel">

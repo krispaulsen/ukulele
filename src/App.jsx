@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, Navigate, Route, Routes } from "react-router-dom";
 import { apiRequest } from "./lib/api";
+import { useUser } from "./context/UserContext";
 import AuthPage from "./pages/AuthPage";
 import FavoritesPage from "./pages/FavoritesPage";
 import SearchPage from "./pages/SearchPage";
@@ -8,7 +9,7 @@ import SongPage from "./pages/SongPage";
 import SongEditorPage from "./pages/SongEditorPage";
 
 export default function App() {
-  const [user, setUser] = useState(null);
+  const { user } = useUser();
   const [isAuthLoading, setIsAuthLoading] = useState(false);
   const [songs, setSongs] = useState([]);
   const [favoriteSongIds, setFavoriteSongIds] = useState(new Set());
