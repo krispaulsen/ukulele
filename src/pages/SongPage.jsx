@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
-import { Link, useParams } from "react-router-dom";
-import SongDetails from "../components/SongDetails";
+import { useParams } from "react-router-dom";
 import { apiRequest } from "../lib/api";
+import SongDetails from "../components/SongDetails";
+import { Button, Link } from "../components/ui";
 
 export default function SongPage({ isLoggedIn, favoriteSongIds, onToggleFavorite }) {
   const { songId } = useParams();
@@ -29,25 +30,26 @@ export default function SongPage({ isLoggedIn, favoriteSongIds, onToggleFavorite
 
   return (
     <>
-      <Link to="/" className="back-link">
-        ← Back to search
-      </Link>
       {isLoading ? <p>Loading song...</p> : null}
       {loadError ? <p role="alert">Could not load song: {loadError}</p> : null}
+      
       <SongDetails
         song={song}
         actions={
           isLoggedIn && song ? (
             <>
-              <button
+              <Button
                 type="button"
-                className={`favorite-btn ${favoriteSongIds.has(song.id) ? "on" : ""}`}
+                className={`favorite-btn ${favoriteSongIds.has(song.id) ? "active" : ""}`}
                 onClick={() => onToggleFavorite(song.id)}
               >
                 {favoriteSongIds.has(song.id) ? "★ Favorited" : "☆ Add Favorite"}
-              </button>
-              {song.canEdit ? <Link className="action-link" to={`/song/${song.id}/edit`}>Edit Song</Link> : null}
-              {!song.canEdit ? <Link className="action-link" to={`/song/${song.id}/fork`}>Fork and Edit</Link> : null}
+              </Button>
+              {song.canEdit ? (
+                <Link variant="button-primary" className="action-link" to={`/song/${song.id}/edit`}>Edit Song</Link>
+              ) : (
+                <Link variant="button-primary" className="action-link" to={`/song/${song.id}/fork`}>Fork and Edit</Link>
+              )}
             </>
           ) : null
         }

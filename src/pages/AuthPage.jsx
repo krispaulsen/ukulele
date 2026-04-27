@@ -1,11 +1,14 @@
 import { useState } from "react";
 import { apiRequest } from "../lib/api";
 import { useUser } from "../context/UserContext";
+import Button from "../components/ui/Button";
+import { Form, Input } from "../components/Forms";
 
 export default function AuthPage({ defaultMode = "login", onAuthSuccess }) {
   const [mode, setMode] = useState(defaultMode);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [screenName, setScreenName] = useState("");
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { login, logout } = useUser();
@@ -16,13 +19,15 @@ export default function AuthPage({ defaultMode = "login", onAuthSuccess }) {
     setIsSubmitting(true);
     try {
       const endpoint = mode === "login" ? "/api/auth/login" : "/api/auth/register";
-      const user = await apiRequest(endpoint, {
+      const userData = await apiRequest(endpoint, {
         method: "POST",
-        body: JSON.stringify({ email, password })
+        body: JSON.stringify({ email, password, screenName })
       });
-      onAuthSuccess(user);
+      login(userData);
+      console.log('user', userData);
     } catch (submitError) {
       setError(submitError.message || "Authentication failed");
+      logout();
     } finally {
       setIsSubmitting(false);
     }
@@ -31,39 +36,49 @@ export default function AuthPage({ defaultMode = "login", onAuthSuccess }) {
   return (
     <section className="details auth-panel">
       <h2>{mode === "login" ? "Member Login" : "Create Account"}</h2>
-      <form className="auth-form" onSubmit={handleSubmit}>
-        <label htmlFor="email">Email</label>
-        <input
+      <Form className="auth-form" onSubmit={handleSubmit}>
+        <Input
           id="email"
           type="email"
+          label="Email"
           value={email}
           onChange={(event) => setEmail(event.target.value)}
           required
         />
 
-        <label htmlFor="password">Password</label>
-        <input
+        <Input
           id="password"
           type="password"
+          label="Password"
           value={password}
           onChange={(event) => setPassword(event.target.value)}
           minLength={8}
           required
         />
 
-        {/* TODO: if mode === 'register', add inputs for first name, last name, screen name, dark mode preference, chord color preference, chord position preference */}
-        {/* TODO: add profile page, change PW form */}
+        {mode === 'register' ? (
+          <>
+            <Input
+              id="screenName"
+              type="text"
+              label="Screen Name"
+              value={screenName}
+              onChange={(event) => setScreenName(event.target.value)}
+              required
+            />
+          </>
+        ) : null}
 
-        <button type="submit" disabled={isSubmitting}>
+        <Button type="submit" disabled={isSubmitting} variant="primary" className="my-2">
           {isSubmitting ? "Please wait..." : mode === "login" ? "Log in" : "Create account"}
-        </button>
-      </form>
+        </Button>
+      </Form>
 
       {error ? <p role="alert">{error}</p> : null}
 
-      <button className="text-btn" onClick={() => setMode(mode === "login" ? "register" : "login")}>
+      <Button variant="link" className="text-btn" onClick={() => setMode(mode === "login" ? "register" : "login")}>
         {mode === "login" ? "Need an account? Register" : "Already a member? Log in"}
-      </button>
+      </Button>
     </section>
   );
 }

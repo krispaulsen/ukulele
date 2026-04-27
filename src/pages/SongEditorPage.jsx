@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link, useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { apiRequest } from "../lib/api";
+import { Button } from "../components/ui";
+import { Form, Input, Textarea } from "../components/Forms";
 
 function formatSongForForm(song) {
   return {
@@ -104,45 +106,38 @@ export default function SongEditorPage({ mode }) {
   }
 
   return (
-    <section className="details page-panel">
-      <Link to={sourceSong ? `/song/${sourceSong.id}` : "/"} className="back-link">
-        ← Back
-      </Link>
+    <>
       <h2>{title}</h2>
+
       {isLoading ? <p>Loading song...</p> : null}
       {error ? <p role="alert">{error}</p> : null}
 
       {!isLoading ? (
-        <form className="song-form" onSubmit={handleSubmit}>
-          <label htmlFor="song-title">Title</label>
-          <input id="song-title" value={form.title} onChange={(event) => updateField("title", event.target.value)} required />
+        <Form className="song-form" onSubmit={handleSubmit}>
+          <Input id="song-title" label="Title" value={form.title} onChange={(event) => updateField("title", event.target.value)} required />
 
-          <label htmlFor="song-artist">Artist</label>
-          <input id="song-artist" value={form.artist} onChange={(event) => updateField("artist", event.target.value)} required />
+          <Input id="song-artist" label="Artist" value={form.artist} onChange={(event) => updateField("artist", event.target.value)} required />
 
-          <label htmlFor="song-key">Key</label>
-          <input id="song-key" value={form.key} onChange={(event) => updateField("key", event.target.value)} />
+          <Input id="song-key" label="Key" value={form.key} onChange={(event) => updateField("key", event.target.value)} />
 
-          <label htmlFor="song-capo">Capo</label>
-          <input
+          <Input
             id="song-capo"
             type="number"
-            min="0"
+            label="Capo"
             value={form.capo}
+            min="0"
             onChange={(event) => updateField("capo", event.target.value)}
           />
 
-          <label htmlFor="song-chords">Chords (comma-separated)</label>
-          <input id="song-chords" value={form.chords} onChange={(event) => updateField("chords", event.target.value)} />
+          <Input id="song-chords" label="Chords (comma-separated)" value={form.chords} onChange={(event) => updateField("chords", event.target.value)} />
 
-          <label htmlFor="song-lyrics">Lyrics (one line per row)</label>
-          <textarea id="song-lyrics" rows={10} value={form.lyrics} onChange={(event) => updateField("lyrics", event.target.value)} />
+          <Textarea id="song-lyrics" label="Lyrics (one line per row)" value={form.lyrics} rows={10} onChange={(event) => updateField("lyrics", event.target.value)} />
 
-          <button type="submit" disabled={isSaving}>
+          <Button type="submit" disabled={isSaving}>
             {isSaving ? "Saving..." : "Save Song"}
-          </button>
-        </form>
+          </Button>
+        </Form>
       ) : null}
-    </section>
+    </>
   );
 }

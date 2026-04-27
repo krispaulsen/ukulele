@@ -91,11 +91,6 @@ export default function App() {
     }
   }
 
-  async function handleLogout() {
-    await apiRequest("/api/auth/logout", { method: "POST" });
-    setUser(null);
-  }
-
   if (isAuthLoading) {
     return (
       <main className="container">
@@ -105,28 +100,9 @@ export default function App() {
   }
 
   return (
-    <main className="container">
-      <header>
-        <h1>My Ukulele Songbook</h1>
-        <nav>
-          <Link to="/">Home</Link>
-          {!user && (
-            <>
-              <Link to="/auth">Login</Link>
-              <Link to="/auth/register">Register</Link>
-            </>
-          )}
-          {user && (
-            <>
-              <Link to="/favorites">Favorites</Link>
-              <Link to="/song/new">Add Song</Link>
-              <button className="text-btn" type="button" onClick={handleLogout}>
-                Log out
-              </button>
-            </>
-          )}
-        </nav>
-      </header>
+    <>
+      <Header />
+      <section className="body p-4">
 
       {isLoading ? <p>Loading songs...</p> : null}
       {loadError ? <p role="alert">Could not load songs: {loadError}</p> : null}
@@ -142,7 +118,6 @@ export default function App() {
               onToggleFavorite={handleToggleFavorite}
               favoriteSongIds={favoriteSongIds}
               popularSongs={popularSongs}
-              onLogout={handleLogout}
               isLoggedIn={!!user}
             />
           }
@@ -153,6 +128,7 @@ export default function App() {
         />
         {user ? (
           <>
+              <Route path="/profile" element={<ProfilePage />} />
             <Route
               path="/favorites"
               element={
@@ -169,12 +145,14 @@ export default function App() {
           </>
         ) : (
           <>
-            <Route path="/auth" element={<AuthPage onAuthSuccess={setUser} />} />
-            <Route path="/auth/register" element={<AuthPage onAuthSuccess={setUser} defaultMode="register" />} />
+              <Route path="/auth" element={<AuthPage />} />
+              <Route path="/auth/register" element={<AuthPage defaultMode="register" />} />
           </>
         )}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
-    </main>
+
+      </section>
+    </>
   );
 }

@@ -1,6 +1,7 @@
-import { Link } from "react-router-dom";
 import { useMemo } from "react";
 import SongList from "../components/SongList";
+import { Link } from "../components/ui";
+import { Input } from "../components/Forms";
 
 export default function SearchPage({
   songs,
@@ -23,19 +24,19 @@ export default function SearchPage({
   }, [songs, query]);
 
   return (
-    <section className="sidebar page-panel">
+    <>
       <h2>Song Search</h2>
-      <label htmlFor="search">Search songs</label>
-      <input
+      <Input
         id="search"
         type="text"
+        label="Search Songs"
         placeholder="Type song title or artist..."
         value={query}
         onChange={(event) => onQueryChange(event.target.value)}
       />
       <SongList isLoggedIn={isLoggedIn} items={filteredSongs} favoriteSongIds={favoriteSongIds} onToggleFavorite={onToggleFavorite} />
 
-      <h3>Most Favorited Songs</h3>
+      <h3 className="mt-6">Most Favorited Songs</h3>
       {popularSongs.length === 0 ? (
         <p>No favorites yet.</p>
       ) : (
@@ -48,6 +49,6 @@ export default function SearchPage({
           ))}
         </ul>
       )}
-    </section>
+    </>
   );
 }
