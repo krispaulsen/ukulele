@@ -56,14 +56,6 @@ function validateSongPayload(payload) {
   };
 }
 
-function songDocToSummary(doc) {
-  return {
-    id: doc.songId,
-    title: doc.title || '',
-    artist: doc.artist || ''
-  };
-}
-
 function songDocToDetails(doc, currentUserId) {
   const isOwner = Boolean(currentUserId && doc.ownerUserId && doc.ownerUserId === currentUserId);
   return {
@@ -164,6 +156,7 @@ app.get("/api/auth/me", (req, res) => {
 app.post("/api/auth/register", async (req, res) => {
   const email = normalizeEmail(req.body?.email);
   const password = String(req.body?.password ?? "");
+  const screenName = String(req.body?.screenName ?? "Rockstar");
 
   if (!email.includes("@")) {
     res.status(400).json({ error: "A valid email is required" });
@@ -178,7 +171,7 @@ app.post("/api/auth/register", async (req, res) => {
   try {
     const db = songsDb();
     const existing = await db.find({
-      selector: { type: "user", emailLower: email },
+      selector: { type: "user", email: email },
       fields: ["_id"],
       limit: 1
     });
@@ -189,19 +182,21 @@ app.post("/api/auth/register", async (req, res) => {
 
     const userId = randomUUID();
     const passwordHash = await bcrypt.hash(password, 10);
+    const now = new Date().toISOString();
     await db.insert({
       _id: `user:${userId}`,
       type: "user",
       userId,
+      screenName,
       email,
-      emailLower: email,
       passwordHash,
-      createdAt: new Date().toISOString()
+      created: now,
+      lastLogin: now,
     });
 
     const token = signSession({ userId, email });
     setSessionCookie(res, token);
-    res.status(201).json({ userId, email });
+    res.status(201).json({ userId, email, screenName, lastLogin: now, favorites: [] });
   } catch (error) {
     console.error("Failed to register:", error);
     res.status(500).json({ error: "Failed to register" });
@@ -215,7 +210,7 @@ app.post("/api/auth/login", async (req, res) => {
   try {
     const db = songsDb();
     const users = await db.find({
-      selector: { type: "user", emailLower: email },
+      selector: { type: "user", email: email },
       limit: 1
     });
     const user = users.docs[0];
@@ -232,7 +227,21 @@ app.post("/api/auth/login", async (req, res) => {
 
     const token = signSession({ userId: user.userId, email: user.email });
     setSessionCookie(res, token);
-    res.json({ userId: user.userId, email: user.email });
+
+    // set last login
+    const now = new Date().toISOString();
+    db.insert({
+      ...user,
+      lastLogin: now
+    });
+
+
+    res.json({
+      userId: user.userId,
+      email: user.email,
+      screenName: user.screenName,
+      lastLogin: user.lastLogin,
+    });
   } catch (error) {
     console.error("Failed to login:", error);
     res.status(500).json({ error: "Failed to login" });
@@ -247,14 +256,52 @@ app.post("/api/auth/logout", (_req, res) => {
 app.get("/api/songs", async (_req, res) => {
   try {
     const db = songsDb();
+    
+    // select all songs
     const result = await db.find({
       // selector: { songId: { $exists: true } },
       selector: { type: 'song' },
-      fields: ["songId", "title", "artist"],
-      limit: 10000
+      fields: ["songId", "title", "artist", "chords", "ownerUserId", "modified"],
+      limit: 100
     });
+
+    // get all ownerUserIds from the selected songs
+    const userIds = [...new Set(result.docs.flatMap(doc => {
+      return doc.ownerUserId ? ['user:' + doc.ownerUserId] : [];
+    }))];
+    // userIds == ["user:123", "user:456"]
+
+    // get users from userIds
+    // const userDocsResult = await db.fetch({ keys: userIds });
+    const userDocsResult = await db.find({
+      selector: {
+        _id: {
+          "$in": userIds
+        }
+      },
+      fields: ["userId", "screenName", "email"]
+    });
+    // userDocsResult == { docs: [ { userId: '123', screenName: 'Test', email: 'test@test.com' }, { ... } ] }
+
+    // get screenNames from users
+    const screenNameMap = {};
+    userDocsResult.docs.forEach(user => {
+      screenNameMap[user.userId] = user.screenName;
+    });
+    // screenNameMap == { '123': 'Test', '456': 'Foo' }
+
     const songs = result.docs
-      .map(songDocToSummary)
+      .map(doc => {
+        return {
+          id: doc.songId,
+          title: doc.title || '',
+          artist: doc.artist || '',
+          chords: doc.chords.join(', ') || '',
+          submitter: screenNameMap[doc.ownerUserId] ?? '',
+          userId: doc.ownerUserId,
+          modified: doc.modified,
+        }
+      })
       .sort((a, b) => a.title.localeCompare(b.title));
 
     res.json(songs);
@@ -281,6 +328,7 @@ app.get("/api/songs/:songId", async (req, res) => {
   }
 });
 
+// SAVE A NEW SONG
 app.post("/api/songs", requireAuth, async (req, res) => {
   const parsed = validateSongPayload(req.body ?? {});
   if (!parsed.ok) {
@@ -299,8 +347,8 @@ app.post("/api/songs", requireAuth, async (req, res) => {
       ...parsed.value,
       ownerUserId: req.user.userId,
       originalSongId: null,
-      createdAt: now,
-      updatedAt: now
+      created: now,
+      modified: now
     };
     await db.insert(doc);
     res.status(201).json(songDocToDetails(doc, req.user.userId));
@@ -310,6 +358,7 @@ app.post("/api/songs", requireAuth, async (req, res) => {
   }
 });
 
+// UPDATE AN EXISTING SONG
 app.put("/api/songs/:songId", requireAuth, async (req, res) => {
   const parsed = validateSongPayload(req.body ?? {});
   if (!parsed.ok) {
@@ -328,7 +377,7 @@ app.put("/api/songs/:songId", requireAuth, async (req, res) => {
     const updated = {
       ...doc,
       ...parsed.value,
-      updatedAt: new Date().toISOString()
+      modified: new Date().toISOString()
     };
     await db.insert(updated);
     res.json(songDocToDetails(updated, req.user.userId));
@@ -361,8 +410,8 @@ app.post("/api/songs/:songId/fork", requireAuth, async (req, res) => {
       ...parsed.value,
       ownerUserId: req.user.userId,
       originalSongId: source.songId,
-      createdAt: now,
-      updatedAt: now
+      created: now,
+      modified: now
     };
     await db.insert(copy);
     res.status(201).json(songDocToDetails(copy, req.user.userId));
@@ -413,7 +462,7 @@ app.post("/api/favorites/:songId", requireAuth, async (req, res) => {
       type: "favorite",
       userId: req.user.userId,
       songId,
-      createdAt: new Date().toISOString()
+      created: new Date().toISOString()
     });
     res.status(201).end();
   } catch (error) {
@@ -443,7 +492,7 @@ app.delete("/api/favorites/:songId", requireAuth, async (req, res) => {
   }
 });
 
-app.get("/api/favorites/top", requireAuth, async (req, res) => {
+app.get("/api/favorites/top", async (req, res) => {
   const limit = Math.max(1, Math.min(50, Number(req.query.limit ?? 20)));
 
   try {

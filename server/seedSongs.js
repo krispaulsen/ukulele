@@ -32,8 +32,8 @@ async function seed() {
         lyrics: song.lyrics,
         ownerUserId: existing?.ownerUserId ?? null,
         originalSongId: existing?.originalSongId ?? null,
-        createdAt: existing?.createdAt ?? now,
-        updatedAt: now
+        created: existing?.created ?? now,
+        modified: now
       },
       docId
     );

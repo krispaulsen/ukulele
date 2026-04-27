@@ -1,3 +1,68 @@
+@import "tailwindcss";
+
+@layer base {
+  body {
+    @apply bg-taupe-800 text-taupe-300;
+  }
+  a {
+    @apply
+      text-orange-300
+      hover:underline
+      hover:text-orange-400
+    ;
+  }
+  h1 {
+    @apply text-3xl font-bold mb-4;
+  }
+  h2 {
+    @apply text-2xl font-bold mb-3;
+  }
+  h3 {
+    @apply text-xl font-bold mb-2;
+  }
+
+  input,
+  select,
+  textarea {
+    @apply px-2 py-1 bg-taupe-900 border border-taupe-600 rounded-md;
+  }
+}
+
+@layer components {
+  .form-control {
+    @apply my-2;
+  }
+  .form-control label {
+    @apply block;
+  }
+
+  .chord-diagram {
+    @apply bg-amber-950 border border-amber-900 rounded-md p-1;
+  }
+  .chord-name {
+    @apply fill-amber-100 text-sm font-bold;
+  }
+  .chord-marker {
+    @apply fill-yellow-400 text-xs font-bold;
+  }
+  .chord-open-marker {
+    @apply fill-transparent stroke-yellow-400;
+  }
+  .chord-string {
+    @apply stroke-white;
+  }
+  .chord-nut {
+    @apply stroke-amber-100;
+  }
+  .chord-fret {
+    @apply stroke-gray-400;
+  }
+  .chord-dot {
+    @apply fill-yellow-400;
+  }
+}
+
+/*
 :root {
   font-family: Inter, Segoe UI, Tahoma, Geneva, Verdana, sans-serif;
   color: #f8fafc;
@@ -84,7 +149,8 @@ button:hover {
 }
 
 .song-btn {
-  display: block;
+  display: flex;
+  justify-content: space-between;
   width: 100%;
   text-align: left;
   border: 1px solid #334155;
@@ -308,3 +374,17 @@ button:hover {
 .popular-list a:hover {
   text-decoration: underline;
 }
+
+nav {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+nav a {
+  border: 1px solid #334155;
+  border-radius: 8px;
+  padding: 8px 16px;
+}
+
+*/

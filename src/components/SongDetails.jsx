@@ -22,10 +22,10 @@ export default function SongDetails({ song, actions }) {
           <strong>Capo:</strong> {song.capo}
         </span>
       </div>
-      {actions ? <div className="song-actions">{actions}</div> : null}
+      {actions ? <div className="song-actions flex gap-2">{actions}</div> : null}
 
       <h3>Chords</h3>
-      <div className="chord-tags">
+      <div className="chord-tags flex gap-2">
         {song.chords.map((chord) => (
           <UkuleleChordDiagram key={chord} chord={chord} />
         ))}
