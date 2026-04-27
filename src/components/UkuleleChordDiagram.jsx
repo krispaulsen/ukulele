@@ -22,30 +22,34 @@ export default function UkuleleChordDiagram({ chord, fingering, width = 74, heig
         {chord}
       </text>
 
-      {/* Strings */}
-      {[0, 1, 2, 3].map((stringIndex) => {
-        const x = hPadding + stringIndex * spacing;
-        return <line
-            key={`string-${stringIndex}`}
-            x1={x}
-            y1={top}
-            x2={x}
-            y2={top + diagramHeight}
-            className="chord-string"
-          />
-      })}
-
       {/* Frets */}
       {[0, 1, 2, 3, 4].map((fret) => {
         const y = top + (fret / maxFret) * diagramHeight;
+        const width = fret === 0 ? 4 : 1;
         return <line
           key={`fret-${fret}`}
           x1={hPadding}
           y1={y}
           x2={hPadding + (strings - 1) * spacing}
           y2={y}
+          strokeWidth={width}
           className={fret === 0 ? "chord-nut" : "chord-fret"}
         />
+      })}
+
+      {/* Strings */}
+      {[0, 1, 2, 3].map((stringIndex) => {
+        const x = hPadding + stringIndex * spacing;
+        const widths = [1.4, 2, 1.7, 1.1];
+        return <line
+            key={`string-${stringIndex}`}
+            x1={x}
+            y1={top}
+            x2={x}
+            y2={top + diagramHeight}
+            strokeWidth={widths[stringIndex]}
+            className="chord-string"
+          />
       })}
 
       {/* Notes */}
