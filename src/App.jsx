@@ -1,12 +1,14 @@
 import { useEffect, useState } from "react";
 import { Link, Navigate, Route, Routes } from "react-router-dom";
 import { apiRequest } from "./lib/api";
+import Header from "./components/Header";
 import { useUser } from "./context/UserContext";
 import AuthPage from "./pages/AuthPage";
 import FavoritesPage from "./pages/FavoritesPage";
 import SearchPage from "./pages/SearchPage";
 import SongPage from "./pages/SongPage";
 import SongEditorPage from "./pages/SongEditorPage";
+import ProfilePage from "./pages/ProfilePage";
 
 export default function App() {
   const { user } = useUser();
@@ -17,21 +19,6 @@ export default function App() {
   const [query, setQuery] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState("");
-
-  // useEffect(() => {
-  //   async function loadSession() {
-  //     try {
-  //       const me = await apiRequest("/api/auth/me");
-  //       setUser(me);
-  //     } catch {
-  //       setUser(null);
-  //     } finally {
-  //       setIsAuthLoading(false);
-  //     }
-  //   }
-
-  //   loadSession();
-  // }, []);
 
   async function refreshSongs() {
     setIsLoading(true);
