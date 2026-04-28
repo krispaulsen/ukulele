@@ -96,6 +96,51 @@ function clearSessionCookie(res) {
   res.clearCookie(TOKEN_COOKIE);
 }
 
+async function enrichSongs(db, result) {
+  // console.log(result);
+  
+  // get all ownerUserIds from the selected songs
+  const userIds = [...new Set(result?.docs?.flatMap(doc => {
+    return doc.ownerUserId ? ['user:' + doc.ownerUserId] : [];
+  }))];
+  // userIds == ["user:123", "user:456"]
+
+  // get users from userIds
+  // const userDocsResult = await db.fetch({ keys: userIds });
+  const userDocsResult = await db.find({
+    selector: {
+      _id: {
+        "$in": userIds
+      }
+    },
+    fields: ["userId", "screenName", "email"]
+  });
+  // userDocsResult == { docs: [ { userId: '123', screenName: 'Test', email: 'test@test.com' }, { ... } ] }
+
+  // get screenNames from users
+  const screenNameMap = {};
+  userDocsResult.docs.forEach(user => {
+    screenNameMap[user.userId] = user.screenName;
+  });
+  // screenNameMap == { '123': 'Test', '456': 'Foo' }
+
+  const songs = result.docs
+    .map(doc => {
+      return {
+        id: doc.songId,
+        title: doc.title || '',
+        artist: doc.artist || '',
+        chords: doc.chords.join(', ') || '',
+        submitter: screenNameMap[doc.ownerUserId] ?? '',
+        userId: doc.ownerUserId,
+        modified: doc.modified,
+      }
+    })
+    .sort((a, b) => a.title.localeCompare(b.title));
+
+  return songs;
+}
+
 app.use((req, _res, next) => {
   const token = req.cookies[TOKEN_COOKIE];
   if (!token) {
@@ -235,7 +280,6 @@ app.post("/api/auth/login", async (req, res) => {
       lastLogin: now
     });
 
-
     res.json({
       userId: user.userId,
       email: user.email,
@@ -265,44 +309,7 @@ app.get("/api/songs", async (_req, res) => {
       limit: 100
     });
 
-    // get all ownerUserIds from the selected songs
-    const userIds = [...new Set(result.docs.flatMap(doc => {
-      return doc.ownerUserId ? ['user:' + doc.ownerUserId] : [];
-    }))];
-    // userIds == ["user:123", "user:456"]
-
-    // get users from userIds
-    // const userDocsResult = await db.fetch({ keys: userIds });
-    const userDocsResult = await db.find({
-      selector: {
-        _id: {
-          "$in": userIds
-        }
-      },
-      fields: ["userId", "screenName", "email"]
-    });
-    // userDocsResult == { docs: [ { userId: '123', screenName: 'Test', email: 'test@test.com' }, { ... } ] }
-
-    // get screenNames from users
-    const screenNameMap = {};
-    userDocsResult.docs.forEach(user => {
-      screenNameMap[user.userId] = user.screenName;
-    });
-    // screenNameMap == { '123': 'Test', '456': 'Foo' }
-
-    const songs = result.docs
-      .map(doc => {
-        return {
-          id: doc.songId,
-          title: doc.title || '',
-          artist: doc.artist || '',
-          chords: doc.chords.join(', ') || '',
-          submitter: screenNameMap[doc.ownerUserId] ?? '',
-          userId: doc.ownerUserId,
-          modified: doc.modified,
-        }
-      })
-      .sort((a, b) => a.title.localeCompare(b.title));
+    const songs = await enrichSongs(db, result);
 
     res.json(songs);
   } catch (error) {
@@ -325,6 +332,32 @@ app.get("/api/songs/:songId", async (req, res) => {
 
     console.error("Failed to fetch song:", error);
     res.status(500).json({ error: "Failed to fetch song" });
+  }
+});
+
+app.post("/api/songList", async (req, res) => {
+  try {
+    const db = songsDb();
+    const songIds = req.body.songIds;
+    const ids = songIds.map(id => `song:${id}`) || [];
+    // const result = await db.fetch({ keys: ids });
+    const result = await db.find({
+      selector: {
+        _id: {
+          "$in": ids
+        }
+      },
+      fields: ["songId", "title", "artist", "chords", "ownerUserId", "modified"],
+      limit: 100
+    });
+    
+    const songs = await enrichSongs(db, result);
+
+    res.json(songs);
+    // res.json(result.rows.map(row => row.doc));
+  } catch (error) {
+    console.error("Failed to fetch song list:", error);
+    res.status(500).json({ error: "Failed to fetch song list" });
   }
 });
 
@@ -431,9 +464,9 @@ app.get("/api/favorites", requireAuth, async (req, res) => {
     const result = await db.find({
       selector: { type: "favorite", userId: req.user.userId },
       fields: ["songId"],
-      limit: 10000
+      limit: 100
     });
-    res.json({ songIds: result.docs.map((doc) => doc.songId) });
+    res.json([...result.docs.map((doc) => doc.songId)]);
   } catch (error) {
     console.error("Failed to fetch favorites:", error);
     res.status(500).json({ error: "Failed to fetch favorites" });
@@ -464,7 +497,7 @@ app.post("/api/favorites/:songId", requireAuth, async (req, res) => {
       songId,
       created: new Date().toISOString()
     });
-    res.status(201).end();
+    res.status(201).json({songId, userId: req.user.userId});
   } catch (error) {
     if (error.statusCode === 404) {
       res.status(404).json({ error: "Song not found" });

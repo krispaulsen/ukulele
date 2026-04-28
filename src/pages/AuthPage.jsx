@@ -11,19 +11,14 @@ export default function AuthPage({ defaultMode = "login", onAuthSuccess }) {
   const [screenName, setScreenName] = useState("");
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const { login, logout } = use(UserContext);
+  const { login, logout, register } = use(UserContext);
 
   async function handleSubmit(event) {
     event.preventDefault();
     setError("");
     setIsSubmitting(true);
     try {
-      const endpoint = mode === "login" ? "/api/auth/login" : "/api/auth/register";
-      const userData = await apiRequest(endpoint, {
-        method: "POST",
-        body: JSON.stringify({ email, password, screenName })
-      });
-      login(userData);
+      mode === "login" ? login(email, password) : register(email, password, screenName);
     } catch (submitError) {
       setError(submitError.message || "Authentication failed");
       logout();

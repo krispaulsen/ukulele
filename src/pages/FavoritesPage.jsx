@@ -1,18 +1,52 @@
-import { use } from "react";
-import SongList from "../components/SongList";
+import { use, useEffect, useState } from "react";
 import { UserContext } from "../context/UserContext";
+import { apiRequest } from "../lib/api";
+import SongList from "../components/SongList";
 
-export default function FavoritesPage({ songs, favoriteSongIds, onToggleFavorite }) {
+export default function FavoritesPage() {
   const { user } = use(UserContext);
+  const [favoriteSongs, setFavoriteSongs] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [loadError, setLoadError] = useState("");
+
+  useEffect(() => {
+    async function loadSongList() {
+      setIsLoading(true);
+      setLoadError("");
+      try {
+        const data = await apiRequest(`/api/songList`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ songIds: [...user.favorites] })
+        });
+        setFavoriteSongs(data);
+      } catch (error) {
+        setLoadError(error.message || "Failed to load song");
+        setFavoriteSongs(null);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+
+    if (user.favorites.size) {
+      loadSongList();
+    } else {
+      // favorites is empty
+      setIsLoading(false);
+    }
+  }, [user.favorites]);
 
   return (
-    <section className="sidebar page-panel">
+    <>
       <h2>My Favorites</h2>
-      {favoriteSongs.length === 0 ? (
-        <p>No favorites yet. Mark songs with the star button.</p>
+      {isLoading ? <p>Loading songs...</p> : null}
+      {loadError ? <p role="alert">Could not load songs: {loadError}</p> : null}
+
+      {favoriteSongs ? (
+        <SongList items={favoriteSongs} />
       ) : (
-        <SongList items={favoriteSongs} favoriteSongIds={favoriteSongIds} onToggleFavorite={onToggleFavorite} />
+        <p>No favorites yet. Mark songs with the star button.</p>
       )}
-    </section>
+    </>
   );
 }

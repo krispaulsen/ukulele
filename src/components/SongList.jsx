@@ -2,8 +2,9 @@ import { use } from "react";
 import { UserContext } from "../context/UserContext";
 import { ToggleButton, Link } from "./ui";
 
-export default function SongList({ items, favoriteSongIds = new Set(), onToggleFavorite }) {
-  const { user } = use(UserContext);
+export default function SongList({ items }) {
+  const { user, toggleFavorite } = use(UserContext);
+
   return (
     <table className="w-full">
       <thead>
@@ -17,7 +18,8 @@ export default function SongList({ items, favoriteSongIds = new Set(), onToggleF
       </thead>
       <tbody>
         {items.map((song) => {
-          const isFavorited = favoriteSongIds.has(song.id);
+          const isFavorited = user?.favorites?.has(song.id);
+
           return (
             <tr key={song.id}>
               {user?.isLoggedIn && (
@@ -26,7 +28,7 @@ export default function SongList({ items, favoriteSongIds = new Set(), onToggleF
                     type="button"
                     variant="icon"
                     className={`favorite-btn ${isFavorited ? "active" : ""}`}
-                    onClick={() => onToggleFavorite(song.id)}
+                    onClick={() => toggleFavorite(song.id)}
                     aria-label={isFavorited ? "Remove from favorites" : "Add to favorites"}
                   >
                     { isFavorited ? "★" : "☆" }

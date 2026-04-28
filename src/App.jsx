@@ -12,131 +12,39 @@ import ProfilePage from "./pages/ProfilePage";
 
 export default function App() {
   const { user } = use(UserContext);
-  const [isAuthLoading, setIsAuthLoading] = useState(false);
-  const [songs, setSongs] = useState([]);
-  const [favoriteSongIds, setFavoriteSongIds] = useState(new Set());
-  const [popularSongs, setPopularSongs] = useState([]);
-  const [query, setQuery] = useState("");
-  const [isLoading, setIsLoading] = useState(true);
-  const [loadError, setLoadError] = useState("");
 
-  async function refreshSongs() {
-    setIsLoading(true);
-    setLoadError("");
-    try {
-      const data = await apiRequest("/api/songs");
-      setSongs(data);
-    } catch (error) {
-      setLoadError(error.message || "Failed to load songs");
-    } finally {
-      setIsLoading(false);
-    }
-  }
-
-  async function refreshFavorites() {
-    try {
-      const favorites = await apiRequest("/api/favorites");
-      setFavoriteSongIds(new Set(favorites.songIds));
-    } catch {
-      setFavoriteSongIds(new Set());
-    }
-  }
-
-  async function refreshPopular() {
-    try {
-      const top = await apiRequest("/api/favorites/top?limit=10");
-      setPopularSongs(top);
-    } catch {
-      setPopularSongs([]);
-    }
-  }
-
-  useEffect(() => {
-    if (user.isLoggedIn) {
-      refreshFavorites();
-    } else {
-      setFavoriteSongIds(new Set());
-      setIsLoading(false);
-    }
-
-    refreshSongs();
-    refreshPopular();
-  }, [user]);
-
-  async function handleToggleFavorite(songId) {
-    const isFavorite = favoriteSongIds.has(songId);
-    try {
-      if (isFavorite) {
-        await apiRequest(`/api/favorites/${encodeURIComponent(songId)}`, { method: "DELETE" });
-      } else {
-        await apiRequest(`/api/favorites/${encodeURIComponent(songId)}`, { method: "POST" });
-      }
-      await refreshFavorites();
-      await refreshPopular();
-    } catch (error) {
-      setLoadError(error.message || "Failed to update favorites");
-    }
-  }
-
-  if (isAuthLoading) {
-    return (
-      <main className="container">
-        <p>Loading session...</p>
-      </main>
-    );
-  }
+  // if (isAuthLoading) {
+  //   return (
+  //     <main className="container">
+  //       <p>Loading session...</p>
+  //     </main>
+  //   );
+  // }
 
   return (
     <>
       <Header />
       <section className="body p-4">
 
-      {isLoading ? <p>Loading songs...</p> : null}
-      {loadError ? <p role="alert">Could not load songs: {loadError}</p> : null}
-
-      <Routes>
-        <Route
-          path="/"
-          element={
-            <SearchPage
-              songs={songs}
-              query={query}
-              onQueryChange={setQuery}
-              onToggleFavorite={handleToggleFavorite}
-              favoriteSongIds={favoriteSongIds}
-              popularSongs={popularSongs}
-            />
-          }
-        />
-        <Route
-          path="/song/:songId"
-            element={<SongPage favoriteSongIds={favoriteSongIds} onToggleFavorite={handleToggleFavorite} />}
-        />
+        <Routes>
+          <Route path="/" element={<SearchPage />} />
+          <Route path="/song/:songId" element={<SongPage />} />
           {user?.isLoggedIn ? (
-          <>
+            <>
               <Route path="/profile" element={<ProfilePage />} />
-            <Route
-              path="/favorites"
-              element={
-                <FavoritesPage
-                  songs={songs}
-                  favoriteSongIds={favoriteSongIds}
-                  onToggleFavorite={handleToggleFavorite}
-                />
-              }
-            />
-            <Route path="/song/new" element={<SongEditorPage mode="new" />} />
-            <Route path="/song/:songId/edit" element={<SongEditorPage mode="edit" />} />
-            <Route path="/song/:songId/fork" element={<SongEditorPage mode="fork" />} />
-          </>
-        ) : (
-          <>
+              <Route path="/favorites" element={<FavoritesPage />} />
+              <Route path="/song/new" element={<SongEditorPage mode="new" />} />
+              <Route path="/song/:songId/edit" element={<SongEditorPage mode="edit" />} />
+              <Route path="/song/:songId/fork" element={<SongEditorPage mode="fork" />} />
+            </>
+          ) : (
+            <>
               <Route path="/auth" element={<AuthPage />} />
               <Route path="/auth/register" element={<AuthPage defaultMode="register" />} />
-          </>
-        )}
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
+            </>
+          )}
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
 
       </section>
     </>
