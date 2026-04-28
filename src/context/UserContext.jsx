@@ -1,4 +1,4 @@
-import { createContext, useContext, useState } from 'react';
+import { createContext, useEffect, useState } from 'react';
 import { apiRequest } from '../lib/api';
 
 // 1. Initialize the context
@@ -10,6 +10,10 @@ export const UserProvider = ({ children }) => {
 
     const [user, setUser] = useState(loggedOutUser);
     const [favorites, setFavorites] = useState(new Set());
+
+    useEffect(() => {
+        setUser({ ...user, favorites })
+    }, [favorites])
 
     const login = async (email, password) => {
         try {

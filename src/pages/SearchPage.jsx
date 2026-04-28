@@ -62,7 +62,7 @@ export default function SearchPage({ onToggleFavorite, favoriteSongIds }) {
                 value={query}
                 onChange={(event) => setQuery(event.target.value)}
             />
-            <SongList items={filteredSongs} />
+            <SongList items={filteredSongs} updatePopularList={refreshPopular} />
 
             <h3 className="mt-6">Most Favorited Songs</h3>
             {popularSongs.length === 0 ? (

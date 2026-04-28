@@ -2,8 +2,13 @@ import { use } from "react";
 import { UserContext } from "../context/UserContext";
 import { ToggleButton, Link } from "./ui";
 
-export default function SongList({ items }) {
+export default function SongList({ items, updatePopularList = () => {} }) {
     const { user, toggleFavorite } = use(UserContext);
+
+    const handleToggleFavorite = async (songId) => {
+        await toggleFavorite(songId);
+        updatePopularList();
+    };
 
     return (
         <table className="w-full">
@@ -28,7 +33,7 @@ export default function SongList({ items }) {
                                         type="button"
                                         variant="icon"
                                         className={`favorite-btn ${isFavorited ? "active" : ""}`}
-                                        onClick={() => toggleFavorite(song.id)}
+                                        onClick={() => handleToggleFavorite(song.id)}
                                         aria-label={isFavorited ? "Remove from favorites" : "Add to favorites"}
                                     >
                                         {isFavorited ? "★" : "☆"}
