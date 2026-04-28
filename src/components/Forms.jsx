@@ -1,9 +1,9 @@
 
-const Form = ({children, ...rest}) => {
+const Form = ({ children, ...rest }) => {
     return <form {...rest}>{children}</form>
 };
 
-const Input = ({type = "text", id, label, ...rest}) => {
+const Input = ({ type = "text", id, label, ...rest }) => {
     return (
         <div className="form-control">
             {label && <label htmlFor={id}>{label}</label>}
@@ -12,7 +12,7 @@ const Input = ({type = "text", id, label, ...rest}) => {
     );
 };
 
-const Select = ({id, label, value, options, ...rest}) => {
+const Select = ({ id, label, value, options, ...rest }) => {
     return (
         <div className="form-control">
             {label && <label htmlFor={id}>{label}</label>}
@@ -25,7 +25,7 @@ const Select = ({id, label, value, options, ...rest}) => {
     );
 };
 
-const Textarea = ({id, label, ...rest}) => {
+const Textarea = ({ id, label, ...rest }) => {
     return (
         <div className="form-control">
             {label && <label htmlFor={id}>{label}</label>}
@@ -34,7 +34,7 @@ const Textarea = ({id, label, ...rest}) => {
     )
 };
 
-const Checkbox = ({label, isChecked, ...rest}) => {
+const Checkbox = ({ label, isChecked, ...rest }) => {
     return (
         <div className="form-control">
             <label>

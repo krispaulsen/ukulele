@@ -4,8 +4,8 @@ import { Checkbox, Input, Select } from "../components/Forms";
 
 export default function ProfilePage() {
     const { user } = use(UserContext);
-    const [ screenName, setScreenName ] = useState(user.screenName);
-    const [ email, setEmail ] = useState(user.email);
+    const [screenName, setScreenName] = useState(user.screenName);
+    const [email, setEmail] = useState(user.email);
 
     useEffect(() => {
         setScreenName(user.screenName);
@@ -15,10 +15,10 @@ export default function ProfilePage() {
     return (
         <>
             <section className="details page-panel">
-                
+
                 <Input type="text" label="Screen Name" value={screenName} onChange={(event) => setScreenName(event.target.value)} />
                 <Input type="email" label="Email Address" value={email} onChange={(event) => setEmail(event.target.value)} />
-            
+
             </section>
 
             <section className="details page-panel">
@@ -31,7 +31,7 @@ export default function ProfilePage() {
             </section>
 
             <section className="details page-panel">
-                
+
                 <Checkbox label="Dark Mode" />
                 <Select label="Chord Color" value="red" options={[
                     { label: "Red", value: "red" },

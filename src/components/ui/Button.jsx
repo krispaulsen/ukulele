@@ -1,6 +1,6 @@
 import { clsx } from "clsx";
 
-export const ToggleButton = ({isActive=false, className, children, ...rest}) => {
+export const ToggleButton = ({ isActive = false, className, children, ...rest }) => {
     // TODO: make a visual distinction between active and not active
     const classString = clsx('', className);
     return (
@@ -12,7 +12,7 @@ export const ToggleButton = ({isActive=false, className, children, ...rest}) => 
     );
 };
 
-export const Button = ({variant="primary", type="button", className, children, ...rest}) => {
+export const Button = ({ variant = "primary", type = "button", className, children, ...rest }) => {
     const styles = {
         default: [
             'px-4',
@@ -45,7 +45,7 @@ export const Button = ({variant="primary", type="button", className, children, .
         ]
     };
 
-    const classString = variant === 'link' ? 
+    const classString = variant === 'link' ?
         clsx(...styles.link, className) :
         clsx(...styles.default, ...styles[variant], className)
 

@@ -2,7 +2,7 @@ import { Link as ReactLink } from "react-router-dom";
 import { clsx } from "clsx";
 
 
-export const Link = ({variant="link", className, children, ...rest}) => {
+export const Link = ({ variant = "link", className, children, ...rest }) => {
     const styles = {
         default: [],
         button: [
@@ -22,7 +22,7 @@ export const Link = ({variant="link", className, children, ...rest}) => {
 
     const classString = variant === "link" ?
         clsx(...styles.default, className) :
-        clsx(...styles.button,...styles[variant], className);
+        clsx(...styles.button, ...styles[variant], className);
 
     return <ReactLink className={classString} {...rest}>{children}</ReactLink>
 };

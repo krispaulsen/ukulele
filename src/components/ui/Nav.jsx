@@ -1,7 +1,7 @@
 
 
 
-export const Nav = ({children}) => {
+export const Nav = ({ children }) => {
     return <nav className="flex gap-4">{children}</nav>
 };
 
