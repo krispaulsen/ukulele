@@ -5,9 +5,9 @@ import { UserContext } from "../context/UserContext";
 import { Button, Link } from "../components/ui";
 import UkuleleChordDiagram from "../components/UkuleleChordDiagram";
 
-export default function SongPage({ favoriteSongIds, onToggleFavorite }) {
+export default function SongPage() {
     const { songId } = useParams();
-    const { user } = use(UserContext);
+    const { user, toggleFavorite } = use(UserContext);
     const [song, setSong] = useState(null);
     const [isLoading, setIsLoading] = useState(true);
     const [loadError, setLoadError] = useState("");
@@ -52,10 +52,10 @@ export default function SongPage({ favoriteSongIds, onToggleFavorite }) {
                         <div className="song-actions flex gap-2">
                             <Button
                                 type="button"
-                                className={`favorite-btn ${favoriteSongIds.has(song.id) ? "active" : ""}`}
-                                onClick={() => onToggleFavorite(song.id)}
+                                className={`favorite-btn ${user?.favorites?.has(song.id) ? "active" : ""}`}
+                                onClick={() => toggleFavorite(song.id)}
                             >
-                                {favoriteSongIds.has(song.id) ? "★ Favorited" : "☆ Add Favorite"}
+                                {user?.favorites?.has(song.id) ? "★ Favorited" : "☆ Add Favorite"}
                             </Button>
                             {song.canEdit ? (
                                 <Link variant="button-primary" className="action-link" to={`/song/${song.id}/edit`}>Edit Song</Link>
