@@ -1,21 +1,33 @@
 import { createContext, useContext, useState } from 'react';
 
 // 1. Initialize the context
-const UserContext = createContext(null);
+export const UserContext = createContext(null);
 
 // 2. Create a provider component
 export const UserProvider = ({ children }) => {
-  const [user, setUser] = useState(null);
+  const loggedOutUser = { isLoggedIn: false };
 
-  const login = (userData) => setUser(userData);
-  const logout = () => setUser(null);
+  const [user, setUser] = useState(loggedOutUser);
+
+  const login = (userData) => {
+    const updatedUserData = { ...userData, isLoggedIn: true };
+    console.log("User Logged In", updatedUserData);
+    setUser(updatedUserData);
+  };
+  const logout = () => setUser(loggedOutUser);
 
   return (
-    <UserContext.Provider value={{ user, login, logout }}>
+    <UserContext value={{ user, login, logout }}>
       {children}
-    </UserContext.Provider>
+    </UserContext>
   );
 };
 
-// 3. Create a custom hook for easy access
-export const useUser = () => useContext(UserContext);
+// 3. Access the user in subcomponents
+// import { use } from "react";
+// import { UserContext } from "./context/UserContext";
+// const { user, login, logout } = use(UserContext);
+// if (user.isLoggedIn) {
+//     console.log(user.screenName)
+//     logout();
+// }

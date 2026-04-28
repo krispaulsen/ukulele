@@ -1,8 +1,9 @@
+import { use } from "react";
 import SongList from "../components/SongList";
-import {useUser} from "../context/UserContext";
+import { UserContext } from "../context/UserContext";
 
 export default function FavoritesPage({ songs, favoriteSongIds, onToggleFavorite }) {
-  const { user } = useUser();
+  const { user } = use(UserContext);
 
   return (
     <section className="sidebar page-panel">

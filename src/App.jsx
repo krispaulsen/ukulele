@@ -1,8 +1,8 @@
-import { useEffect, useState } from "react";
+import { use, useEffect, useState } from "react";
 import { Link, Navigate, Route, Routes } from "react-router-dom";
 import { apiRequest } from "./lib/api";
+import { UserContext } from "./context/UserContext";
 import Header from "./components/Header";
-import { useUser } from "./context/UserContext";
 import AuthPage from "./pages/AuthPage";
 import FavoritesPage from "./pages/FavoritesPage";
 import SearchPage from "./pages/SearchPage";
@@ -11,7 +11,7 @@ import SongEditorPage from "./pages/SongEditorPage";
 import ProfilePage from "./pages/ProfilePage";
 
 export default function App() {
-  const { user } = useUser();
+  const { user } = use(UserContext);
   const [isAuthLoading, setIsAuthLoading] = useState(false);
   const [songs, setSongs] = useState([]);
   const [favoriteSongIds, setFavoriteSongIds] = useState(new Set());
@@ -52,11 +52,11 @@ export default function App() {
   }
 
   useEffect(() => {
-    if (!user) {
+    if (user.isLoggedIn) {
+      refreshFavorites();
+    } else {
       setFavoriteSongIds(new Set());
       setIsLoading(false);
-    } else {
-      refreshFavorites();
     }
 
     refreshSongs();
@@ -105,15 +105,14 @@ export default function App() {
               onToggleFavorite={handleToggleFavorite}
               favoriteSongIds={favoriteSongIds}
               popularSongs={popularSongs}
-              isLoggedIn={!!user}
             />
           }
         />
         <Route
           path="/song/:songId"
-          element={<SongPage isLoggedIn={!!user} favoriteSongIds={favoriteSongIds} onToggleFavorite={handleToggleFavorite} />}
+            element={<SongPage favoriteSongIds={favoriteSongIds} onToggleFavorite={handleToggleFavorite} />}
         />
-        {user ? (
+          {user?.isLoggedIn ? (
           <>
               <Route path="/profile" element={<ProfilePage />} />
             <Route

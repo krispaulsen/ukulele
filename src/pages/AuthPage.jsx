@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { use, useState } from "react";
 import { apiRequest } from "../lib/api";
-import { useUser } from "../context/UserContext";
+import { UserContext } from "../context/UserContext";
 import Button from "../components/ui/Button";
 import { Form, Input } from "../components/Forms";
 
@@ -11,7 +11,7 @@ export default function AuthPage({ defaultMode = "login", onAuthSuccess }) {
   const [screenName, setScreenName] = useState("");
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const { login, logout } = useUser();
+  const { login, logout } = use(UserContext);
 
   async function handleSubmit(event) {
     event.preventDefault();
@@ -24,7 +24,6 @@ export default function AuthPage({ defaultMode = "login", onAuthSuccess }) {
         body: JSON.stringify({ email, password, screenName })
       });
       login(userData);
-      console.log('user', userData);
     } catch (submitError) {
       setError(submitError.message || "Authentication failed");
       logout();

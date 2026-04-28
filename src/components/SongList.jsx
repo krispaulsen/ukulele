@@ -1,11 +1,14 @@
+import { use } from "react";
+import { UserContext } from "../context/UserContext";
 import { ToggleButton, Link } from "./ui";
 
-export default function SongList({ items, favoriteSongIds = new Set(), onToggleFavorite, isLoggedIn }) {
+export default function SongList({ items, favoriteSongIds = new Set(), onToggleFavorite }) {
+  const { user } = use(UserContext);
   return (
     <table className="w-full">
       <thead>
         <tr className="text-left">
-          {isLoggedIn && <th></th>}
+          {user?.isLoggedIn && <th></th>}
           <th>Song</th>
           <th>Artist</th>
           <th>Chords</th>
@@ -17,7 +20,7 @@ export default function SongList({ items, favoriteSongIds = new Set(), onToggleF
           const isFavorited = favoriteSongIds.has(song.id);
           return (
             <tr key={song.id}>
-              {isLoggedIn && (
+              {user?.isLoggedIn && (
                 <td>
                   <ToggleButton
                     type="button"

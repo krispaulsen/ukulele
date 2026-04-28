@@ -1,11 +1,13 @@
-import { useEffect, useState } from "react";
+import { use, useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { apiRequest } from "../lib/api";
-import SongDetails from "../components/SongDetails";
+import { UserContext } from "../context/UserContext";
 import { Button, Link } from "../components/ui";
+import UkuleleChordDiagram from "../components/UkuleleChordDiagram";
 
-export default function SongPage({ isLoggedIn, favoriteSongIds, onToggleFavorite }) {
+export default function SongPage({ favoriteSongIds, onToggleFavorite }) {
   const { songId } = useParams();
+  const { user } = use(UserContext);
   const [song, setSong] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState("");
@@ -32,12 +34,22 @@ export default function SongPage({ isLoggedIn, favoriteSongIds, onToggleFavorite
     <>
       {isLoading ? <p>Loading song...</p> : null}
       {loadError ? <p role="alert">Could not load song: {loadError}</p> : null}
-      
-      <SongDetails
-        song={song}
-        actions={
-          isLoggedIn && song ? (
-            <>
+
+      {song && !isLoading ? (
+        <section className="details">
+          <h2>{song.title}</h2>
+          <p className="artist">{song.artist}</p>
+          {song.originalSongId ? <p className="song-note">Forked from: {song.originalSongId}</p> : null}
+          <div className="song-info">
+            <span>
+              <strong>Key:</strong> {song.key}
+            </span>
+            <span>
+              <strong>Capo:</strong> {song.capo}
+            </span>
+          </div>
+          {user?.isLoggedIn ? (
+            <div className="song-actions flex gap-2">
               <Button
                 type="button"
                 className={`favorite-btn ${favoriteSongIds.has(song.id) ? "active" : ""}`}
@@ -50,10 +62,20 @@ export default function SongPage({ isLoggedIn, favoriteSongIds, onToggleFavorite
               ) : (
                 <Link variant="button-primary" className="action-link" to={`/song/${song.id}/fork`}>Fork and Edit</Link>
               )}
-            </>
-          ) : null
-        }
-      />
+            </div>
+          ) : null}
+
+          <h3>Chords</h3>
+          <div className="chord-tags flex gap-2">
+            {song.chords.map((chord) => (
+              <UkuleleChordDiagram key={chord} chord={chord} />
+            ))}
+          </div>
+
+          <h3>Lyrics</h3>
+          <pre className="lyrics">{song.lyrics.map((line) => line).join("\n")}</pre>
+        </section>
+      ) : null}
     </>
   );
 }

@@ -10,8 +10,6 @@ export default function SearchPage({
   onToggleFavorite,
   favoriteSongIds,
   popularSongs,
-  onLogout,
-  isLoggedIn
 }) {
   const filteredSongs = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -34,7 +32,7 @@ export default function SearchPage({
         value={query}
         onChange={(event) => onQueryChange(event.target.value)}
       />
-      <SongList isLoggedIn={isLoggedIn} items={filteredSongs} favoriteSongIds={favoriteSongIds} onToggleFavorite={onToggleFavorite} />
+      <SongList items={filteredSongs} favoriteSongIds={favoriteSongIds} onToggleFavorite={onToggleFavorite} />
 
       <h3 className="mt-6">Most Favorited Songs</h3>
       {popularSongs.length === 0 ? (
