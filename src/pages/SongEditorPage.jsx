@@ -10,8 +10,7 @@ function formatSongForForm(song) {
         artist: song?.artist ?? "",
         key: song?.key ?? "C",
         capo: String(song?.capo ?? 0),
-        chords: (song?.chords ?? []).join(", "),
-        lyrics: (song?.lyrics ?? []).join("\n")
+        lyrics: song?.lyrics && (typeof song.lyrics === "string" ? song.lyrics : (song.lyrics ?? []).join("\n"))
     };
 }
 
@@ -59,24 +58,32 @@ export default function SongEditorPage({ mode }) {
         setForm((prev) => ({ ...prev, [name]: value }));
     }
 
+    function findChords(lyrics) {
+        const regex = /\[([A-G][24679abdgijmsu]*?)\]/g; // Matches content inside []
+        const matches = lyrics.match(regex);
+        const chordSet = new Set();
+        if (matches) {
+        matches.map((c) => {
+            // remove the [] and add it to the set
+            chordSet.add(c.replace(/[\[\]]/g, ''))
+        });
+        }
+        return [...chordSet];
+    }
+
     async function handleSubmit(event) {
         event.preventDefault();
         setError("");
         setIsSaving(true);
+        const chordsInSong = findChords(form.lyrics);
 
         const payload = {
             title: form.title.trim(),
             artist: form.artist.trim(),
             key: form.key.trim(),
             capo: Number(form.capo),
-            chords: form.chords
-                .split(",")
-                .map((item) => item.trim())
-                .filter(Boolean),
+            chords: chordsInSong,
             lyrics: form.lyrics
-                .split("\n")
-                .map((line) => line.trimEnd())
-                .filter((line) => line.length > 0)
         };
 
         try {
@@ -129,9 +136,7 @@ export default function SongEditorPage({ mode }) {
                         onChange={(event) => updateField("capo", event.target.value)}
                     />
 
-                    <Input id="song-chords" label="Chords (comma-separated)" value={form.chords} onChange={(event) => updateField("chords", event.target.value)} />
-
-                    <Textarea id="song-lyrics" label="Lyrics (one line per row)" value={form.lyrics} rows={10} onChange={(event) => updateField("lyrics", event.target.value)} />
+                    <Textarea id="song-lyrics" label="Lyrics" value={form.lyrics} rows={10} onChange={(event) => updateField("lyrics", event.target.value)} />
 
                     <Button type="submit" disabled={isSaving}>
                         {isSaving ? "Saving..." : "Save Song"}

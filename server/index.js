@@ -23,7 +23,8 @@ function slugify(value) {
     return String(value ?? "")
         .trim()
         .toLowerCase()
-        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/\s+/g, "-")
+        .replace(/[^a-z0-9\-]+/g, "")
         .replace(/^-+|-+$/g, "");
 }
 
@@ -33,7 +34,7 @@ function validateSongPayload(payload) {
     const key = String(payload.key ?? "").trim();
     const capo = Number(payload.capo ?? 0);
     const chords = Array.isArray(payload.chords) ? payload.chords.map((item) => String(item).trim()).filter(Boolean) : [];
-    const lyrics = Array.isArray(payload.lyrics) ? payload.lyrics.map((item) => String(item)) : [];
+    const lyrics =  String(payload.lyrics ?? "").trim();
 
     if (!title || !artist) {
         return { ok: false, error: "Title and artist are required" };
@@ -65,7 +66,7 @@ function songDocToDetails(doc, currentUserId) {
         key: doc.key,
         capo: doc.capo,
         chords: doc.chords ?? [],
-        lyrics: doc.lyrics ?? [],
+        lyrics: doc.lyrics ?? '',
         ownerUserId: doc.ownerUserId ?? null,
         originalSongId: doc.originalSongId ?? null,
         canEdit: isOwner
