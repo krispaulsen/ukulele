@@ -32,7 +32,7 @@ function validateSongPayload(payload) {
     const title = String(payload.title ?? "").trim();
     const artist = String(payload.artist ?? "").trim();
     const key = String(payload.key ?? "").trim();
-    const capo = Number(payload.capo ?? 0);
+    const capo = payload.capo;
     const chords = Array.isArray(payload.chords) ? payload.chords.map((item) => String(item).trim()).filter(Boolean) : [];
     const lyrics =  String(payload.lyrics ?? "").trim();
 
@@ -40,16 +40,12 @@ function validateSongPayload(payload) {
         return { ok: false, error: "Title and artist are required" };
     }
 
-    if (!Number.isFinite(capo) || capo < 0) {
-        return { ok: false, error: "Capo must be a non-negative number" };
-    }
-
     return {
         ok: true,
         value: {
             title,
             artist,
-            key: key || "C",
+            key,
             capo,
             chords,
             lyrics

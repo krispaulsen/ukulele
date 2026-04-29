@@ -8,8 +8,8 @@ function formatSongForForm(song) {
     return {
         title: song?.title ?? "",
         artist: song?.artist ?? "",
-        key: song?.key ?? "C",
-        capo: String(song?.capo ?? 0),
+        key: song?.key ?? "",
+        capo: song?.capo ?? "",
         lyrics: song?.lyrics && (typeof song.lyrics === "string" ? song.lyrics : (song.lyrics ?? []).join("\n"))
     };
 }
@@ -63,10 +63,10 @@ export default function SongEditorPage({ mode }) {
         const matches = lyrics.match(regex);
         const chordSet = new Set();
         if (matches) {
-        matches.map((c) => {
-            // remove the [] and add it to the set
-            chordSet.add(c.replace(/[\[\]]/g, ''))
-        });
+            matches.map((c) => {
+                // remove the [] and add it to the set
+                chordSet.add(c.replace(/[\[\]]/g, ''))
+            });
         }
         return [...chordSet];
     }
@@ -81,7 +81,7 @@ export default function SongEditorPage({ mode }) {
             title: form.title.trim(),
             artist: form.artist.trim(),
             key: form.key.trim(),
-            capo: Number(form.capo),
+            capo: form.capo,
             chords: chordsInSong,
             lyrics: form.lyrics
         };
