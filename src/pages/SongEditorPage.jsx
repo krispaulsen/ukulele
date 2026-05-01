@@ -4,6 +4,7 @@ import { apiRequest } from "../lib/api";
 import { Button, Flex } from "../components/ui";
 import { Form, Input, Textarea } from "../components/Forms";
 import Lyrics from "../components/Lyrics";
+// import { Button } from "@material-tailwind/react";
 
 function formatSongForForm(song) {
     return {
@@ -123,21 +124,21 @@ export default function SongEditorPage({ mode }) {
             {!isLoading ? (
                 <Flex gap={4} wrap growChildren className="w-full">
                     <section>
-                <Form className="song-form" onSubmit={handleSubmit}>
-                    <Input id="song-title" label="Title" value={form.title} onChange={(event) => updateField("title", event.target.value)} required />
+                        <Form className="song-form" onSubmit={handleSubmit}>
+                            <Input id="song-title" label="Title" value={form.title} onChange={(event) => updateField("title", event.target.value)} required />
 
-                    <Input id="song-artist" label="Artist" value={form.artist} onChange={(event) => updateField("artist", event.target.value)} required />
+                            <Input id="song-artist" label="Artist" value={form.artist} onChange={(event) => updateField("artist", event.target.value)} required />
 
                             {/* <Input id="song-key" label="Key" value={form.key} onChange={(event) => updateField("key", event.target.value)} /> */}
 
-                    <Input
-                        id="song-capo"
-                        type="number"
-                        label="Capo"
-                        value={form.capo}
-                        min="0"
-                        onChange={(event) => updateField("capo", event.target.value)}
-                    />
+                            <Input
+                                id="song-capo"
+                                type="number"
+                                label="Capo"
+                                value={form.capo}
+                                min="0"
+                                onChange={(event) => updateField("capo", event.target.value)}
+                            />
 
                             <Textarea
                                 className="w-xs"
@@ -160,10 +161,10 @@ export default function SongEditorPage({ mode }) {
                                 <strong className="text-orange-400">|]</strong></code></td></tr>
                             </table>
 
-                    <Button type="submit" disabled={isSaving}>
-                        {isSaving ? "Saving..." : "Save Song"}
-                    </Button>
-                </Form>
+                            <Button type="submit" disabled={isSaving}>
+                                {isSaving ? "Saving..." : "Save Song"}
+                            </Button>
+                        </Form>
                     </section>
 
                     <section>
