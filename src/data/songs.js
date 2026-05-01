@@ -13,7 +13,7 @@ export const songs = [
 `
     },
     {
-        id: "i-m-yours",
+        id: "im-yours",
         title: "I'm Yours",
         artist: "Jason Mraz",
         key: "C",

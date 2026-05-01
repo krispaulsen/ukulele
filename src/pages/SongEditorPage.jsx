@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { apiRequest } from "../lib/api";
-import { Button } from "../components/ui";
+import { Button, Flex } from "../components/ui";
 import { Form, Input, Textarea } from "../components/Forms";
+import Lyrics from "../components/Lyrics";
 
 function formatSongForForm(song) {
     return {
@@ -120,12 +121,14 @@ export default function SongEditorPage({ mode }) {
             {error ? <p role="alert">{error}</p> : null}
 
             {!isLoading ? (
+                <Flex gap={4} wrap growChildren className="w-full">
+                    <section>
                 <Form className="song-form" onSubmit={handleSubmit}>
                     <Input id="song-title" label="Title" value={form.title} onChange={(event) => updateField("title", event.target.value)} required />
 
                     <Input id="song-artist" label="Artist" value={form.artist} onChange={(event) => updateField("artist", event.target.value)} required />
 
-                    <Input id="song-key" label="Key" value={form.key} onChange={(event) => updateField("key", event.target.value)} />
+                            {/* <Input id="song-key" label="Key" value={form.key} onChange={(event) => updateField("key", event.target.value)} /> */}
 
                     <Input
                         id="song-capo"
@@ -136,12 +139,41 @@ export default function SongEditorPage({ mode }) {
                         onChange={(event) => updateField("capo", event.target.value)}
                     />
 
-                    <Textarea id="song-lyrics" label="Lyrics" value={form.lyrics} rows={10} onChange={(event) => updateField("lyrics", event.target.value)} />
+                            <Textarea
+                                className="w-xs"
+                                id="song-lyrics"
+                                label="Lyrics"
+                                value={form.lyrics}
+                                rows={10}
+                                onChange={(event) => updateField("lyrics", event.target.value)}
+                            />
+
+                            <strong>Lyrics Markup Syntax</strong>
+                            <table className="border border-separate border-spacing-4 w-xs">
+                                <tr className="align-top"><td>Chord</td><td><code><strong className="text-orange-400">[</strong>C<strong className="text-orange-400">]</strong></code></td></tr>
+                                <tr className="align-top"><td>Comment line</td><td><code><strong className="text-orange-400">[(</strong>Comment<strong className="text-orange-400">)]</strong></code></td></tr>
+                                <tr className="align-top"><td>Tablature block</td><td><code className="block leading-none"><strong className="text-orange-400">[|</strong><br />
+                                    A|-------------<br />
+                                    E|-------------<br />
+                                    C|-------------<br />
+                                    G|-------------<br />
+                                <strong className="text-orange-400">|]</strong></code></td></tr>
+                            </table>
 
                     <Button type="submit" disabled={isSaving}>
                         {isSaving ? "Saving..." : "Save Song"}
                     </Button>
                 </Form>
+                    </section>
+
+                    <section>
+                        Editor goes here
+                    </section>
+
+                    <section>
+                        <Lyrics>{form.lyrics}</Lyrics>
+                    </section>
+                </Flex>
             ) : null}
         </>
     );
