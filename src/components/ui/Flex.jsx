@@ -1,9 +1,9 @@
 import { clsx } from "clsx";
 
-export function Flex({children, gap=4, wrap, growChildren, className, ...rest}) {
+export function Flex({children, gap="gap-4", wrap, growChildren, className, ...rest}) {
     const classString = clsx([
         'flex',
-        `gap-${gap}`,
+        gap,
         wrap ? 'wrap' : null,
         growChildren ? 'flex-expand' : null,
         className

@@ -8,12 +8,17 @@
     --amber-950: oklch(27.9% 0.077 45.635);
     --orange-300: oklch(83.7% 0.128 66.29);
     --orange-400: oklch(75% 0.183 55.934);
+    --orange-800: oklch(47% 0.157 37.304);
     --yellow-400: oklch(85.2% 0.199 91.936);
     --taupe-300: oklch(86.8% 0.007 39.5);
+    --taupe-400: oklch(71.4% 0.014 41.2);
     --taupe-600: oklch(43.8% 0.017 39.3);
     --taupe-800: oklch(26.8% 0.011 36.5);
     --taupe-900: oklch(21.4% 0.009 43.1);
     --gray-400: oklch(70.7% 0.022 261.325);
+    
+    --color-teal-950: oklch(27.7% 0.046 192.524);
+    --color-fg-base: var(--taupe-800);
 }
 
 html {
@@ -22,12 +27,16 @@ html {
 }
 
 html.dark {
+    --color-fg-base: var(--taupe-300);
     background-color: var(--taupe-800);
     color: var(--taupe-300);
 }
 
 
 a {
+    color: var(--orange-800);
+}
+.dark a {
     color: var(--orange-300);
 }
 a:hover {
@@ -57,9 +66,14 @@ input,
 select,
 textarea {
     padding: 0.25rem 0.5rem;
-    background-color: var(--taupe-900);
+    background-color: var(--taupe-400);
     border: 1px solid var(--taupe-600);
     border-radius: 0.5rem;
+}
+.dark input,
+.dark select,
+.dark textarea {
+    background-color: var(--taupe-900);
 }
 
 textarea {

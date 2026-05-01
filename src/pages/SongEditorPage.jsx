@@ -1,10 +1,15 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { apiRequest } from "../lib/api";
-import { Button, Flex } from "../components/ui";
+import { Flex } from "../components/ui";
 import { Form, Input, Textarea } from "../components/Forms";
 import Lyrics from "../components/Lyrics";
 // import { Button } from "@material-tailwind/react";
+import {
+    Button,
+    Card,
+    Collapse
+} from "@material-tailwind/react";
 
 function formatSongForForm(song) {
     return {
@@ -24,6 +29,7 @@ export default function SongEditorPage({ mode }) {
     const [isLoading, setIsLoading] = useState(mode !== "new");
     const [isSaving, setIsSaving] = useState(false);
     const [error, setError] = useState("");
+    const [syntaxHelpOpen, setSyntaxHelpOpen] = useState(0);
 
     const title = useMemo(() => {
         if (mode === "new") return "Add Song";
@@ -55,6 +61,9 @@ export default function SongEditorPage({ mode }) {
 
         loadSong();
     }, [mode, songId]);
+
+    const handleSyntaxToggle = () => setSyntaxHelpOpen((currentValue) => !currentValue);
+ 
 
     function updateField(name, value) {
         setForm((prev) => ({ ...prev, [name]: value }));
@@ -122,7 +131,7 @@ export default function SongEditorPage({ mode }) {
             {error ? <p role="alert">{error}</p> : null}
 
             {!isLoading ? (
-                <Flex gap={4} wrap growChildren className="w-full">
+                <Flex wrap growChildren className="w-full">
                     <section>
                         <Form className="song-form" onSubmit={handleSubmit}>
                             <Input id="song-title" label="Title" value={form.title} onChange={(event) => updateField("title", event.target.value)} required />
@@ -149,17 +158,26 @@ export default function SongEditorPage({ mode }) {
                                 onChange={(event) => updateField("lyrics", event.target.value)}
                             />
 
-                            <strong>Lyrics Markup Syntax</strong>
-                            <table className="border border-separate border-spacing-4 w-xs">
-                                <tr className="align-top"><td>Chord</td><td><code><strong className="text-orange-400">[</strong>C<strong className="text-orange-400">]</strong></code></td></tr>
-                                <tr className="align-top"><td>Comment line</td><td><code><strong className="text-orange-400">[(</strong>Comment<strong className="text-orange-400">)]</strong></code></td></tr>
-                                <tr className="align-top"><td>Tablature block</td><td><code className="block leading-none"><strong className="text-orange-400">[|</strong><br />
-                                    A|-------------<br />
-                                    E|-------------<br />
-                                    C|-------------<br />
-                                    G|-------------<br />
-                                <strong className="text-orange-400">|]</strong></code></td></tr>
-                            </table>
+                            <Button
+                                onClick={handleSyntaxToggle}
+                                className={syntaxHelpOpen ? "rounded-b-none" : null}
+                            >Lyrics Markup Syntax</Button>
+                            <Collapse open={syntaxHelpOpen} className="w-xs mb-4">
+                                <Card className="rounded-tl-none">
+                                    <table className="border-separate border-spacing-4 w-full">
+                                        <tbody>
+                                            <tr className="align-top"><td>Chord</td><td><code><strong className="text-orange-400">[</strong>C<strong className="text-orange-400">]</strong></code></td></tr>
+                                            <tr className="align-top"><td>Comment line</td><td><code><strong className="text-orange-400">[(</strong>Comment<strong className="text-orange-400">)]</strong></code></td></tr>
+                                            <tr className="align-top"><td>Tablature block</td><td><code className="block leading-none"><strong className="text-orange-400">[|</strong><br />
+                                                A|-------------<br />
+                                                E|-------------<br />
+                                                C|-------------<br />
+                                                G|-------------<br />
+                                            <strong className="text-orange-400">|]</strong></code></td></tr>
+                                        </tbody>
+                                    </table>
+                                </Card>
+                            </Collapse>
 
                             <Button type="submit" disabled={isSaving}>
                                 {isSaving ? "Saving..." : "Save Song"}

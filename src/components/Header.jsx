@@ -2,7 +2,8 @@ import { use, useState, useEffect } from "react";
 import { UserContext } from "../context/UserContext";
 import { apiRequest } from "../lib/api";
 import { Nav } from "./ui/Nav";
-import { Button, Link } from "./ui";
+import { Button, Flex, Link } from "./ui";
+import { IconButton } from "@material-tailwind/react";
 
 export default function Header() {
     const { user, login, logout } = use(UserContext);
@@ -29,10 +30,17 @@ export default function Header() {
 
     return (
         <header className="p-4">
-            <h1>My Ukulele Songbook</h1>
-            <Button onClick={handleThemeToggle}>toggle theme</Button>
+            <Flex className="justify-between">
+                <h1>My Ukulele Songbook</h1>
+                <div>
+                    <IconButton onClick={handleThemeToggle} color={theme === 'dark' ? "primary" : "secondary"}>
+                        <i className={theme === 'dark' ? "fa-solid fa-moon" : "fa-regular fa-sun"}></i>
+                    </IconButton>
+                </div>
+            </Flex>
             <Nav>
                 <Link to="/">Home</Link>
+                <Link to="/theme">Theme</Link>
                 {user.isLoggedIn ? (
                     <>
                         <Link to="/song/new">Add Song</Link>

@@ -9,6 +9,7 @@ import SearchPage from "./pages/SearchPage";
 import SongPage from "./pages/SongPage";
 import SongEditorPage from "./pages/SongEditorPage";
 import ProfilePage from "./pages/ProfilePage";
+import ThemePage from "./pages/ThemePage";
 
 export default function App() {
     const { user } = use(UserContext);
@@ -28,6 +29,7 @@ export default function App() {
 
                 <Routes>
                     <Route path="/" element={<SearchPage />} />
+                    <Route path="/theme" element={<ThemePage />} />
                     <Route path="/song/:songId" element={<SongPage />} />
                     {user?.isLoggedIn ? (
                         <>
