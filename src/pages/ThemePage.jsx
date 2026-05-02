@@ -34,38 +34,44 @@ export default function ThemePage() {
                     </a>
                 </li>
             </ul>
-            
+
             <Flex className="mb-4">
-                <Button size="sm">Button sm</Button>
-                <Button size="sm" color="secondary">Secondary sm</Button>
+                <div><Button size="sm">Button sm</Button></div>
+                <div><Button>Button md</Button></div>
+                <div><Button size="lg">Button lg</Button></div>
                 <IconButton size="sm">
-                    <i className="fa-regular fa-star"></i>
+                    <i className="fa-solid fa-star"></i>
                 </IconButton>
-                <IconButton variant="outlined" color="secondary" size="sm">
+                <IconButton>
+                    <i className="fa-solid fa-star"></i>
+                </IconButton>
+                <IconButton size="lg">
                     <i className="fa-solid fa-star"></i>
                 </IconButton>
             </Flex>
 
             <Flex className="mb-4">
-                <Button>Button</Button>
-                <Button color="secondary">Secondary</Button>
+                <div><Button>Primary</Button></div>
+                <div><Button variant="outlined">Outlined</Button></div>
                 <IconButton>
                     <i className="fa-regular fa-star"></i>
                 </IconButton>
-                <IconButton variant="outlined" color="secondary">
-                    <i className="fa-solid fa-star"></i>
+                <IconButton variant="outlined">
+                    <i className="fa-regular fa-star"></i>
                 </IconButton>
+                <div><Button variant="link">Link</Button></div>
             </Flex>
 
             <Flex className="mb-4">
-                <Button size="lg">Button lg</Button>
-                <Button size="lg" color="secondary">Secondary lg</Button>
-                <IconButton size="lg">
+                <div><Button color="secondary">Secondary</Button></div>
+                <div><Button variant="outlined" color="secondary">Secondary</Button></div>
+                <IconButton color="secondary">
                     <i className="fa-regular fa-star"></i>
                 </IconButton>
-                <IconButton variant="outlined" color="secondary" size="lg">
-                    <i className="fa-solid fa-star"></i>
+                <IconButton variant="outlined" color="secondary">
+                    <i className="fa-regular fa-star"></i>
                 </IconButton>
+                <div><Button variant="link" color="secondary">Link</Button></div>
             </Flex>
 
             <form className="w-1/2 flex flex-col gap-4">

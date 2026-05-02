@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import { apiRequest } from "../lib/api";
 import { Flex } from "../components/ui";
 import { Form, Input, Textarea } from "../components/Forms";
+import SongEditor from "../components/SongEditor";
 import Lyrics from "../components/Lyrics";
 // import { Button } from "@material-tailwind/react";
 import {
@@ -25,7 +26,6 @@ export default function SongEditorPage({ mode }) {
     const { songId } = useParams();
     const navigate = useNavigate();
     const [form, setForm] = useState(formatSongForForm(null));
-    const [sourceSong, setSourceSong] = useState(null);
     const [isLoading, setIsLoading] = useState(mode !== "new");
     const [isSaving, setIsSaving] = useState(false);
     const [error, setError] = useState("");
@@ -40,7 +40,6 @@ export default function SongEditorPage({ mode }) {
     useEffect(() => {
         if (mode === "new") {
             setForm(formatSongForForm(null));
-            setSourceSong(null);
             setIsLoading(false);
             return;
         }
@@ -50,7 +49,6 @@ export default function SongEditorPage({ mode }) {
             setError("");
             try {
                 const song = await apiRequest(`/api/songs/${encodeURIComponent(songId)}`);
-                setSourceSong(song);
                 setForm(formatSongForForm(song));
             } catch (loadError) {
                 setError(loadError.message || "Failed to load song");
@@ -115,7 +113,7 @@ export default function SongEditorPage({ mode }) {
                     body: JSON.stringify(payload)
                 });
             }
-            navigate(`/song/${savedSong.id}`);
+            navigate(`/song/${savedSong.id}/edit`);
         } catch (saveError) {
             setError(saveError.message || "Failed to save song");
         } finally {
@@ -150,7 +148,7 @@ export default function SongEditorPage({ mode }) {
                             />
 
                             <Textarea
-                                className="w-xs"
+                                className="font-mono w-xs"
                                 id="song-lyrics"
                                 label="Lyrics"
                                 value={form.lyrics}
@@ -158,7 +156,7 @@ export default function SongEditorPage({ mode }) {
                                 onChange={(event) => updateField("lyrics", event.target.value)}
                             />
 
-                            <Button
+                            <Button color="secondary"
                                 onClick={handleSyntaxToggle}
                                 className={syntaxHelpOpen ? "rounded-b-none" : null}
                             >Lyrics Markup Syntax</Button>
@@ -182,15 +180,20 @@ export default function SongEditorPage({ mode }) {
                             <Button type="submit" disabled={isSaving}>
                                 {isSaving ? "Saving..." : "Save Song"}
                             </Button>
+                            {songId && (
+                                <div className="mt-2">
+                                    <Link to={`/song/${songId}`}>View Song Page</Link>
+                                </div>
+                            )}
                         </Form>
                     </section>
 
                     <section>
-                        Editor goes here
+                        <Lyrics>{form.lyrics}</Lyrics>
                     </section>
 
                     <section>
-                        <Lyrics>{form.lyrics}</Lyrics>
+                        <SongEditor lyrics={form.lyrics} />
                     </section>
                 </Flex>
             ) : null}

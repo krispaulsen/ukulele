@@ -1,8 +1,8 @@
 import { use, useState } from "react";
 import { apiRequest } from "../lib/api";
 import { UserContext } from "../context/UserContext";
-import Button from "../components/ui/Button";
 import { Form, Input } from "../components/Forms";
+import { Button } from "@material-tailwind/react";
 
 export default function AuthPage({ defaultMode = "login", onAuthSuccess }) {
     const [mode, setMode] = useState(defaultMode);
@@ -70,7 +70,7 @@ export default function AuthPage({ defaultMode = "login", onAuthSuccess }) {
 
             {error ? <p role="alert">{error}</p> : null}
 
-            <Button variant="link" className="text-btn" onClick={() => setMode(mode === "login" ? "register" : "login")}>
+            <Button variant="link" onClick={() => setMode(mode === "login" ? "register" : "login")}>
                 {mode === "login" ? "Need an account? Register" : "Already a member? Log in"}
             </Button>
         </section>

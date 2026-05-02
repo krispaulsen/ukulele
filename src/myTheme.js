@@ -67,6 +67,11 @@ const myTheme = {
             colors: [
                 "primary",
                 "secondary",
+            ],
+            variants: [
+                "filled",
+                "outlined",
+                "link",
             ]
         },
         styles: {
@@ -101,17 +106,43 @@ const myTheme = {
             variants: {
                 filled: {
                     primary: {
-                        background: "bg-teal-950",
-                        color: "text-fg-base",
-                        hover: "hover:bg-teal-900",
+                        background: "bg-amber-600 dark:bg-amber-900",
+                        color: "dark:text-fg-base",
+                        hover: "hover:bg-amber-500 dark:hover:bg-amber-800",
                         // shadow,
                         // focus,
                         // active
                     },
                     secondary: {
-                        background: "bg-amber-900",
-                        color: "text-fg-base",
-                        hover: "hover:bg-amber-800",
+                        background: "bg-teal-600 dark:bg-teal-950",
+                        color: "dark:text-fg-base",
+                        hover: "hover:bg-teal-500 dark:hover:bg-teal-900",
+                    }
+                },
+                outlined: {
+                    primary: {
+                        border: "border border-amber-600",
+                        color: "text-amber-600",
+                        hover: "hover:bg-amber-700/20"
+                    },
+                    secondary: {
+                        border: "border border-teal-950 dark:border-teal-600",
+                        color: "text-teal-950 dark:text-teal-600",
+                        hover: "hover:bg-teal-500 dark:hover:bg-teal-900"
+                    }
+                },
+                link: {
+                    primary: {
+                        display: "inline",
+                        padding: "p-0",
+                        background: "transparent",
+                        color: "text-orange-800 dark:text-orange-300",
+                        hover: "hover:text-orange-400 hover:underline",
+                    },
+                    secondary: {
+                        background: "transparent",
+                        color: "text-teal-600",
+                        hover: "hover:text-teal-500 hover:underline",
                     }
                 }
             }
@@ -135,51 +166,61 @@ const myTheme = {
             },
             sizes: {
                 sm: {
-                    width: "w-8",
-                    height: "h-8",
-                    fontSize: "text-sm",
-                    borderRadius: "rounded-lg",
+                    width: "w-6",
+                    height: "h-6",
+                    fontSize: "text-xs",
+                    borderRadius: "rounded-full",
                 },
                 md: {
-                    width: "w-10",
-                    height: "h-10",
+                    width: "w-8",
+                    height: "h-8",
                     fontSize: "text-base",
                     borderRadius: "rounded-lg",
                 },
                 lg: {
                     width: "w-12",
                     height: "h-12",
-                    fontSize: "text-lg",
+                    fontSize: "text-2xl",
                     borderRadius: "rounded-lg",
                 },
             },
             variants: {
                 filled: {
                     primary: {
-                        background: "bg-teal-950",
-                        color: "text-fg-base",
-                        hover: "hover:bg-teal-900"
+                        background: "bg-amber-600 dark:bg-amber-900",
+                        color: "dark:text-fg-base",
+                        hover: "hover:bg-amber-500 dark:hover:bg-amber-800",
                     },
                     secondary: {
-                        background: "bg-amber-900",
-                        color: "text-fg-base",
-                        hover: "hover:bg-amber-800"
+                        background: "bg-teal-600 dark:bg-teal-950",
+                        color: "dark:text-fg-base",
+                        hover: "hover:bg-teal-500 dark:hover:bg-teal-900",
                     }
                 },
                 outlined: {
                     primary: {
-                        border: "border border-teal-950",
-                        color: "text-teal-950",
+                        border: "border border-amber-600",
+                        color: "text-amber-600",
+                        hover: "hover:bg-amber-700/20"
                     },
                     secondary: {
-                        border: "border border-amber-900",
-                        color: "text-amber-900",
-                        hover: "hover:bg-amber-700/20"
+                        border: "border border-teal-950 dark:border-teal-600",
+                        color: "text-teal-950 dark:text-teal-600",
+                        hover: "hover:bg-teal-500 dark:hover:bg-teal-900"
                     }
                 }
             }
         }
-    }
+    },
+    // textarea: {
+    //     styles: {
+    //         base: {
+    //             textarea: {
+    //                 fontFamily: "font-mono"
+    //             }
+    //         }
+    //     }
+    // }
     // collapse: {
     //     defaultProps: {
     //         animate: {

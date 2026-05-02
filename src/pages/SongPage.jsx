@@ -2,9 +2,11 @@ import { use, useEffect, useState, Fragment } from "react";
 import { useParams } from "react-router-dom";
 import { apiRequest } from "../lib/api";
 import { UserContext } from "../context/UserContext";
-import { Button, Link } from "../components/ui";
+import { Flex, Link } from "../components/ui";
+import { Input } from "../components/Forms";
 import UkuleleChordDiagram from "../components/UkuleleChordDiagram";
 import Lyrics from "../components/Lyrics";
+import { IconButton } from "@material-tailwind/react";
 
 export default function SongPage() {
     const { songId } = useParams();
@@ -12,6 +14,7 @@ export default function SongPage() {
     const [song, setSong] = useState(null);
     const [isLoading, setIsLoading] = useState(true);
     const [loadError, setLoadError] = useState("");
+    const [numCols, setNumCols] = useState(3);
 
     useEffect(() => {
         async function loadSong() {
@@ -38,9 +41,37 @@ export default function SongPage() {
 
             {song && !isLoading ? (
                 <section className="details">
-                    <h2>{song.title}</h2>
-                    <p className="artist">{song.artist}</p>
-                    {song.originalSongId ? <p className="song-note">Forked from: {song.originalSongId}</p> : null}
+                    <Flex className="mb-4">
+                        {user?.isLoggedIn && (
+                            <IconButton
+                                className={`favorite-btn ${user?.favorites?.has(song.id) ? "active" : ""}`}
+                                onClick={() => toggleFavorite(song.id)}
+                            >
+                                <i className={user?.favorites?.has(song.id) ? "fa-solid fa-star" : "fa-regular fa-star"}></i>
+                            </IconButton>
+                        )}
+                        <div>
+                            <h2 className="leading-[1.142857143]">{song.title}</h2>
+                            <p className="artist">{song.artist}</p>
+                        </div>
+                        {user?.isLoggedIn ? (
+                            <div className="pt-2">
+                                {song.canEdit ? (
+                                    <Link to={`/song/${song.id}/edit`}>
+                                        <i className="fa-solid fa-pencil mr-1"></i>
+                                        Edit Song
+                                    </Link>
+                                ) : (
+                                    <Link to={`/song/${song.id}/fork`}>
+                                        <i className="fa-solid fa-pencil mr-1"></i>
+                                        Fork and Edit
+                                    </Link>
+                                )}
+                            </div>
+                        ) : null}
+                    </Flex>
+
+                    {/* {song.originalSongId ? <p className="song-note">Forked from: {song.originalSongId}</p> : null}
                     <div className="song-info">
                         <span>
                             <strong>Key:</strong> {song.key}
@@ -48,33 +79,20 @@ export default function SongPage() {
                         <span>
                             <strong>Capo:</strong> {song.capo}
                         </span>
-                    </div>
-                    {user?.isLoggedIn ? (
-                        <div className="song-actions flex gap-2">
-                            <Button
-                                type="button"
-                                className={`favorite-btn ${user?.favorites?.has(song.id) ? "active" : ""}`}
-                                onClick={() => toggleFavorite(song.id)}
-                            >
-                                {user?.favorites?.has(song.id) ? "★ Favorited" : "☆ Add Favorite"}
-                            </Button>
-                            {song.canEdit ? (
-                                <Link variant="button-primary" className="action-link" to={`/song/${song.id}/edit`}>Edit Song</Link>
-                            ) : (
-                                <Link variant="button-primary" className="action-link" to={`/song/${song.id}/fork`}>Fork and Edit</Link>
-                            )}
-                        </div>
-                    ) : null}
+                    </div> */}
 
                     <h3>Chords</h3>
-                    <div className="chord-tags flex gap-2">
+                    <Flex gap="gap-2" className="mb-4">
                         {song.chords.map((chord) => (
                             <UkuleleChordDiagram key={chord} chord={chord} />
                         ))}
-                    </div>
+                    </Flex>
 
-                    <h3>Lyrics</h3>
-                    <Lyrics>{song.lyrics}</Lyrics>
+                    <Flex className="justify-between">
+                        <h3>Lyrics</h3>
+                        <Input type="number" label="# Columns" value={numCols} min="1" max="6" onChange={(e) => setNumCols(e.target.value)} />
+                    </Flex>
+                    <Lyrics columns={numCols}>{song.lyrics}</Lyrics>
                 </section>
             ) : null}
         </>

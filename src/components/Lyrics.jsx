@@ -29,7 +29,7 @@ function LyricsChord({chordName}) {
     return <div className="chord">{chordName}</div>
 }
 
-export default function Lyrics({children}) {
+export default function Lyrics({columns=1, children}) {
     
     function parseVerseBlock(part, partIndex) {
         /*
@@ -111,7 +111,7 @@ export default function Lyrics({children}) {
             elements.push(verse);
         });
 
-        return <div className="song">{...elements}</div>;
+        return <div className="song" style={{columnCount: columns}}>{...elements}</div>;
     }
 
     return parseLyrics(children);
