@@ -89,7 +89,7 @@ function LineBlock({line, i}) {
 }
 
 export default function SongEditor({lyrics}) {
-    const lines = lyrics.split('\n');
+    const lines = lyrics?.split('\n') || [];
 
     return (<>
         {lines.map((line, lineIndex) => {

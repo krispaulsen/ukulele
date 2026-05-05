@@ -104,7 +104,7 @@ export default function Lyrics({columns=1, children}) {
 
     function parseLyrics(lyrics) {
         // first, split the lyrics into parts
-        const parts = lyrics.trim().split('\n\n');
+        const parts = lyrics?.trim().split('\n\n') || [];
         const elements = [];
         parts.forEach((part, partIndex) => {
             const verse = parseVerseBlock(part, partIndex);
