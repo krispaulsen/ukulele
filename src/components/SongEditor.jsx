@@ -40,56 +40,56 @@ function TabsBlock({str}) {
     </>);
 }
 
-function LineBlock({line, i}) {
-    function getChildren() {
-        if (line.trim() === "") {
-            return <hr className="my-4" />
-        }
-        let str = line;
-        if (line.startsWith('[(') && line.endsWith(')]')) {
-            str = line.substring(2, line.length - 2).trim();
-            return <Comment str={str} key={`Comment-${i}`} />
-        }
-        if (line.startsWith('[|')) {
-            // find the end of the tabsBlock
-            let tabsString = '';
-            for (let j = i; ; j++) {
-                let nextLine = lines[j];
-                if (!nextLine.includes('|]')) {
-                    tabsString += '\n' + nextLine;
-                } else {
-                    i = j;
-                    break;
-                }
-            }
-            const trimmedStr = tabsString.substring(3, tabsString.length).trim();
-            return <TabsBlock str={trimmedStr} key={`Tabs-${i}`} />
-        }
-        return <Chords str={line} key={`Chords-${i}`} />
-    }
-    return (<>
-        <Flex gap="gap-2">
-            <div className="flex-grow">{getChildren()}</div>
-            <Menu>
-                <MenuHandler>
-                    <IconButton size="sm">
-                        <i className="fa-solid fa-ellipsis"></i>
-                    </IconButton>
-                </MenuHandler>
-                <MenuList className="p-0">
-                    <MenuItem><i className="fa-solid fa-xmark"></i> Remove This Line</MenuItem>
-                    <MenuItem><i className="fa-solid fa-arrow-turn-down fa-rotate-90"></i> Add Lyrics/Chords</MenuItem>
-                    <MenuItem><i className="fa-solid fa-arrow-turn-down fa-rotate-90"></i> Add Tablature</MenuItem>
-                    <MenuItem><i className="fa-solid fa-arrow-turn-down fa-rotate-90"></i> Add Comment</MenuItem>
-                    <MenuItem><i className="fa-solid fa-arrow-turn-down fa-rotate-90"></i> Add Space</MenuItem>
-                </MenuList>
-            </Menu>
-        </Flex>
-    </>);
-}
-
 export default function SongEditor({lyrics}) {
-    const lines = lyrics?.split('\n') || [];
+        const lines = lyrics?.split('\n') || [];
+
+    function LineBlock({line, i}) {
+        function getChildren() {
+            if (line.trim() === "") {
+                return <hr className="my-4" />
+            }
+            let str = line;
+            if (line.startsWith('[(') && line.endsWith(')]')) {
+                str = line.substring(2, line.length - 2).trim();
+                return <Comment str={str} key={`Comment-${i}`} />
+            }
+            if (line.startsWith('[|')) {
+                // find the end of the tabsBlock
+                let tabsString = '';
+                for (let j = i; ; j++) {
+                    let nextLine = lines[j];
+                    if (!nextLine.includes('|]')) {
+                        tabsString += '\n' + nextLine;
+                    } else {
+                        i = j;
+                        break;
+                    }
+                }
+                const trimmedStr = tabsString.substring(3, tabsString.length).trim();
+                return <TabsBlock str={trimmedStr} key={`Tabs-${i}`} />
+            }
+            return <Chords str={line} key={`Chords-${i}`} />
+        }
+        return (<>
+            <Flex gap="gap-2">
+                <div className="flex-grow">{getChildren()}</div>
+                <Menu>
+                    <MenuHandler>
+                        <IconButton size="sm">
+                            <i className="fa-solid fa-ellipsis"></i>
+                        </IconButton>
+                    </MenuHandler>
+                    <MenuList className="p-0">
+                        <MenuItem><i className="fa-solid fa-xmark"></i> Remove This Line</MenuItem>
+                        <MenuItem><i className="fa-solid fa-arrow-turn-down fa-rotate-90"></i> Add Lyrics/Chords</MenuItem>
+                        <MenuItem><i className="fa-solid fa-arrow-turn-down fa-rotate-90"></i> Add Tablature</MenuItem>
+                        <MenuItem><i className="fa-solid fa-arrow-turn-down fa-rotate-90"></i> Add Comment</MenuItem>
+                        <MenuItem><i className="fa-solid fa-arrow-turn-down fa-rotate-90"></i> Add Space</MenuItem>
+                    </MenuList>
+                </Menu>
+            </Flex>
+        </>);
+    }
 
     return (<>
         {lines.map((line, lineIndex) => {
