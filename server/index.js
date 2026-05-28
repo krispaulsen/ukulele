@@ -31,10 +31,6 @@ app.use(express.json());
 // Connect to MongoDB
 connectDB();
 
-function normalizeEmail(email) {
-    return String(email ?? "").trim().toLowerCase();
-}
-
 function validateSongPayload(payload) {
     const title = String(payload.title ?? "").trim();
     const artist = String(payload.artist ?? "").trim();
@@ -60,74 +56,6 @@ function validateSongPayload(payload) {
     };
 }
 
-function signSession(user) {
-    return jwt.sign(
-        {
-            userId: user.userId,
-            email: user.email
-        },
-        config.sessionSecret,
-        { expiresIn: TOKEN_TTL }
-    );
-}
-
-function setSessionCookie(res, token) {
-    res.cookie(TOKEN_COOKIE, token, {
-        httpOnly: true,
-        sameSite: "lax",
-        secure: false,
-        maxAge: 7 * 24 * 60 * 60 * 1000
-    });
-}
-
-function clearSessionCookie(res) {
-    res.clearCookie(TOKEN_COOKIE);
-}
-
-async function enrichSongs(db, result) {
-    // console.log(result);
-
-    // get all ownerUserIds from the selected songs
-    const userIds = [...new Set(result?.docs?.flatMap(doc => {
-        return doc.ownerUserId ? ['user:' + doc.ownerUserId] : [];
-    }))];
-    // userIds == ["user:123", "user:456"]
-
-    // get users from userIds
-    // const userDocsResult = await db.fetch({ keys: userIds });
-    const userDocsResult = await db.find({
-        selector: {
-            _id: {
-                "$in": userIds
-            }
-        },
-        fields: ["userId", "screenName", "email"]
-    });
-    // userDocsResult == { docs: [ { userId: '123', screenName: 'Test', email: 'test@test.com' }, { ... } ] }
-
-    // get screenNames from users
-    const screenNameMap = {};
-    userDocsResult.docs.forEach(user => {
-        screenNameMap[user.userId] = user.screenName;
-    });
-    // screenNameMap == { '123': 'Test', '456': 'Foo' }
-
-    const songs = result.docs
-        .map(doc => {
-            return {
-                id: doc.songId,
-                title: doc.title || '',
-                artist: doc.artist || '',
-                chords: doc.chords.join(', ') || '',
-                submitter: screenNameMap[doc.ownerUserId] ?? '',
-                userId: doc.ownerUserId,
-                modified: doc.modified,
-            }
-        })
-        .sort((a, b) => a.title.localeCompare(b.title));
-
-    return songs;
-}
 
 app.use((req, _res, next) => {
     const token = req.cookies[TOKEN_COOKIE];
@@ -172,7 +100,7 @@ app.get("/api/health", (_req, res) => {
 
 // Register
 app.post("/api/auth/register", async (req, res) => {
-    const { email, password, name } = req.body;
+    const { email, password, screenName } = req.body;
 
     if (!email || !password) {
         return res.status(400).json({ error: "Email and password are required" });
@@ -191,7 +119,7 @@ app.post("/api/auth/register", async (req, res) => {
             userId,
             email,
             password: hashedPassword,
-            name: name || ""
+            screenName: screenName || ""
         });
 
         const token = jwt.sign({ userId }, config.sessionSecret, { expiresIn: TOKEN_TTL });
@@ -204,7 +132,7 @@ app.post("/api/auth/register", async (req, res) => {
         });
 
         res.status(201).json({
-            user: { userId, email, name: user.screenName }
+            user: { userId, email, screenName: user.screenName }
         });
     } catch (error) {
         console.error("Registration error:", error);
@@ -391,75 +319,9 @@ app.post("/api/songs/:songId/fork", requireAuth, async (req, res) => {
     }
 });
 
-app.get("/api/favorites", requireAuth, async (req, res) => {
-    // try {
-    //     const db = songsDb();
-    //     const result = await db.find({
-    //         selector: { type: "favorite", userId: req.user.userId },
-    //         fields: ["songId"],
-    //         limit: 100
-    //     });
-    //     res.json([...result.docs.map((doc) => doc.songId)]);
-    // } catch (error) {
-    //     console.error("Failed to fetch favorites:", error);
-    //     res.status(500).json({ error: "Failed to fetch favorites" });
-    // }
-    res.json([]);
-});
+// ====================== FAVORITES ROUTES ======================
 
-app.post("/api/favorites/:songId", requireAuth, async (req, res) => {
-    try {
-        const db = songsDb();
-        const songId = req.params.songId;
-        await db.get(`song:${songId}`);
-
-        const docId = `favorite:${req.user.userId}:${songId}`;
-        try {
-            await db.get(docId);
-            res.status(204).end();
-            return;
-        } catch (error) {
-            if (error.statusCode !== 404) {
-                throw error;
-            }
-        }
-
-        await db.insert({
-            _id: docId,
-            type: "favorite",
-            userId: req.user.userId,
-            songId,
-            created: new Date().toISOString()
-        });
-        res.status(201).json({ songId, userId: req.user.userId });
-    } catch (error) {
-        if (error.statusCode === 404) {
-            res.status(404).json({ error: "Song not found" });
-            return;
-        }
-        console.error("Failed to add favorite:", error);
-        res.status(500).json({ error: "Failed to add favorite" });
-    }
-});
-
-app.delete("/api/favorites/:songId", requireAuth, async (req, res) => {
-    try {
-        const db = songsDb();
-        const docId = `favorite:${req.user.userId}:${req.params.songId}`;
-        const doc = await db.get(docId);
-        await db.destroy(doc._id, doc._rev);
-        res.status(204).end();
-    } catch (error) {
-        if (error.statusCode === 404) {
-            res.status(204).end();
-            return;
-        }
-        console.error("Failed to remove favorite:", error);
-        res.status(500).json({ error: "Failed to remove favorite" });
-    }
-});
-
-// ====================== TOP FAVORITES ======================
+// GET /api/favorites/top  — must be before /api/favorites/:songId
 app.get("/api/favorites/top", async (req, res) => {
     const limit = parseInt(req.query.limit) || 10;
 
@@ -474,6 +336,67 @@ app.get("/api/favorites/top", async (req, res) => {
     } catch (error) {
         console.error("Failed to fetch top favorites:", error);
         res.status(500).json({ error: "Failed to fetch top favorites" });
+    }
+});
+
+// GET /api/favorites — return list of songIds the current user has favorited
+app.get("/api/favorites", requireAuth, async (req, res) => {
+    try {
+        const favorites = await Favorite.find({ userId: req.user.userId })
+            .select("songId -_id")
+            .lean();
+        res.json(favorites.map(f => f.songId));
+    } catch (error) {
+        console.error("Failed to fetch favorites:", error);
+        res.status(500).json({ error: "Failed to fetch favorites" });
+    }
+});
+
+// POST /api/favorites/:songId — add a favorite
+app.post("/api/favorites/:songId", requireAuth, async (req, res) => {
+    try {
+        const { songId } = req.params;
+
+        const song = await Song.findOne({ songId });
+        if (!song) {
+            return res.status(404).json({ error: "Song not found" });
+        }
+
+        await Favorite.create({ userId: req.user.userId, songId });
+
+        // Increment the favorites count on the song
+        await Song.updateOne({ songId }, { $inc: { favorites: 1 } });
+
+        res.status(201).json({ songId, userId: req.user.userId });
+    } catch (error) {
+        if (error.code === 11000) {
+            // Duplicate key — already favorited, treat as success
+            return res.status(204).end();
+        }
+        console.error("Failed to add favorite:", error);
+        res.status(500).json({ error: "Failed to add favorite" });
+    }
+});
+
+// DELETE /api/favorites/:songId — remove a favorite
+app.delete("/api/favorites/:songId", requireAuth, async (req, res) => {
+    try {
+        const { songId } = req.params;
+
+        const deleted = await Favorite.findOneAndDelete({
+            userId: req.user.userId,
+            songId
+        });
+
+        if (deleted) {
+            // Only decrement if a favorite was actually removed
+            await Song.updateOne({ songId }, { $inc: { favorites: -1 } });
+        }
+
+        res.status(204).end();
+    } catch (error) {
+        console.error("Failed to remove favorite:", error);
+        res.status(500).json({ error: "Failed to remove favorite" });
     }
 });
 

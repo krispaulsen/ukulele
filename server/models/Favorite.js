@@ -2,14 +2,14 @@ import mongoose from 'mongoose';
 
 const favoriteSchema = new mongoose.Schema({
   userId: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'User',
-    required: true
+    type: String,
+    required: true,
+    index: true
   },
   songId: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Song',
-    required: true
+    type: String,
+    required: true,
+    index: true
   },
   createdAt: {
     type: Date,
