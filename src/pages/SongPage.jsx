@@ -44,10 +44,10 @@ export default function SongPage() {
                     <Flex className="mb-4">
                         {user?.isLoggedIn && (
                             <IconButton
-                                className={`favorite-btn ${user?.favorites?.has(song.id) ? "active" : ""}`}
-                                onClick={() => toggleFavorite(song.id)}
+                                className={`favorite-btn ${user?.favorites?.has(song.songId) ? "active" : ""}`}
+                                onClick={() => toggleFavorite(song.songId)}
                             >
-                                <i className={user?.favorites?.has(song.id) ? "fa-solid fa-star" : "fa-regular fa-star"}></i>
+                                <i className={user?.favorites?.has(song.songId) ? "fa-solid fa-star" : "fa-regular fa-star"}></i>
                             </IconButton>
                         )}
                         <div>
@@ -57,12 +57,12 @@ export default function SongPage() {
                         {user?.isLoggedIn ? (
                             <div className="pt-2">
                                 {song.canEdit ? (
-                                    <Link to={`/song/${song.id}/edit`}>
+                                    <Link to={`/song/${song.songId}/edit`}>
                                         <i className="fa-solid fa-pencil mr-1"></i>
                                         Edit Song
                                     </Link>
                                 ) : (
-                                    <Link to={`/song/${song.id}/fork`}>
+                                    <Link to={`/song/${song.songId}/fork`}>
                                         <i className="fa-solid fa-pencil mr-1"></i>
                                         Fork and Edit
                                     </Link>

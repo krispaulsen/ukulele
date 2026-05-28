@@ -145,127 +145,118 @@ app.use((req, _res, next) => {
     next();
 });
 
-function requireAuth(req, res, next) {
-    if (!req.user?.userId) {
-        res.status(401).json({ error: "Authentication required" });
-        return;
+// ====================== AUTH MIDDLEWARE ======================
+const requireAuth = async (req, res, next) => {
+    const token = req.cookies[TOKEN_COOKIE];
+
+    if (!token) {
+        return res.status(401).json({ error: "Authentication required" });
     }
-    next();
-}
+
+    try {
+        const decoded = jwt.verify(token, config.sessionSecret);
+        req.user = decoded;           // { userId: "..." }
+        next();
+    } catch (error) {
+        console.error("JWT verification failed:", error);
+        res.clearCookie(TOKEN_COOKIE);
+        return res.status(401).json({ error: "Invalid or expired session" });
+    }
+};
 
 app.get("/api/health", (_req, res) => {
     res.json({ ok: true });
 });
 
-app.get("/api/auth/me", (req, res) => {
-    if (!req.user?.userId) {
-        res.status(401).json({ error: "Not authenticated" });
-        return;
-    }
+// ====================== AUTH ROUTES ======================
 
-    res.json({
-        userId: req.user.userId,
-        email: req.user.email
-    });
-});
-
+// Register
 app.post("/api/auth/register", async (req, res) => {
-    const email = normalizeEmail(req.body?.email);
-    const password = String(req.body?.password ?? "");
-    const screenName = String(req.body?.screenName ?? "Rockstar");
+    const { email, password, name } = req.body;
 
-    if (!email.includes("@")) {
-        res.status(400).json({ error: "A valid email is required" });
-        return;
-    }
-
-    if (password.length < 8) {
-        res.status(400).json({ error: "Password must be at least 8 characters" });
-        return;
+    if (!email || !password) {
+        return res.status(400).json({ error: "Email and password are required" });
     }
 
     try {
-        const db = songsDb();
-        const existing = await db.find({
-            selector: { type: "user", email: email },
-            fields: ["_id"],
-            limit: 1
-        });
-        if (existing.docs.length > 0) {
-            res.status(409).json({ error: "An account with that email already exists" });
-            return;
+        const existingUser = await User.findOne({ email });
+        if (existingUser) {
+            return res.status(409).json({ error: "User already exists" });
         }
 
+        const hashedPassword = await bcrypt.hash(password, 10);
         const userId = randomUUID();
-        const passwordHash = await bcrypt.hash(password, 10);
-        const now = new Date().toISOString();
-        await db.insert({
-            _id: `user:${userId}`,
-            type: "user",
+
+        const user = await User.create({
             userId,
-            screenName,
             email,
-            passwordHash,
-            created: now,
-            lastLogin: now,
+            password: hashedPassword,
+            name: name || ""
         });
 
-        const token = signSession({ userId, email });
-        setSessionCookie(res, token);
-        res.status(201).json({ userId, email, screenName, lastLogin: now, favorites: [] });
+        const token = jwt.sign({ userId }, config.sessionSecret, { expiresIn: TOKEN_TTL });
+
+        res.cookie(TOKEN_COOKIE, token, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production",
+            sameSite: "lax",
+            maxAge: 7 * 24 * 60 * 60 * 1000
+        });
+
+        res.status(201).json({
+            user: { userId, email, name: user.screenName }
+        });
     } catch (error) {
-        console.error("Failed to register:", error);
+        console.error("Registration error:", error);
         res.status(500).json({ error: "Failed to register" });
     }
 });
 
+// Login
 app.post("/api/auth/login", async (req, res) => {
-    const email = normalizeEmail(req.body?.email);
-    const password = String(req.body?.password ?? "");
+    const { email, password } = req.body;
 
     try {
-        const db = songsDb();
-        const users = await db.find({
-            selector: { type: "user", email: email },
-            limit: 1
-        });
-        const user = users.docs[0];
-        if (!user) {
-            res.status(401).json({ error: "Invalid email or password" });
-            return;
+        const user = await User.findOne({ email });
+        if (!user || !(await bcrypt.compare(password, user.password))) {
+            return res.status(401).json({ error: "Invalid credentials" });
         }
 
-        const ok = await bcrypt.compare(password, user.passwordHash);
-        if (!ok) {
-            res.status(401).json({ error: "Invalid email or password" });
-            return;
-        }
+        const token = jwt.sign({ userId: user.userId }, config.sessionSecret, { expiresIn: TOKEN_TTL });
 
-        const token = signSession({ userId: user.userId, email: user.email });
-        setSessionCookie(res, token);
-
-        // set last login
-        const now = new Date().toISOString();
-        db.insert({
-            ...user,
-            lastLogin: now
+        res.cookie(TOKEN_COOKIE, token, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production",
+            sameSite: "lax",
+            maxAge: 7 * 24 * 60 * 60 * 1000
         });
 
         res.json({
-            userId: user.userId,
-            email: user.email,
-            screenName: user.screenName,
-            lastLogin: user.lastLogin,
+            user: { userId: user.userId, email: user.email, screenName: user.screenName }
         });
     } catch (error) {
-        console.error("Failed to login:", error);
+        console.error("Login error:", error);
         res.status(500).json({ error: "Failed to login" });
     }
 });
 
-app.post("/api/auth/logout", (_req, res) => {
-    clearSessionCookie(res);
-    res.status(204).end();
+// Get current user
+app.get("/api/auth/me", requireAuth, async (req, res) => {
+    try {
+        const user = await User.findOne({ userId: req.user.userId }).select("-password");
+        if (!user) {
+            return res.status(404).json({ error: "User not found" });
+        }
+        res.json({ user });
+    } catch (error) {
+        res.status(500).json({ error: "Failed to fetch user" });
+    }
+});
+
+// Logout
+app.post("/api/auth/logout", (req, res) => {
+    res.clearCookie(TOKEN_COOKIE);
+    res.json({ message: "Logged out" });
 });
 
 // ====================== SONG ROUTES ======================
@@ -274,7 +265,7 @@ app.post("/api/auth/logout", (_req, res) => {
 app.get("/api/songs", async (_req, res) => {
     try {
         const songs = await Song.find({ isPublic: true })
-            .select("songId title artist key capo chords favorites createdAt")
+            .select("songId title artist key capo chords favorites updatedAt")
             .sort({ createdAt: -1 })
             .lean();
 
@@ -325,7 +316,7 @@ app.post("/api/songs", requireAuth, async (req, res) => {
     }
 
     try {
-        const songId = await resolveUniqueSongId(parsed.value.title);  // We'll update this function next
+        const songId = await resolveUniqueSongId(parsed.value.title);
 
         const song = await Song.create({
             songId,
@@ -401,18 +392,19 @@ app.post("/api/songs/:songId/fork", requireAuth, async (req, res) => {
 });
 
 app.get("/api/favorites", requireAuth, async (req, res) => {
-    try {
-        const db = songsDb();
-        const result = await db.find({
-            selector: { type: "favorite", userId: req.user.userId },
-            fields: ["songId"],
-            limit: 100
-        });
-        res.json([...result.docs.map((doc) => doc.songId)]);
-    } catch (error) {
-        console.error("Failed to fetch favorites:", error);
-        res.status(500).json({ error: "Failed to fetch favorites" });
-    }
+    // try {
+    //     const db = songsDb();
+    //     const result = await db.find({
+    //         selector: { type: "favorite", userId: req.user.userId },
+    //         fields: ["songId"],
+    //         limit: 100
+    //     });
+    //     res.json([...result.docs.map((doc) => doc.songId)]);
+    // } catch (error) {
+    //     console.error("Failed to fetch favorites:", error);
+    //     res.status(500).json({ error: "Failed to fetch favorites" });
+    // }
+    res.json([]);
 });
 
 app.post("/api/favorites/:songId", requireAuth, async (req, res) => {
@@ -470,31 +462,31 @@ app.delete("/api/favorites/:songId", requireAuth, async (req, res) => {
 // ====================== TOP FAVORITES ======================
 app.get("/api/favorites/top", async (req, res) => {
     const limit = parseInt(req.query.limit) || 10;
-  
+
     try {
-      const topSongs = await Song.find({ isPublic: true })
-        .sort({ favorites: -1, createdAt: -1 })
-        .limit(limit)
-        .select("songId title artist key capo chords favorites createdAt")
-        .lean();
-  
-      res.json(topSongs);
+        const topSongs = await Song.find({ isPublic: true })
+            .sort({ favorites: -1, createdAt: -1 })
+            .limit(limit)
+            .select("songId title artist key capo chords favorites createdAt")
+            .lean();
+
+        res.json(topSongs);
     } catch (error) {
-      console.error("Failed to fetch top favorites:", error);
-      res.status(500).json({ error: "Failed to fetch top favorites" });
+        console.error("Failed to fetch top favorites:", error);
+        res.status(500).json({ error: "Failed to fetch top favorites" });
     }
-  });
+});
 
 const start = async () => {
     try {
-      app.listen(config.port, () => {
-        console.log(`✅ API running on http://localhost:${config.port}`);
-      });
+        app.listen(config.port, () => {
+            console.log(`✅ API running on http://localhost:${config.port}`);
+        });
     } catch (error) {
-      console.error("Failed to start API:", error);
-      process.exit(1);
+        console.error("Failed to start API:", error);
+        process.exit(1);
     }
-  };
+};
 
 // ====================== HELPER FUNCTIONS ======================
 
@@ -530,19 +522,19 @@ function songDocToDetails(song, currentUserId = null) {
 // Generate a unique songId (title-slug + random suffix if needed)
 async function resolveUniqueSongId(title) {
     let baseSlug = slugify(title);
-  
+
     let songId = baseSlug;
     let counter = 1;
-  
+
     while (true) {
-      const existing = await Song.findOne({ songId });
-      if (!existing) break;
-  
-      songId = `${baseSlug}-${counter}`;
-      counter++;
+        const existing = await Song.findOne({ songId });
+        if (!existing) break;
+
+        songId = `${baseSlug}-${counter}`;
+        counter++;
     }
-  
+
     return songId;
-  }
+}
 
 start();

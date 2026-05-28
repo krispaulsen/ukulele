@@ -23,17 +23,17 @@ export default function SongList({ items, updatePopularList = () => {} }) {
             </thead>
             <tbody>
                 {items.map((song) => {
-                    const isFavorited = user?.favorites?.has(song.id);
+                    const isFavorited = user?.favorites?.has(song.songId);
 
                     return (
-                        <tr key={song.id}>
+                        <tr key={song.songId}>
                             {user?.isLoggedIn && (
                                 <td>
                                     <ToggleButton
                                         type="button"
                                         variant="icon"
                                         className={`favorite-btn ${isFavorited ? "active" : ""}`}
-                                        onClick={() => handleToggleFavorite(song.id)}
+                                        onClick={() => handleToggleFavorite(song.songId)}
                                         aria-label={isFavorited ? "Remove from favorites" : "Add to favorites"}
                                     >
                                         {isFavorited ? "★" : "☆"}
@@ -41,13 +41,13 @@ export default function SongList({ items, updatePopularList = () => {} }) {
                                 </td>
                             )}
                             <td>
-                                <Link className="song-btn" to={`/song/${song.id}`}>{song.title}</Link>
+                                <Link className="song-btn" to={`/song/${song.songId}`}>{song.title}</Link>
                             </td>
                             <td>{song.artist}</td>
-                            <td>{song.chords}</td>
+                            <td>{song.chords.join(', ')}</td>
                             <td>
-                                {song.submitter} {' '}
-                                {new Date(song.modified).toLocaleDateString()}
+                                {song.ownerUserId} {' '}
+                                {new Date(song.updatedAt).toLocaleDateString()}
                             </td>
                         </tr>
                     );

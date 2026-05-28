@@ -113,7 +113,7 @@ export default function SongEditorPage({ mode }) {
                     body: JSON.stringify(payload)
                 });
             }
-            navigate(`/song/${savedSong.id}/edit`);
+            navigate(`/song/${savedSong.songId}/edit`);
         } catch (saveError) {
             setError(saveError.message || "Failed to save song");
         } finally {
