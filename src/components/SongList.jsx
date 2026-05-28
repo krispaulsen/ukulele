@@ -5,8 +5,8 @@ import { ToggleButton, Link } from "./ui";
 export default function SongList({ items, updatePopularList = () => {} }) {
     const { user, toggleFavorite } = use(UserContext);
 
-    const handleToggleFavorite = async (songId) => {
-        await toggleFavorite(songId);
+    const handleToggleFavorite = async (slug) => {
+        await toggleFavorite(slug);
         updatePopularList();
     };
 
@@ -23,17 +23,17 @@ export default function SongList({ items, updatePopularList = () => {} }) {
             </thead>
             <tbody>
                 {items.map((song) => {
-                    const isFavorited = user?.favorites?.has(song.songId);
+                    const isFavorited = user?.favorites?.has(song.slug);
 
                     return (
-                        <tr key={song.songId}>
+                        <tr key={song.slug}>
                             {user?.isLoggedIn && (
                                 <td>
                                     <ToggleButton
                                         type="button"
                                         variant="icon"
                                         className={`favorite-btn ${isFavorited ? "active" : ""}`}
-                                        onClick={() => handleToggleFavorite(song.songId)}
+                                        onClick={() => handleToggleFavorite(song.slug)}
                                         aria-label={isFavorited ? "Remove from favorites" : "Add to favorites"}
                                     >
                                         {isFavorited ? "★" : "☆"}
@@ -41,12 +41,12 @@ export default function SongList({ items, updatePopularList = () => {} }) {
                                 </td>
                             )}
                             <td>
-                                <Link className="song-btn" to={`/song/${song.songId}`}>{song.title}</Link>
+                                <Link className="song-btn" to={`/song/${song.slug}`}>{song.title}</Link>
                             </td>
                             <td>{song.artist}</td>
                             <td>{song.chords.join(', ')}</td>
                             <td>
-                                {song.ownerUserId} {' '}
+                                {song.screenName} {' '}
                                 {new Date(song.updatedAt).toLocaleDateString()}
                             </td>
                         </tr>

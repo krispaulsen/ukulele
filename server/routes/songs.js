@@ -1,6 +1,6 @@
 import { Router } from "express";
 import Song from "../models/Song.js";
-import { validateSongPayload, resolveUniqueSongId, songDocToDetails } from "../utils.js";
+import { validateSongPayload, resolveUniqueSongSlug, songDocToDetails } from "../utils.js";
 import { requireAuth } from "../middleware.js";
 
 const router = Router();
@@ -9,7 +9,8 @@ const router = Router();
 router.get("/", async (_req, res) => {
     try {
         const songs = await Song.find({ isPublic: true })
-            .select("songId title artist key capo chords favorites updatedAt")
+            // .select("slug title artist chords favorites updatedAt ownerUserId")
+            .populate('ownerUserId', 'screenName')
             .sort({ createdAt: -1 })
             .lean();
 
@@ -20,10 +21,10 @@ router.get("/", async (_req, res) => {
     }
 });
 
-// Get single song by songId
-router.get("/:songId", async (req, res) => {
+// Get single song by songSlug
+router.get("/:songSlug", async (req, res) => {
     try {
-        const song = await Song.findOne({ songId: req.params.songId }).lean();
+        const song = await Song.findOne({ slug: req.params.songSlug }).lean();
 
         if (!song) {
             return res.status(404).json({ error: "Song not found" });
@@ -36,13 +37,14 @@ router.get("/:songId", async (req, res) => {
     }
 });
 
-// Get multiple songs by IDs
+// Get multiple songs from list of song slugs
 router.post("/list", async (req, res) => {
     try {
-        const songIds = req.body.songIds || [];
+        const slugs = req.body.slugs || [];
 
-        const songs = await Song.find({ songId: { $in: songIds } })
-            .select("songId title artist key capo chords favorites createdAt")
+        const songs = await Song.find({ slug: { $in: slugs } })
+            // .select("songId title artist key capo chords favorites createdAt")
+            .populate('ownerUserId', 'screenName')
             .lean();
 
         res.json(songs);
@@ -60,10 +62,10 @@ router.post("/", requireAuth, async (req, res) => {
     }
 
     try {
-        const songId = await resolveUniqueSongId(parsed.value.title);
+        const slug = await resolveUniqueSongSlug(parsed.value.title);
 
         const song = await Song.create({
-            songId,
+            slug,
             ...parsed.value,
             ownerUserId: req.user.userId,
             isPublic: true
@@ -77,14 +79,14 @@ router.post("/", requireAuth, async (req, res) => {
 });
 
 // UPDATE existing song
-router.put("/:songId", requireAuth, async (req, res) => {
+router.put("/:songSlug", requireAuth, async (req, res) => {
     const parsed = validateSongPayload(req.body ?? {});
     if (!parsed.ok) {
         return res.status(400).json({ error: parsed.error });
     }
 
     try {
-        const song = await Song.findOne({ songId: req.params.songId });
+        const song = await Song.findOne({ slug: req.params.songSlug });
 
         if (!song) {
             return res.status(404).json({ error: "Song not found" });
@@ -105,26 +107,26 @@ router.put("/:songId", requireAuth, async (req, res) => {
 });
 
 // FORK existing song
-router.post("/:songId/fork", requireAuth, async (req, res) => {
+router.post("/:songSlug/fork", requireAuth, async (req, res) => {
     const parsed = validateSongPayload(req.body ?? {});
     if (!parsed.ok) {
         return res.status(400).json({ error: parsed.error });
     }
 
     try {
-        const source = await Song.findOne({ songId: req.params.songId });
+        const source = await Song.findOne({ slug: req.params.songSlug });
 
         if (!source) {
             return res.status(404).json({ error: "Source song not found" });
         }
 
-        const songId = await resolveUniqueSongId(parsed.value.title);
+        const slug = await resolveUniqueSongSlug(parsed.value.title);
 
         const forkedSong = await Song.create({
-            songId,
+            slug,
             ...parsed.value,
             ownerUserId: req.user.userId,
-            originalSongId: source.songId,
+            originalSlug: source.slug,
         });
 
         res.status(201).json(songDocToDetails(forkedSong.toObject(), req.user.userId));

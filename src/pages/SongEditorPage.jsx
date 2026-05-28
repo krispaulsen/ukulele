@@ -23,7 +23,7 @@ function formatSongForForm(song) {
 }
 
 export default function SongEditorPage({ mode }) {
-    const { songId } = useParams();
+    const { songSlug } = useParams();
     const navigate = useNavigate();
     const [form, setForm] = useState(formatSongForForm(null));
     const [isLoading, setIsLoading] = useState(mode !== "new");
@@ -48,7 +48,7 @@ export default function SongEditorPage({ mode }) {
             setIsLoading(true);
             setError("");
             try {
-                const song = await apiRequest(`/api/songs/${encodeURIComponent(songId)}`);
+                const song = await apiRequest(`/api/songs/${encodeURIComponent(songSlug)}`);
                 setForm(formatSongForForm(song));
             } catch (loadError) {
                 setError(loadError.message || "Failed to load song");
@@ -58,7 +58,7 @@ export default function SongEditorPage({ mode }) {
         }
 
         loadSong();
-    }, [mode, songId]);
+    }, [mode, songSlug]);
 
     const handleSyntaxToggle = () => setSyntaxHelpOpen((currentValue) => !currentValue);
  
@@ -103,17 +103,17 @@ export default function SongEditorPage({ mode }) {
                     body: JSON.stringify(payload)
                 });
             } else if (mode === "fork") {
-                savedSong = await apiRequest(`/api/songs/${encodeURIComponent(songId)}/fork`, {
+                savedSong = await apiRequest(`/api/songs/${encodeURIComponent(songSlug)}/fork`, {
                     method: "POST",
                     body: JSON.stringify(payload)
                 });
             } else {
-                savedSong = await apiRequest(`/api/songs/${encodeURIComponent(songId)}`, {
+                savedSong = await apiRequest(`/api/songs/${encodeURIComponent(songSlug)}`, {
                     method: "PUT",
                     body: JSON.stringify(payload)
                 });
             }
-            navigate(`/song/${savedSong.songId}/edit`);
+            navigate(`/song/${savedSong.slug}/edit`);
         } catch (saveError) {
             setError(saveError.message || "Failed to save song");
         } finally {
@@ -180,9 +180,9 @@ export default function SongEditorPage({ mode }) {
                             <Button type="submit" disabled={isSaving}>
                                 {isSaving ? "Saving..." : "Save Song"}
                             </Button>
-                            {songId && (
+                            {songSlug && (
                                 <div className="mt-2">
-                                    <Link to={`/song/${songId}`}>View Song Page</Link>
+                                    <Link to={`/song/${songSlug}`}>View Song Page</Link>
                                 </div>
                             )}
                         </Form>

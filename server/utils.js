@@ -11,7 +11,8 @@ export function slugify(value) {
 
 export function songDocToDetails(song, currentUserId = null) {
     return {
-        songId: song.songId,
+        _id: song._id,
+        slug: song.slug,
         title: song.title,
         artist: song.artist,
         key: song.key,
@@ -19,7 +20,7 @@ export function songDocToDetails(song, currentUserId = null) {
         chords: song.chords || [],
         lyrics: song.lyrics || "",
         ownerUserId: song.ownerUserId,
-        originalSongId: song.originalSongId,
+        originalslug: song.originalslug,
         isPublic: song.isPublic,
         favorites: song.favorites || 0,
         createdAt: song.createdAt,
@@ -28,19 +29,19 @@ export function songDocToDetails(song, currentUserId = null) {
     };
 }
 
-export async function resolveUniqueSongId(title) {
+export async function resolveUniqueSongSlug(title) {
     let baseSlug = slugify(title);
-    let songId = baseSlug;
+    let slug = baseSlug;
     let counter = 1;
 
     while (true) {
-        const existing = await Song.findOne({ songId });
+        const existing = await Song.findOne({ slug });
         if (!existing) break;
-        songId = `${baseSlug}-${counter}`;
+        slug = `${baseSlug}-${counter}`;
         counter++;
     }
 
-    return songId;
+    return slug;
 }
 
 export function validateSongPayload(payload) {

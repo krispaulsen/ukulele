@@ -1,6 +1,6 @@
 export const songs = [
     {
-        id: "riptide",
+        slug: "riptide",
         title: "Riptide",
         artist: "Vance Joy",
         key: "Am",
@@ -13,7 +13,7 @@ export const songs = [
 `
     },
     {
-        id: "im-yours",
+        slug: "im-yours",
         title: "I'm Yours",
         artist: "Jason Mraz",
         key: "C",
@@ -26,7 +26,7 @@ export const songs = [
 `
     },
     {
-        id: "somewhere-over-the-rainbow",
+        slug: "somewhere-over-the-rainbow",
         title: "Somewhere Over The Rainbow",
         artist: "Israel Kamakawiwo'ole",
         key: "C",

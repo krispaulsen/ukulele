@@ -1,48 +1,57 @@
+import dotenv from "dotenv";
+dotenv.config();
+
+import mongoose from "mongoose";
+import bcrypt from "bcryptjs";
 import { songs } from "../src/data/songs.js";
-import { ensureDb, songsDb } from "./db.js";
+import Song from "./models/Song.js";
+import User from "./models/User.js";
 
 async function seed() {
-    await ensureDb();
-    const db = songsDb();
+    await mongoose.connect(process.env.MONGO_URI);
+    console.log("✅ MongoDB connected");
+
+    // Create seed user if they don't already exist
+    const hashedPassword = await bcrypt.hash(process.env.SEED_USER_PASSWORD, 10);
+    const seedUser = await User.findOneAndUpdate(
+        { email: process.env.SEED_USER_EMAIL },
+        {
+            $setOnInsert: {
+                email: process.env.SEED_USER_EMAIL,
+                password: hashedPassword,
+                screenName: 'SeedUser'
+            }
+        },
+        { upsert: true, new: true }
+    );
 
     for (const song of songs) {
-        const docId = `song:${song.id}`;
-        const now = new Date().toISOString();
-
-        let existing;
-        try {
-            existing = await db.get(docId);
-        } catch (error) {
-            if (error.statusCode !== 404) {
-                throw error;
-            }
-        }
-
-        await db.insert(
+        await Song.findOneAndUpdate(
+            { slug: song.slug },
             {
-                _id: docId,
-                _rev: existing?._rev,
-                type: "song",
-                songId: song.id,
-                title: song.title,
-                artist: song.artist,
-                key: song.key,
-                capo: song.capo,
-                chords: song.chords,
-                lyrics: song.lyrics,
-                ownerUserId: existing?.ownerUserId ?? null,
-                originalSongId: existing?.originalSongId ?? null,
-                created: existing?.created ?? now,
-                modified: now
+                $set: {
+                    title: song.title,
+                    artist: song.artist,
+                    key: song.key,
+                    capo: song.capo,
+                    chords: song.chords,
+                    lyrics: song.lyrics,
+                    isPublic: true,
+                },
+                $setOnInsert: {
+                    slug: song.slug,
+                    ownerUserId: seedUser._id,
+                }
             },
-            docId
+            { upsert: true, new: true }
         );
     }
 
-    console.log(`Seeded ${songs.length} songs into CouchDB.`);
+    console.log(`✅ Seeded ${songs.length} songs into MongoDB.`);
+    await mongoose.disconnect();
 }
 
 seed().catch((error) => {
-    console.error("Failed to seed songs:", error);
+    console.error("❌ Failed to seed songs:", error);
     process.exit(1);
 });

@@ -1,7 +1,7 @@
 import mongoose from 'mongoose';
 
 const songSchema = new mongoose.Schema({
-  songId: {
+  slug: {
     type: String,
     required: true,
     unique: true,
@@ -22,11 +22,12 @@ const songSchema = new mongoose.Schema({
   chords: [String],
   lyrics: String,
   ownerUserId: {
-    type: String,
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
     required: true,
     index: true
   },
-  originalSongId: String,
+  originalSlug: String,
   isPublic: {
     type: Boolean,
     default: true

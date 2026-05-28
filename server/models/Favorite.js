@@ -2,11 +2,12 @@ import mongoose from 'mongoose';
 
 const favoriteSchema = new mongoose.Schema({
   userId: {
-    type: String,
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
     required: true,
     index: true
   },
-  songId: {
+  songSlug: {
     type: String,
     required: true,
     index: true
@@ -18,7 +19,7 @@ const favoriteSchema = new mongoose.Schema({
 });
 
 // Prevent duplicate favorites
-favoriteSchema.index({ userId: 1, songId: 1 }, { unique: true });
+favoriteSchema.index({ userId: 1, songSlug: 1 }, { unique: true });
 
 const Favorite = mongoose.model('Favorite', favoriteSchema);
 export default Favorite;

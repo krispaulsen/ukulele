@@ -1,7 +1,6 @@
 import { Router } from "express";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
-import { randomUUID } from "node:crypto";
 import { config } from "../config.js";
 import User from "../models/User.js";
 import { requireAuth } from "../middleware.js";
@@ -33,20 +32,18 @@ router.post("/register", async (req, res) => {
         }
 
         const hashedPassword = await bcrypt.hash(password, 10);
-        const userId = randomUUID();
 
         const user = await User.create({
-            userId,
             email,
             password: hashedPassword,
             screenName: screenName || ""
         });
 
-        const token = jwt.sign({ userId }, config.sessionSecret, { expiresIn: TOKEN_TTL });
+        const token = jwt.sign({ userId: user._id }, config.sessionSecret, { expiresIn: TOKEN_TTL });
         res.cookie(TOKEN_COOKIE, token, cookieOptions(req));
 
         res.status(201).json({
-            user: { userId, email, screenName: user.screenName }
+            user: { userId: user._id, email, screenName: user.screenName }
         });
     } catch (error) {
         console.error("Registration error:", error);
@@ -64,11 +61,11 @@ router.post("/login", async (req, res) => {
             return res.status(401).json({ error: "Invalid credentials" });
         }
 
-        const token = jwt.sign({ userId: user.userId }, config.sessionSecret, { expiresIn: TOKEN_TTL });
+        const token = jwt.sign({ userId: user._id }, config.sessionSecret, { expiresIn: TOKEN_TTL });
         res.cookie(TOKEN_COOKIE, token, cookieOptions(req));
 
         res.json({
-            user: { userId: user.userId, email: user.email, screenName: user.screenName }
+            user: { userId: user._id, email: user.email, screenName: user.screenName }
         });
     } catch (error) {
         console.error("Login error:", error);
@@ -79,7 +76,7 @@ router.post("/login", async (req, res) => {
 // Get current user
 router.get("/me", requireAuth, async (req, res) => {
     try {
-        const user = await User.findOne({ userId: req.user.userId }).select("-password");
+        const user = await User.findOne({ _id: req.user.userId }).select("-password");
         if (!user) {
             return res.status(404).json({ error: "User not found" });
         }

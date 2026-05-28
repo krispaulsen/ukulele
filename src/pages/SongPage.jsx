@@ -9,7 +9,7 @@ import Lyrics from "../components/Lyrics";
 import { IconButton } from "@material-tailwind/react";
 
 export default function SongPage() {
-    const { songId } = useParams();
+    const { songSlug } = useParams();
     const { user, toggleFavorite } = use(UserContext);
     const [song, setSong] = useState(null);
     const [isLoading, setIsLoading] = useState(true);
@@ -21,7 +21,7 @@ export default function SongPage() {
             setIsLoading(true);
             setLoadError("");
             try {
-                const data = await apiRequest(`/api/songs/${encodeURIComponent(songId)}`);
+                const data = await apiRequest(`/api/songs/${encodeURIComponent(songSlug)}`);
                 setSong(data);
             } catch (error) {
                 setLoadError(error.message || "Failed to load song");
@@ -32,7 +32,7 @@ export default function SongPage() {
         }
 
         loadSong();
-    }, [songId]);
+    }, [songSlug]);
 
     return (
         <>
@@ -44,10 +44,10 @@ export default function SongPage() {
                     <Flex className="mb-4">
                         {user?.isLoggedIn && (
                             <IconButton
-                                className={`favorite-btn ${user?.favorites?.has(song.songId) ? "active" : ""}`}
-                                onClick={() => toggleFavorite(song.songId)}
+                                className={`favorite-btn ${user?.favorites?.has(song.slug) ? "active" : ""}`}
+                                onClick={() => toggleFavorite(song.slug)}
                             >
-                                <i className={user?.favorites?.has(song.songId) ? "fa-solid fa-star" : "fa-regular fa-star"}></i>
+                                <i className={user?.favorites?.has(song.slug) ? "fa-solid fa-star" : "fa-regular fa-star"}></i>
                             </IconButton>
                         )}
                         <div>
@@ -57,12 +57,12 @@ export default function SongPage() {
                         {user?.isLoggedIn ? (
                             <div className="pt-2">
                                 {song.canEdit ? (
-                                    <Link to={`/song/${song.songId}/edit`}>
+                                    <Link to={`/song/${song.slug}/edit`}>
                                         <i className="fa-solid fa-pencil mr-1"></i>
                                         Edit Song
                                     </Link>
                                 ) : (
-                                    <Link to={`/song/${song.songId}/fork`}>
+                                    <Link to={`/song/${song.slug}/fork`}>
                                         <i className="fa-solid fa-pencil mr-1"></i>
                                         Fork and Edit
                                     </Link>
@@ -71,7 +71,7 @@ export default function SongPage() {
                         ) : null}
                     </Flex>
 
-                    {/* {song.originalSongId ? <p className="song-note">Forked from: {song.originalSongId}</p> : null}
+                    {/* {song.originalSlug ? <p className="song-note">Forked from: {song.originalSlug}</p> : null}
                     <div className="song-info">
                         <span>
                             <strong>Key:</strong> {song.key}

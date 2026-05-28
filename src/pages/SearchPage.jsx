@@ -70,9 +70,9 @@ export default function SearchPage({ onToggleFavorite, favoriteSongIds }) {
             ) : (
                 <ul className="popular-list">
                     {popularSongs.map((song) => (
-                        <li key={song.songId}>
-                            <Link to={`/song/${song.songId}`}>{song.title}</Link>
-                            <span>{song.favoriteCount} favorites</span>
+                        <li key={song.slug}>
+                            <Link to={`/song/${song.slug}`}>{song.title}</Link>
+                            <span>{song.favorites} favorites</span>
                         </li>
                     ))}
                 </ul>

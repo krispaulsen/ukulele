@@ -17,7 +17,7 @@ export default function FavoritesPage() {
                 const data = await apiRequest(`/api/song/list`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ songIds: [...user.favorites] })
+                    body: JSON.stringify({ slugs: [...user.favorites] })
                 });
                 setFavoriteSongs(data);
             } catch (error) {
