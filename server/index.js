@@ -5,9 +5,11 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { randomUUID } from "node:crypto";
 import { config } from "./config.js";
+import dotenv from "dotenv";
+
+dotenv.config();
 
 import connectDB from "./db.js";
-
 // Import Mongoose models (we'll create these next)
 import User from "./models/User.js";
 import Song from "./models/Song.js";
@@ -19,8 +21,8 @@ const TOKEN_TTL = "7d";
 const app = express();
 
 app.use(cors({
-  origin: process.env.FRONTEND_URL || "http://localhost:5173",
-  credentials: true
+    origin: process.env.FRONTEND_URL || "http://localhost:5173",
+    credentials: true
 }));
 
 app.use(cookieParser());
@@ -33,22 +35,13 @@ function normalizeEmail(email) {
     return String(email ?? "").trim().toLowerCase();
 }
 
-function slugify(value) {
-    return String(value ?? "")
-        .trim()
-        .toLowerCase()
-        .replace(/\s+/g, "-")
-        .replace(/[^a-z0-9\-]+/g, "")
-        .replace(/^-+|-+$/g, "");
-}
-
 function validateSongPayload(payload) {
     const title = String(payload.title ?? "").trim();
     const artist = String(payload.artist ?? "").trim();
     const key = String(payload.key ?? "").trim();
     const capo = payload.capo;
     const chords = Array.isArray(payload.chords) ? payload.chords.map((item) => String(item).trim()).filter(Boolean) : [];
-    const lyrics =  String(payload.lyrics ?? "").trim();
+    const lyrics = String(payload.lyrics ?? "").trim();
 
     if (!title || !artist) {
         return { ok: false, error: "Title and artist are required" };
@@ -64,22 +57,6 @@ function validateSongPayload(payload) {
             chords,
             lyrics
         }
-    };
-}
-
-function songDocToDetails(doc, currentUserId) {
-    const isOwner = Boolean(currentUserId && doc.ownerUserId && doc.ownerUserId === currentUserId);
-    return {
-        id: doc.songId,
-        title: doc.title,
-        artist: doc.artist,
-        key: doc.key,
-        capo: doc.capo,
-        chords: doc.chords ?? [],
-        lyrics: doc.lyrics ?? '',
-        ownerUserId: doc.ownerUserId ?? null,
-        originalSongId: doc.originalSongId ?? null,
-        canEdit: isOwner
     };
 }
 
@@ -174,23 +151,6 @@ function requireAuth(req, res, next) {
         return;
     }
     next();
-}
-
-async function resolveUniqueSongId(db, title) {
-    const base = slugify(title) || "song";
-    for (let i = 0; i < 10; i += 1) {
-        const suffix = i === 0 ? "" : `-${Math.random().toString(36).slice(2, 6)}`;
-        const candidate = `${base}${suffix}`;
-        try {
-            await db.get(`song:${candidate}`);
-        } catch (error) {
-            if (error.statusCode === 404) {
-                return candidate;
-            }
-            throw error;
-        }
-    }
-    return `${base}-${randomUUID().slice(0, 8)}`;
 }
 
 app.get("/api/health", (_req, res) => {
@@ -308,19 +268,15 @@ app.post("/api/auth/logout", (_req, res) => {
     res.status(204).end();
 });
 
+// ====================== SONG ROUTES ======================
+
+// Get all public songs
 app.get("/api/songs", async (_req, res) => {
     try {
-        const db = songsDb();
-
-        // select all songs
-        const result = await db.find({
-            // selector: { songId: { $exists: true } },
-            selector: { type: 'song' },
-            fields: ["songId", "title", "artist", "chords", "ownerUserId", "modified"],
-            limit: 100
-        });
-
-        const songs = await enrichSongs(db, result);
+        const songs = await Song.find({ isPublic: true })
+            .select("songId title artist key capo chords favorites createdAt")
+            .sort({ createdAt: -1 })
+            .lean();
 
         res.json(songs);
     } catch (error) {
@@ -329,141 +285,116 @@ app.get("/api/songs", async (_req, res) => {
     }
 });
 
+// Get single song by songId
 app.get("/api/songs/:songId", async (req, res) => {
     try {
-        const db = songsDb();
-        const songId = req.params.songId;
-        const doc = await db.get(`song:${songId}`);
-        res.json(songDocToDetails(doc, req.user?.userId));
-    } catch (error) {
-        if (error.statusCode === 404) {
-            res.status(404).json({ error: "Song not found" });
-            return;
+        const song = await Song.findOne({ songId: req.params.songId }).lean();
+
+        if (!song) {
+            return res.status(404).json({ error: "Song not found" });
         }
 
+        res.json(song);
+    } catch (error) {
         console.error("Failed to fetch song:", error);
         res.status(500).json({ error: "Failed to fetch song" });
     }
 });
 
+// Get multiple songs by IDs (used by frontend)
 app.post("/api/songList", async (req, res) => {
     try {
-        const db = songsDb();
-        const songIds = req.body.songIds;
-        const ids = songIds.map(id => `song:${id}`) || [];
-        // const result = await db.fetch({ keys: ids });
-        const result = await db.find({
-            selector: {
-                _id: {
-                    "$in": ids
-                }
-            },
-            fields: ["songId", "title", "artist", "chords", "ownerUserId", "modified"],
-            limit: 100
-        });
+        const songIds = req.body.songIds || [];
 
-        const songs = await enrichSongs(db, result);
+        const songs = await Song.find({ songId: { $in: songIds } })
+            .select("songId title artist key capo chords favorites createdAt")
+            .lean();
 
         res.json(songs);
-        // res.json(result.rows.map(row => row.doc));
     } catch (error) {
         console.error("Failed to fetch song list:", error);
         res.status(500).json({ error: "Failed to fetch song list" });
     }
 });
 
-// SAVE A NEW SONG
+// CREATE new song
 app.post("/api/songs", requireAuth, async (req, res) => {
     const parsed = validateSongPayload(req.body ?? {});
     if (!parsed.ok) {
-        res.status(400).json({ error: parsed.error });
-        return;
+        return res.status(400).json({ error: parsed.error });
     }
 
     try {
-        const db = songsDb();
-        const songId = await resolveUniqueSongId(db, parsed.value.title);
-        const now = new Date().toISOString();
-        const doc = {
-            _id: `song:${songId}`,
-            type: "song",
+        const songId = await resolveUniqueSongId(parsed.value.title);  // We'll update this function next
+
+        const song = await Song.create({
             songId,
             ...parsed.value,
-            ownerUserId: req.user.userId,
-            originalSongId: null,
-            created: now,
-            modified: now
-        };
-        await db.insert(doc);
-        res.status(201).json(songDocToDetails(doc, req.user.userId));
+            ownerUserId: req.user.userId,   // Note: we'll change this to userId later if needed
+            isPublic: true
+        });
+
+        res.status(201).json(song);
     } catch (error) {
         console.error("Failed to create song:", error);
         res.status(500).json({ error: "Failed to create song" });
     }
 });
 
-// UPDATE AN EXISTING SONG
+// UPDATE existing song
 app.put("/api/songs/:songId", requireAuth, async (req, res) => {
     const parsed = validateSongPayload(req.body ?? {});
     if (!parsed.ok) {
-        res.status(400).json({ error: parsed.error });
-        return;
+        return res.status(400).json({ error: parsed.error });
     }
 
     try {
-        const db = songsDb();
-        const doc = await db.get(`song:${req.params.songId}`);
-        if (!doc.ownerUserId || doc.ownerUserId !== req.user.userId) {
-            res.status(403).json({ error: "Only the song owner can edit this song" });
-            return;
+        const song = await Song.findOne({ songId: req.params.songId });
+
+        if (!song) {
+            return res.status(404).json({ error: "Song not found" });
         }
 
-        const updated = {
-            ...doc,
-            ...parsed.value,
-            modified: new Date().toISOString()
-        };
-        await db.insert(updated);
-        res.json(songDocToDetails(updated, req.user.userId));
-    } catch (error) {
-        if (error.statusCode === 404) {
-            res.status(404).json({ error: "Song not found" });
-            return;
+        if (song.ownerUserId !== req.user.userId) {
+            return res.status(403).json({ error: "Only the song owner can edit this song" });
         }
+
+        // Update the song
+        Object.assign(song, parsed.value);
+        await song.save();
+
+        res.json(songDocToDetails(song.toObject(), req.user.userId));
+    } catch (error) {
         console.error("Failed to update song:", error);
         res.status(500).json({ error: "Failed to update song" });
     }
 });
 
+// FORK existing song
 app.post("/api/songs/:songId/fork", requireAuth, async (req, res) => {
     const parsed = validateSongPayload(req.body ?? {});
     if (!parsed.ok) {
-        res.status(400).json({ error: parsed.error });
-        return;
+        return res.status(400).json({ error: parsed.error });
     }
 
     try {
-        const db = songsDb();
-        const source = await db.get(`song:${req.params.songId}`);
-        const now = new Date().toISOString();
-        const songId = await resolveUniqueSongId(db, parsed.value.title);
-        const copy = {
-            _id: `song:${songId}`,
-            type: "song",
+        const source = await Song.findOne({ songId: req.params.songId });
+
+        if (!source) {
+            return res.status(404).json({ error: "Source song not found" });
+        }
+
+        const songId = await resolveUniqueSongId(parsed.value.title);   // we'll update this function soon
+
+        const forkedSong = await Song.create({
             songId,
             ...parsed.value,
             ownerUserId: req.user.userId,
             originalSongId: source.songId,
-            created: now,
-            modified: now
-        };
-        await db.insert(copy);
-        res.status(201).json(songDocToDetails(copy, req.user.userId));
+        });
+
+        res.status(201).json(songDocToDetails(forkedSong.toObject(), req.user.userId));
     } catch (error) {
-        if (error.statusCode === 404) {
-            res.status(404).json({ error: "Source song not found" });
-            return;
-        }
         console.error("Failed to fork song:", error);
         res.status(500).json({ error: "Failed to fork song" });
     }
@@ -536,68 +467,82 @@ app.delete("/api/favorites/:songId", requireAuth, async (req, res) => {
     }
 });
 
+// ====================== TOP FAVORITES ======================
 app.get("/api/favorites/top", async (req, res) => {
-    const limit = Math.max(1, Math.min(50, Number(req.query.limit ?? 20)));
-
+    const limit = parseInt(req.query.limit) || 10;
+  
     try {
-        const db = songsDb();
-        const favs = await db.find({
-            selector: { type: "favorite" },
-            fields: ["songId"],
-            limit: 20000
-        });
-
-        const counts = new Map();
-        for (const doc of favs.docs) {
-            counts.set(doc.songId, (counts.get(doc.songId) ?? 0) + 1);
-        }
-
-        const ranked = [...counts.entries()]
-            .sort((a, b) => b[1] - a[1])
-            .slice(0, limit);
-
-        if (ranked.length === 0) {
-            res.json([]);
-            return;
-        }
-
-        const docs = await db.fetch({ keys: ranked.map(([songId]) => `song:${songId}`) });
-        const byId = new Map(
-            docs.rows
-                .filter((row) => row.doc)
-                .map((row) => [row.doc.songId, row.doc])
-        );
-
-        const result = ranked
-            .map(([songId, favoriteCount]) => {
-                const song = byId.get(songId);
-                if (!song) return null;
-                return {
-                    songId,
-                    title: song.title,
-                    artist: song.artist,
-                    favoriteCount
-                };
-            })
-            .filter(Boolean);
-
-        res.json(result);
+      const topSongs = await Song.find({ isPublic: true })
+        .sort({ favorites: -1, createdAt: -1 })
+        .limit(limit)
+        .select("songId title artist key capo chords favorites createdAt")
+        .lean();
+  
+      res.json(topSongs);
     } catch (error) {
-        console.error("Failed to fetch top favorites:", error);
-        res.status(500).json({ error: "Failed to fetch top favorites" });
+      console.error("Failed to fetch top favorites:", error);
+      res.status(500).json({ error: "Failed to fetch top favorites" });
     }
-});
+  });
 
 const start = async () => {
     try {
-        await ensureDb();
-        app.listen(config.port, () => {
-            console.log(`API running on http://localhost:${config.port}`);
-        });
+      app.listen(config.port, () => {
+        console.log(`✅ API running on http://localhost:${config.port}`);
+      });
     } catch (error) {
-        console.error("Failed to start API:", error);
-        process.exit(1);
+      console.error("Failed to start API:", error);
+      process.exit(1);
     }
-};
+  };
+
+// ====================== HELPER FUNCTIONS ======================
+
+function slugify(value) {
+    return String(value ?? "")
+        .trim()
+        .toLowerCase()
+        .replace(/\s+/g, "-")
+        .replace(/[^a-z0-9\-]+/g, "")
+        .replace(/^-+|-+$/g, "");
+}
+
+// Convert Mongoose document to frontend-expected format
+function songDocToDetails(song, currentUserId = null) {
+    return {
+        songId: song.songId,
+        title: song.title,
+        artist: song.artist,
+        key: song.key,
+        capo: song.capo,
+        chords: song.chords || [],
+        lyrics: song.lyrics || "",
+        ownerUserId: song.ownerUserId,
+        originalSongId: song.originalSongId,
+        isPublic: song.isPublic,
+        favorites: song.favorites || 0,
+        createdAt: song.createdAt,
+        updatedAt: song.updatedAt,     // New field from timestamps
+        isOwner: currentUserId ? song.ownerUserId === currentUserId : false
+    };
+}
+
+// Generate a unique songId (title-slug + random suffix if needed)
+async function resolveUniqueSongId(title) {
+    let baseSlug = slugify(title);
+  
+    let songId = baseSlug;
+    let counter = 1;
+  
+    while (true) {
+      const existing = await Song.findOne({ songId });
+      if (!existing) break;
+  
+      songId = `${baseSlug}-${counter}`;
+      counter++;
+    }
+  
+    return songId;
+  }
 
 start();

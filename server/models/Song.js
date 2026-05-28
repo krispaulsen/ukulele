@@ -1,6 +1,12 @@
 import mongoose from 'mongoose';
 
 const songSchema = new mongoose.Schema({
+  songId: {
+    type: String,
+    required: true,
+    unique: true,
+    index: true
+  },
   title: {
     type: String,
     required: true,
@@ -11,17 +17,16 @@ const songSchema = new mongoose.Schema({
     required: true,
     trim: true
   },
-  chords: {
-    type: String,
-    required: true
-  },
   key: String,
   capo: Number,
-  userId: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'User',
-    required: true
+  chords: [String],
+  lyrics: String,
+  ownerUserId: {
+    type: String,
+    required: true,
+    index: true
   },
+  originalSongId: String,
   isPublic: {
     type: Boolean,
     default: true
@@ -29,11 +34,9 @@ const songSchema = new mongoose.Schema({
   favorites: {
     type: Number,
     default: 0
-  },
-  createdAt: {
-    type: Date,
-    default: Date.now
   }
+}, {
+  timestamps: true        // This automatically adds createdAt + updatedAt
 });
 
 const Song = mongoose.model('Song', songSchema);
