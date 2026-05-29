@@ -5,7 +5,7 @@ import { requireAuth } from "../middleware.js";
 
 const router = Router();
 
-// GET /api/favorites/top — must be registered before /:songId
+// GET /api/favorites/top — must be registered before /:slug
 router.get("/top", async (req, res) => {
     const limit = parseInt(req.query.limit) || 10;
 
@@ -13,7 +13,7 @@ router.get("/top", async (req, res) => {
         const topSongs = await Song.find({ isPublic: true, favorites: { $gt: 0 } })
             .sort({ favorites: -1, createdAt: -1 })
             .limit(limit)
-            .select("songId title artist key capo chords favorites createdAt")
+            .select("slug title artist key capo chords favorites createdAt")
             .lean();
 
         res.json(topSongs);
@@ -27,29 +27,29 @@ router.get("/top", async (req, res) => {
 router.get("/", requireAuth, async (req, res) => {
     try {
         const favorites = await Favorite.find({ userId: req.user.userId })
-            .select("songSlug -_id")
+            .select("slug -_id")
             .lean();
-        res.json(favorites.map(f => f.songSlug));
+        res.json(favorites.map(f => f.slug));
     } catch (error) {
         console.error("Failed to fetch favorites:", error);
         res.status(500).json({ error: "Failed to fetch favorites" });
     }
 });
 
-// POST /api/favorites/:songSlug — add a favorite
-router.post("/:songSlug", requireAuth, async (req, res) => {
+// POST /api/favorites/:slug — add a favorite
+router.post("/:slug", requireAuth, async (req, res) => {
     try {
-        const { songSlug } = req.params;
+        const { slug } = req.params;
 
-        const song = await Song.findOne({ slug: songSlug });
+        const song = await Song.findOne({ slug });
         if (!song) {
             return res.status(404).json({ error: "Song not found" });
         }
 
-        await Favorite.create({ userId: req.user.userId, songSlug });
-        await Song.updateOne({ slug: songSlug }, { $inc: { favorites: 1 } });
+        await Favorite.create({ userId: req.user.userId, slug });
+        await Song.updateOne({ slug }, { $inc: { favorites: 1 } });
 
-        res.status(201).json({ slug: songSlug, userId: req.user.userId });
+        res.status(201).json({ slug, userId: req.user.userId });
     } catch (error) {
         if (error.code === 11000) {
             return res.status(204).end();
@@ -59,18 +59,18 @@ router.post("/:songSlug", requireAuth, async (req, res) => {
     }
 });
 
-// DELETE /api/favorites/:songId — remove a favorite
-router.delete("/:songSlug", requireAuth, async (req, res) => {
+// DELETE /api/favorites/:slug — remove a favorite
+router.delete("/:slug", requireAuth, async (req, res) => {
     try {
-        const { songSlug } = req.params;
+        const { slug } = req.params;
 
         const deleted = await Favorite.findOneAndDelete({
             userId: req.user.userId,
-            songSlug
+            slug
         });
 
         if (deleted) {
-            await Song.updateOne({ slug: songSlug }, { $inc: { favorites: -1 } });
+            await Song.updateOne({ slug }, { $inc: { favorites: -1 } });
         }
 
         res.status(204).end();

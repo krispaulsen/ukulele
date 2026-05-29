@@ -9,7 +9,7 @@ import Lyrics from "../components/Lyrics";
 import { IconButton } from "@material-tailwind/react";
 
 export default function SongPage() {
-    const { songSlug } = useParams();
+    const { slug } = useParams();
     const { user, toggleFavorite } = use(UserContext);
     const [song, setSong] = useState(null);
     const [isLoading, setIsLoading] = useState(true);
@@ -21,7 +21,7 @@ export default function SongPage() {
             setIsLoading(true);
             setLoadError("");
             try {
-                const data = await apiRequest(`/api/songs/${encodeURIComponent(songSlug)}`);
+                const data = await apiRequest(`/api/songs/${encodeURIComponent(slug)}`);
                 setSong(data);
             } catch (error) {
                 setLoadError(error.message || "Failed to load song");
@@ -32,7 +32,7 @@ export default function SongPage() {
         }
 
         loadSong();
-    }, [songSlug]);
+    }, [slug]);
 
     return (
         <>

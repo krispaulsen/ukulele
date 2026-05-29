@@ -23,7 +23,7 @@ function formatSongForForm(song) {
 }
 
 export default function SongEditorPage({ mode }) {
-    const { songSlug } = useParams();
+    const { slug } = useParams();
     const navigate = useNavigate();
     const [form, setForm] = useState(formatSongForForm(null));
     const [isLoading, setIsLoading] = useState(mode !== "new");
@@ -48,7 +48,7 @@ export default function SongEditorPage({ mode }) {
             setIsLoading(true);
             setError("");
             try {
-                const song = await apiRequest(`/api/songs/${encodeURIComponent(songSlug)}`);
+                const song = await apiRequest(`/api/songs/${encodeURIComponent(slug)}`);
                 setForm(formatSongForForm(song));
             } catch (loadError) {
                 setError(loadError.message || "Failed to load song");
@@ -58,7 +58,7 @@ export default function SongEditorPage({ mode }) {
         }
 
         loadSong();
-    }, [mode, songSlug]);
+    }, [mode, slug]);
 
     const handleSyntaxToggle = () => setSyntaxHelpOpen((currentValue) => !currentValue);
  
@@ -103,12 +103,12 @@ export default function SongEditorPage({ mode }) {
                     body: JSON.stringify(payload)
                 });
             } else if (mode === "fork") {
-                savedSong = await apiRequest(`/api/songs/${encodeURIComponent(songSlug)}/fork`, {
+                savedSong = await apiRequest(`/api/songs/${encodeURIComponent(slug)}/fork`, {
                     method: "POST",
                     body: JSON.stringify(payload)
                 });
             } else {
-                savedSong = await apiRequest(`/api/songs/${encodeURIComponent(songSlug)}`, {
+                savedSong = await apiRequest(`/api/songs/${encodeURIComponent(slug)}`, {
                     method: "PUT",
                     body: JSON.stringify(payload)
                 });
@@ -180,9 +180,9 @@ export default function SongEditorPage({ mode }) {
                             <Button type="submit" disabled={isSaving}>
                                 {isSaving ? "Saving..." : "Save Song"}
                             </Button>
-                            {songSlug && (
+                            {slug && (
                                 <div className="mt-2">
-                                    <Link to={`/song/${songSlug}`}>View Song Page</Link>
+                                    <Link to={`/song/${slug}`}>View Song Page</Link>
                                 </div>
                             )}
                         </Form>

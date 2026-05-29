@@ -65,14 +65,14 @@ npm run dev
 | GET | `/api/auth/me` | ✓ | Get current user |
 | POST | `/api/auth/logout` | — | Log out |
 | GET | `/api/songs` | — | List all public songs |
-| GET | `/api/songs/:songId` | — | Get a single song |
+| GET | `/api/songs/:slug` | — | Get a single song |
 | POST | `/api/songs` | ✓ | Create a song |
-| PUT | `/api/songs/:songId` | ✓ | Update a song (owner only) |
-| POST | `/api/songs/:songId/fork` | ✓ | Fork a song |
+| PUT | `/api/songs/:slug` | ✓ | Update a song (owner only) |
+| POST | `/api/songs/:slug/fork` | ✓ | Fork a song |
 | GET | `/api/favorites/top` | — | Top favorited songs |
 | GET | `/api/favorites` | ✓ | Current user's favorites |
-| POST | `/api/favorites/:songId` | ✓ | Add a favorite |
-| DELETE | `/api/favorites/:songId` | ✓ | Remove a favorite |
+| POST | `/api/favorites/:slug` | ✓ | Add a favorite |
+| DELETE | `/api/favorites/:slug` | ✓ | Remove a favorite |
 
 ## Features
 

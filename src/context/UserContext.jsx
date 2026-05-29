@@ -54,13 +54,13 @@ export const UserProvider = ({ children }) => {
         }
     };
 
-    const toggleFavorite = async (songSlug) => {
-        const isFavorite = favorites.has(songSlug);
+    const toggleFavorite = async (slug) => {
+        const isFavorite = favorites.has(slug);
         try {
             if (isFavorite) {
-                await apiRequest(`/api/favorites/${encodeURIComponent(songSlug)}`, { method: "DELETE" });
+                await apiRequest(`/api/favorites/${encodeURIComponent(slug)}`, { method: "DELETE" });
             } else {
-                await apiRequest(`/api/favorites/${encodeURIComponent(songSlug)}`, { method: "POST" });
+                await apiRequest(`/api/favorites/${encodeURIComponent(slug)}`, { method: "POST" });
             }
             await refreshFavorites();
         } catch (error) {

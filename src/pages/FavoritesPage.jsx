@@ -14,7 +14,7 @@ export default function FavoritesPage() {
             setIsLoading(true);
             setLoadError("");
             try {
-                const data = await apiRequest(`/api/song/list`, {
+                const data = await apiRequest(`/api/songs/list`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ slugs: [...user.favorites] })

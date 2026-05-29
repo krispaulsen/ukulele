@@ -7,7 +7,7 @@ const favoriteSchema = new mongoose.Schema({
     required: true,
     index: true
   },
-  songSlug: {
+  slug: {
     type: String,
     required: true,
     index: true
@@ -19,7 +19,7 @@ const favoriteSchema = new mongoose.Schema({
 });
 
 // Prevent duplicate favorites
-favoriteSchema.index({ userId: 1, songSlug: 1 }, { unique: true });
+favoriteSchema.index({ userId: 1, slug: 1 }, { unique: true });
 
 const Favorite = mongoose.model('Favorite', favoriteSchema);
 export default Favorite;

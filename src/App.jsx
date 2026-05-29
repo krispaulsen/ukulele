@@ -30,14 +30,14 @@ export default function App() {
                 <Routes>
                     <Route path="/" element={<SearchPage />} />
                     <Route path="/theme" element={<ThemePage />} />
-                    <Route path="/song/:songId" element={<SongPage />} />
+                    <Route path="/song/:slug" element={<SongPage />} />
                     {user?.isLoggedIn ? (
                         <>
                             <Route path="/profile" element={<ProfilePage />} />
                             <Route path="/favorites" element={<FavoritesPage />} />
                             <Route path="/song/new" element={<SongEditorPage mode="new" />} />
-                            <Route path="/song/:songId/edit" element={<SongEditorPage mode="edit" />} />
-                            <Route path="/song/:songId/fork" element={<SongEditorPage mode="fork" />} />
+                            <Route path="/song/:slug/edit" element={<SongEditorPage mode="edit" />} />
+                            <Route path="/song/:slug/fork" element={<SongEditorPage mode="fork" />} />
                         </>
                     ) : (
                         <>

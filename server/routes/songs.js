@@ -21,10 +21,12 @@ router.get("/", async (_req, res) => {
     }
 });
 
-// Get single song by songSlug
-router.get("/:songSlug", async (req, res) => {
+// GET /api/songs/:slug — Get single song by slug
+router.get("/:slug", async (req, res) => {
     try {
-        const song = await Song.findOne({ slug: req.params.songSlug }).lean();
+        const song = await Song.findOne({ slug: req.params.slug })
+            .select("slug _id title artist key capo chords lyrics favorites createdAt updatedAt ownerUserId isPublic")
+            .lean();
 
         if (!song) {
             return res.status(404).json({ error: "Song not found" });
@@ -43,7 +45,7 @@ router.post("/list", async (req, res) => {
         const slugs = req.body.slugs || [];
 
         const songs = await Song.find({ slug: { $in: slugs } })
-            // .select("songId title artist key capo chords favorites createdAt")
+            // .select("slug title artist key capo chords favorites createdAt")
             .populate('ownerUserId', 'screenName')
             .lean();
 
@@ -79,14 +81,14 @@ router.post("/", requireAuth, async (req, res) => {
 });
 
 // UPDATE existing song
-router.put("/:songSlug", requireAuth, async (req, res) => {
+router.put("/:slug", requireAuth, async (req, res) => {
     const parsed = validateSongPayload(req.body ?? {});
     if (!parsed.ok) {
         return res.status(400).json({ error: parsed.error });
     }
 
     try {
-        const song = await Song.findOne({ slug: req.params.songSlug });
+        const song = await Song.findOne({ slug: req.params.slug });
 
         if (!song) {
             return res.status(404).json({ error: "Song not found" });
@@ -107,14 +109,14 @@ router.put("/:songSlug", requireAuth, async (req, res) => {
 });
 
 // FORK existing song
-router.post("/:songSlug/fork", requireAuth, async (req, res) => {
+router.post("/:slug/fork", requireAuth, async (req, res) => {
     const parsed = validateSongPayload(req.body ?? {});
     if (!parsed.ok) {
         return res.status(400).json({ error: parsed.error });
     }
 
     try {
-        const source = await Song.findOne({ slug: req.params.songSlug });
+        const source = await Song.findOne({ slug: req.params.slug });
 
         if (!source) {
             return res.status(404).json({ error: "Source song not found" });
