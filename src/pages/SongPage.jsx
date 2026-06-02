@@ -60,12 +60,12 @@ export default function SongPage() {
                                 {song.canEdit ? (
                                     <Link to={`/song/${song.slug}/edit`}>
                                         <i className="fa-solid fa-pencil mr-1"></i>
-                                        Edit Song
+                                        Edit
                                     </Link>
                                 ) : (
                                     <Link to={`/song/${song.slug}/fork`}>
-                                        <i className="fa-solid fa-pencil mr-1"></i>
-                                        Fork and Edit
+                                        <i className="fa-regular fa-clone mr-1"></i>
+                                        Clone
                                     </Link>
                                 )}
                             </div>

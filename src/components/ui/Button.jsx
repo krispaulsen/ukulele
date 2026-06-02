@@ -47,7 +47,7 @@ export const Button = ({ variant = "primary", type = "button", className, childr
 
     const classString = variant === 'link' ?
         clsx(...styles.link, className) :
-        clsx(...styles.default, ...styles[variant], className)
+        clsx(...styles.default, ...(styles[variant] || []), className)
 
     return (
         <button

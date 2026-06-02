@@ -7,8 +7,9 @@ import connectDB from "./db.js";
 import { attachUser } from "./middleware.js";
 
 import authRoutes from "./routes/auth.js";
-import songRoutes from "./routes/songs.js";
 import favoriteRoutes from "./routes/favorites.js";
+import songRoutes from "./routes/songs.js";
+import userRoutes from "./routes/users.js";
 
 dotenv.config();
 connectDB();
@@ -28,8 +29,9 @@ app.use(attachUser);
 app.get("/api/health", (_req, res) => res.json({ ok: true }));
 
 app.use("/api/auth", authRoutes);
-app.use("/api/songs", songRoutes);
 app.use("/api/favorites", favoriteRoutes);
+app.use("/api/songs", songRoutes);
+app.use("/api/users", userRoutes);
 
 // ====================== START ======================
 
