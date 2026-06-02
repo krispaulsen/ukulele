@@ -2,8 +2,99 @@ import { use, useEffect, useState } from "react";
 import { UserContext } from "../context/UserContext";
 import { apiRequest } from "../lib/api";
 import { Checkbox, Input, Option, Select } from "../components/Forms";
-import { Drawer, Flex } from "../components/ui";
+import { Modal, Flex } from "../components/ui";
 import { Button } from "@material-tailwind/react";
+
+function ChangePasswordModal({ showPasswordModal, setShowPasswordModal }) {
+    const [isChangingPassword, setIsChangingPassword] = useState(false);
+    const [passwordMessage, setPasswordMessage] = useState({ type: "", text: "" });
+    const [currentPassword, setCurrentPassword] = useState("");
+    const [newPassword, setNewPassword] = useState("");
+    const [confirmPassword, setConfirmPassword] = useState("");
+
+    const handleChangePassword = async (e) => {
+        e.preventDefault();
+        if (newPassword !== confirmPassword) {
+            setPasswordMessage({ type: "error", text: "Passwords do not match" });
+            return;
+        }
+
+        setIsChangingPassword(true);
+        setPasswordMessage({ type: "", text: "" });
+
+        try {
+            await apiRequest("/api/users/change-password", {
+                method: "PUT",
+                body: JSON.stringify({ currentPassword, newPassword })
+            });
+
+            setPasswordMessage({ type: "success", text: "✅ Password changed successfully!" });
+            setTimeout(() => {
+                setShowPasswordModal(false);
+                setCurrentPassword("");
+                setNewPassword("");
+                setConfirmPassword("");
+            }, 1500);
+        } catch (error) {
+            setPasswordMessage({ type: "error", text: error.message || "Failed to change password" });
+        } finally {
+            setIsChangingPassword(false);
+        }
+    };
+
+    return (
+        <Modal
+            isOpen={showPasswordModal}
+            onClose={() => setShowPasswordModal(false)}
+            header="Change Password"
+            position="right"
+        >
+            <form onSubmit={handleChangePassword}>
+                <Input
+                    type="password"
+                    label="Current Password"
+                    value={currentPassword}
+                    onChange={(e) => setCurrentPassword(e.target.value)}
+                    required
+                />
+                <Input
+                    type="password"
+                    label="New Password"
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    required
+                />
+                <Input
+                    type="password"
+                    label="Confirm New Password"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    required
+                />
+
+                {passwordMessage.text && (
+                    <p className={`text-sm ${passwordMessage.type === "success" ? "text-green-600" : "text-red-600"}`}>
+                        {passwordMessage.text}
+                    </p>
+                )}
+
+                <div className="flex gap-3 pt-4">
+                    <Button
+                        type="button"
+                        color="secondary"
+                        onClick={() => setShowPasswordModal(false)}
+                        className="flex-1"
+                    >
+                        Cancel
+                    </Button>
+                    <Button type="submit" disabled={isChangingPassword} className="flex-1">
+                        {isChangingPassword ? "Changing..." : "Update Password"}
+                    </Button>
+                </div>
+            </form>
+        </Modal>
+    );
+}
 
 export default function ProfilePage() {
     const { user, refreshUser } = use(UserContext);
@@ -13,14 +104,7 @@ export default function ProfilePage() {
     const [isLoading, setIsLoading] = useState(true);
     const [isSaving, setIsSaving] = useState(false);
     const [saveMessage, setSaveMessage] = useState({ type: "", text: "" });
-
-    // Change Password Drawer
-    const [showPasswordDrawer, setShowPasswordDrawer] = useState(false);
-    const [currentPassword, setCurrentPassword] = useState("");
-    const [newPassword, setNewPassword] = useState("");
-    const [confirmPassword, setConfirmPassword] = useState("");
-    const [isChangingPassword, setIsChangingPassword] = useState(false);
-    const [passwordMessage, setPasswordMessage] = useState({ type: "", text: "" });
+    const [showPasswordModal, setShowPasswordModal] = useState(false);
 
     const [chordColor, setChordColor] = useState("");
     const [chordPosition, setChordPosition] = useState("");
@@ -50,7 +134,7 @@ export default function ProfilePage() {
         try {
             await apiRequest("/api/users/profile", {
                 method: "PUT",
-                body: { screenName: screenName.trim(), email: email.trim() }
+                body: JSON.stringify({ screenName: screenName.trim(), email: email.trim() })
             });
             setSaveMessage({ type: "success", text: "✅ Profile updated successfully!" });
             refreshUser();
@@ -69,7 +153,7 @@ export default function ProfilePage() {
         try {
             await apiRequest("/api/users/profile", {
                 method: "PUT",
-                body: { chordColor, chordPosition }
+                body: JSON.stringify({ chordColor, chordPosition })
             });
             setSaveMessage({ type: "success", text: "✅ Preferences updated successfully!" });
             refreshUser();
@@ -77,36 +161,6 @@ export default function ProfilePage() {
             setSaveMessage({ type: "error", text: "❌ Failed to update preferences" });
         } finally {
             setIsSaving(false);
-        }
-    };
-
-    const handleChangePassword = async (e) => {
-        e.preventDefault();
-        if (newPassword !== confirmPassword) {
-            setPasswordMessage({ type: "error", text: "Passwords do not match" });
-            return;
-        }
-
-        setIsChangingPassword(true);
-        setPasswordMessage({ type: "", text: "" });
-
-        try {
-            await apiRequest("/api/users/change-password", {
-                method: "PUT",
-                body: JSON.stringify({ currentPassword, newPassword })
-            });
-
-            setPasswordMessage({ type: "success", text: "✅ Password changed successfully!" });
-            setTimeout(() => {
-                setShowPasswordDrawer(false);
-                setCurrentPassword("");
-                setNewPassword("");
-                setConfirmPassword("");
-            }, 1500);
-        } catch (error) {
-            setPasswordMessage({ type: "error", text: error.message || "Failed to change password" });
-        } finally {
-            setIsChangingPassword(false);
         }
     };
 
@@ -152,12 +206,8 @@ export default function ProfilePage() {
                         label="Chord Diagram Color"
                         value={chordColor}
                         onChange={(e) => setChordColor(e.target.value)}
-                    >
-                        <Option value="red">Red</Option>
-                        <Option value="blue">Blue</Option>
-                        <Option value="green">Green</Option>
-                        <Option value="purple">Purple</Option>
-                    </Select>
+                        options={["06c", "00c", "60c", "909", "c06", "c00", "c60", "990", "6c0", "0c0", "0c6", "099", "999"]}
+                    />
 
                     <Select
                         label="Chord Position"
@@ -185,60 +235,12 @@ export default function ProfilePage() {
                 </p>
             )}
 
-            {/* Change Password Drawer */}
-            <Button color="secondary" onClick={() => setShowPasswordDrawer(true)} className="mt-4">
+            {/* Change Password Modal */}
+            <Button color="secondary" onClick={() => setShowPasswordModal(true)} className="mt-4">
                 Change Password
             </Button>
 
-            <Drawer
-                isOpen={showPasswordDrawer}
-                onClose={() => setShowPasswordDrawer(false)}
-                title="Change Password"
-            >
-                <form onSubmit={handleChangePassword}>
-                    <Input
-                        type="password"
-                        label="Current Password"
-                        value={currentPassword}
-                        onChange={(e) => setCurrentPassword(e.target.value)}
-                        required
-                    />
-                    <Input
-                        type="password"
-                        label="New Password"
-                        value={newPassword}
-                        onChange={(e) => setNewPassword(e.target.value)}
-                        required
-                    />
-                    <Input
-                        type="password"
-                        label="Confirm New Password"
-                        value={confirmPassword}
-                        onChange={(e) => setConfirmPassword(e.target.value)}
-                        required
-                    />
-
-                    {passwordMessage.text && (
-                        <p className={`text-sm ${passwordMessage.type === "success" ? "text-green-600" : "text-red-600"}`}>
-                            {passwordMessage.text}
-                        </p>
-                    )}
-
-                    <div className="flex gap-3 pt-4">
-                        <Button
-                            type="button"
-                            color="secondary"
-                            onClick={() => setShowPasswordDrawer(false)}
-                            className="flex-1"
-                        >
-                            Cancel
-                        </Button>
-                        <Button type="submit" disabled={isChangingPassword} className="flex-1">
-                            {isChangingPassword ? "Changing..." : "Update Password"}
-                        </Button>
-                    </div>
-                </form>
-            </Drawer>
+            <ChangePasswordModal showPasswordModal={showPasswordModal} setShowPasswordModal={setShowPasswordModal} />
         </>
     );
 }

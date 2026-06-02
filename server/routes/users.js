@@ -17,9 +17,11 @@ router.get("/profile", requireAuth, async (req, res) => {
         }
 
         res.json({
-            userId: user.userId,
+            userId: user._id,
             screenName: user.screenName || "",
             email: user.email,
+            chordColor: user.chordColor,
+            chordPosition: user.chordPosition,
             createdAt: user.createdAt,
             // Add more fields later (bio, preferences, etc.)
         });
@@ -31,17 +33,19 @@ router.get("/profile", requireAuth, async (req, res) => {
 
 // PUT /api/users/profile - Update profile
 router.put("/profile", requireAuth, async (req, res) => {
-    const { screenName, email } = req.body;
+    const { screenName, email, chordColor, chordPosition } = req.body;
 
     try {
         const updateData = {};
         if (screenName !== undefined) updateData.screenName = screenName.trim();
         if (email !== undefined) updateData.email = email.toLowerCase().trim();
-
+        if (chordColor !== undefined) updateData.chordColor = chordColor;
+        if (chordPosition !== undefined) updateData.chordPosition = chordPosition;
+        
         const user = await User.findOneAndUpdate(
             { _id: req.user.userId },
             { $set: updateData },
-            { new: true, runValidators: true }
+            { new: true, runValidators: true } // TODO: the `new` option for `findOneAndUpdate()` and `findOneAndReplace()` is deprecated. Use `returnDocument: 'after'` instead.
         ).select("-password");
 
         if (!user) {
@@ -53,7 +57,9 @@ router.put("/profile", requireAuth, async (req, res) => {
             user: {
                 userId: user.userId,
                 screenName: user.screenName,
-                email: user.email
+                email: user.email,
+                chordColor: user.chordColor,
+                chordPosition: user.chordPosition,
             }
         });
     } catch (error) {

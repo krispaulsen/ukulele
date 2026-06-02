@@ -15,6 +15,15 @@ const userSchema = new mongoose.Schema({
   screenName: {
     type: String,
     trim: true
+  },
+  chordColor: {
+    type: String,
+    enum: ["06c", "00c", "60c", "909", "c06", "c00", "c60", "990", "6c0", "0c0", "0c6", "099", "999"]
+  },
+  chordPosition: {
+    type: String,
+    enum: ["above", "inline"],
+    default: "above"
   }
 }, {
   timestamps: true

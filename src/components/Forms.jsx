@@ -1,26 +1,31 @@
-import { useState } from "react";
+import { useId, useState } from "react";
 
 const Form = ({ children, ...rest }) => {
     return <form {...rest}>{children}</form>
 };
 
 const Input = ({ type = "text", id, label, ...rest }) => {
+    const inputId = id ?? useId();
+
     return (
         <div className="form-control">
-            {label && <label htmlFor={id}>{label}</label>}
-            <input id={id} type={type} {...rest} />
+            {label && <label htmlFor={inputId}>{label}</label>}
+            <input id={inputId} type={type} {...rest} />
         </div>
     );
 };
 
 const Select = ({ id, label, value, options = [], children, ...rest }) => {
+    const inputId = id ?? useId();
+
     return (
         <div className="form-control">
-            {label && <label htmlFor={id}>{label}</label>}
-            <select id={id} defaultValue={value} {...rest}>
+            {label && <label htmlFor={inputId}>{label}</label>}
+            <select id={inputId} defaultValue={value} {...rest}>
                 {children}
                 {options.map(option => {
-                    return <option key={option.value} value={option.value}>{option.label}</option>
+                    if (typeof option === "string") return <option key={option} value={option}>{option}</option>
+                    return <option key={option.value} value={option.value}>{option.label ?? option.value}</option>
                 })}
             </select>
         </div>
@@ -32,10 +37,12 @@ const Option = ({ value, children }) => {
 }
 
 const Textarea = ({ id, label, ...rest }) => {
+    const inputId = id ?? useId();
+
     return (
         <div className="form-control">
-            {label && <label htmlFor={id}>{label}</label>}
-            <textarea id={id} {...rest}></textarea>
+            {label && <label htmlFor={inputId}>{label}</label>}
+            <textarea id={inputId} {...rest}></textarea>
         </div>
     )
 };
