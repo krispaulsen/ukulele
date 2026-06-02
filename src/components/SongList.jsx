@@ -1,6 +1,7 @@
 import { use } from "react";
 import { UserContext } from "../context/UserContext";
-import { ToggleButton, Link } from "./ui";
+import { Link } from "./ui";
+import { IconButton } from "@material-tailwind/react";
 
 export default function SongList({ items, updatePopularList = () => {} }) {
     const { user, toggleFavorite } = use(UserContext);
@@ -11,9 +12,9 @@ export default function SongList({ items, updatePopularList = () => {} }) {
     };
 
     return (
-        <table className="w-full">
+        <table className="dataTable">
             <thead>
-                <tr className="text-left">
+                <tr>
                     {user?.isLoggedIn && <th></th>}
                     <th>Song</th>
                     <th>Artist</th>
@@ -29,15 +30,18 @@ export default function SongList({ items, updatePopularList = () => {} }) {
                         <tr key={song.slug}>
                             {user?.isLoggedIn && (
                                 <td>
-                                    <ToggleButton
-                                        type="button"
-                                        variant="icon"
-                                        className={`favorite-btn ${isFavorited ? "active" : ""}`}
+                                    <IconButton
                                         onClick={() => handleToggleFavorite(song.slug)}
                                         aria-label={isFavorited ? "Remove from favorites" : "Add to favorites"}
+                                        variant={isFavorited ? "filled" : "outlined"}
+                                        size="sm"
                                     >
-                                        {isFavorited ? "★" : "☆"}
-                                    </ToggleButton>
+                                        {isFavorited ? (
+                                            <i className="fa-solid fa-heart"></i>
+                                        ) : (
+                                            <i className="fa-regular fa-heart"></i>
+                                        )}
+                                    </IconButton>
                                 </td>
                             )}
                             <td>

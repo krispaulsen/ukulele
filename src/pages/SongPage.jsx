@@ -45,9 +45,10 @@ export default function SongPage() {
                         {user?.isLoggedIn && (
                             <IconButton
                                 className={`favorite-btn ${user?.favorites?.has(song.slug) ? "active" : ""}`}
+                                variant={user?.favorites?.has(song.slug) ? "filled" : "outlined"}
                                 onClick={() => toggleFavorite(song.slug)}
                             >
-                                <i className={user?.favorites?.has(song.slug) ? "fa-solid fa-star" : "fa-regular fa-star"}></i>
+                                <i className={user?.favorites?.has(song.slug) ? "fa-solid fa-heart" : "fa-regular fa-heart"}></i>
                             </IconButton>
                         )}
                         <div>
