@@ -4,6 +4,9 @@ import { apiRequest } from "../lib/api";
 import { Checkbox, Input, Option, Select } from "../components/Forms";
 import { Modal, Flex } from "../components/ui";
 import { Button } from "@material-tailwind/react";
+import PalettePicker from "../components/ui/PalettePicker";
+
+const CHORD_COLOR_OPTIONS = ["06c", "00c", "60c", "909", "c06", "c00", "c60", "990", "6c0", "0c0", "0c6", "099", "999"];
 
 function ChangePasswordModal({ showPasswordModal, setShowPasswordModal }) {
     const [isChangingPassword, setIsChangingPassword] = useState(false);
@@ -102,12 +105,14 @@ export default function ProfilePage() {
     const [screenName, setScreenName] = useState("");
     const [email, setEmail] = useState("");
     const [isLoading, setIsLoading] = useState(true);
-    const [isSaving, setIsSaving] = useState(false);
+
+    const [chordColor, setChordColor] = useState(CHORD_COLOR_OPTIONS[0]);
+    const [chordPosition, setChordPosition] = useState("");
+
+    const [profileSaving, setProfileSaving] = useState(false);
+    const [prefsSaving, setPrefsSaving] = useState(false);
     const [saveMessage, setSaveMessage] = useState({ type: "", text: "" });
     const [showPasswordModal, setShowPasswordModal] = useState(false);
-
-    const [chordColor, setChordColor] = useState("");
-    const [chordPosition, setChordPosition] = useState("");
 
     useEffect(() => {
         const loadProfile = async () => {
@@ -115,7 +120,7 @@ export default function ProfilePage() {
                 const data = await apiRequest("/api/users/profile");
                 setScreenName(data.screenName || "");
                 setEmail(data.email || "");
-                setChordColor(data.chordColor || "red");
+                setChordColor(data.chordColor || CHORD_COLOR_OPTIONS[0]);
                 setChordPosition(data.chordPosition || "above");
             } catch (error) {
                 console.error("Failed to load profile:", error);
@@ -128,7 +133,7 @@ export default function ProfilePage() {
 
     const handleSaveProfile = async (e) => {
         e.preventDefault();
-        setIsSaving(true);
+        setProfileSaving(true);
         setSaveMessage({ type: "", text: "" });
 
         try {
@@ -141,13 +146,13 @@ export default function ProfilePage() {
         } catch (error) {
             setSaveMessage({ type: "error", text: "❌ Failed to update profile" });
         } finally {
-            setIsSaving(false);
+            setProfileSaving(false);
         }
     };
 
     const handleSavePreferences = async (e) => {
         e.preventDefault();
-        setIsSaving(true);
+        setPrefsSaving(true);
         setSaveMessage({ type: "", text: "" });
 
         try {
@@ -158,9 +163,10 @@ export default function ProfilePage() {
             setSaveMessage({ type: "success", text: "✅ Preferences updated successfully!" });
             refreshUser();
         } catch (error) {
+            console.log(error);
             setSaveMessage({ type: "error", text: "❌ Failed to update preferences" });
         } finally {
-            setIsSaving(false);
+            setPrefsSaving(false);
         }
     };
 
@@ -170,7 +176,7 @@ export default function ProfilePage() {
         <>
             <h1 className="text-3xl font-bold mb-8">My Profile</h1>
 
-            <Flex gap="8" growChildren>
+            <Flex gap="gap-8" growChildren>
                 <form onSubmit={handleSaveProfile}>
                     <h2 className="text-xl font-semibold mb-6">Profile Information</h2>
 
@@ -189,8 +195,8 @@ export default function ProfilePage() {
                         required
                     />
 
-                    <Button type="submit" disabled={isSaving} className="mt-4">
-                        {isSaving ? "Saving..." : "Save Profile"}
+                    <Button type="submit" disabled={profileSaving} className="mt-4">
+                        {profileSaving ? "Saving..." : "Save Profile"}
                     </Button>
                 </form>
 
@@ -201,12 +207,12 @@ export default function ProfilePage() {
                     <Checkbox
                         label="Dark Mode"
                     />
-
-                    <Select
-                        label="Chord Diagram Color"
-                        value={chordColor}
-                        onChange={(e) => setChordColor(e.target.value)}
-                        options={["06c", "00c", "60c", "909", "c06", "c00", "c60", "990", "6c0", "0c0", "0c6", "099", "999"]}
+                    
+                    <PalettePicker
+                        label="Chord Color"
+                        selectedColor={chordColor}
+                        colors={CHORD_COLOR_OPTIONS}
+                        onChange={(newColor) => setChordColor(newColor)}
                     />
 
                     <Select
@@ -220,11 +226,15 @@ export default function ProfilePage() {
 
                     <fieldset className="border px-4 py-2">
                         <legend className="-mx-2 px-2">Preview</legend>
-                        [C]Somewhere [Em]over the rainbow, [F]way up [C]high
+                        <div className="song">
+                            <div className="line">
+                                <div className="chord">[C]</div>Somewhere <div className="chord">[Em]</div>over the rainbow, <div className="chord">[F]</div>way up <div className="chord">[C]</div>high
+                            </div>
+                        </div>
                     </fieldset>
 
-                    <Button type="submit" disabled={isSaving} className="mt-4">
-                        {isSaving ? "Saving..." : "Update Preferences"}
+                    <Button type="submit" disabled={prefsSaving} className="mt-4">
+                        {prefsSaving ? "Saving..." : "Update Preferences"}
                     </Button>
                 </form>
             </Flex>
@@ -244,3 +254,5 @@ export default function ProfilePage() {
         </>
     );
 }
+
+// TODO: show created and last login dates

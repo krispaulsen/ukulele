@@ -12,7 +12,7 @@ export const UserProvider = ({ children }) => {
     const [favorites, setFavorites] = useState(new Set());
 
     useEffect(() => {
-        setUser({ ...user, favorites })
+        setUser(prev => ({ ...prev, favorites }));
     }, [favorites])
 
     const login = async (email, password) => {
@@ -53,6 +53,21 @@ export const UserProvider = ({ children }) => {
             logout();
         }
     };
+    
+    const refreshUser = async () => {
+        try {
+            const profileData = await apiRequest("/api/users/profile");
+            
+            setUser(prev => ({
+                ...prev,
+                ...profileData,
+                isLoggedIn: true,
+                favorites: prev.favorites // preserve favorites set
+            }));
+        } catch (error) {
+            console.error("Failed to refresh user:", error);
+        }
+    };
 
     const toggleFavorite = async (slug) => {
         const isFavorite = favorites.has(slug);
@@ -79,7 +94,7 @@ export const UserProvider = ({ children }) => {
     }
 
     return (
-        <UserContext value={{ user, login, logout, register, toggleFavorite }}>
+        <UserContext value={{ user, login, logout, register, refreshUser, toggleFavorite }}>
             {children}
         </UserContext>
     );

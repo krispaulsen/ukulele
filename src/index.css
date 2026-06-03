@@ -62,17 +62,17 @@
     --color-gray-400: oklch(70.7% 0.022 261.325);
     
     --color-fg-base: var(--color-taupe-800);
+    --color-bg-base: var(--color-taupe-300);
 }
 
 html {
-    background-color: var(--color-taupe-300);
-    color: var(--color-taupe-800);
+    color: var(--color-fg-base);
+    background-color: var(--color-bg-base);
 }
 
 html.dark {
     --color-fg-base: var(--color-taupe-300);
-    background-color: var(--color-taupe-800);
-    color: var(--color-taupe-300);
+    --color-bg-base: var(--color-taupe-800);
 }
 
 
@@ -211,8 +211,16 @@ textarea {
         display: inline-block;
         width: 0;
         margin-top: 1rem;
-        color: #06f;
+        color: #06c;
         cursor: default;
+    }
+
+    .chords-inline .song .chord {
+        position: static;
+        bottom: 0;
+        display: inline;
+        width: auto;
+        margin-top: 0;
     }
 
     .song .tabs {
