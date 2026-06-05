@@ -33,7 +33,7 @@ router.get("/profile", requireAuth, async (req, res) => {
 
 // PUT /api/users/profile - Update profile
 router.put("/profile", requireAuth, async (req, res) => {
-    const { screenName, email, chordColor, chordPosition } = req.body;
+    const { screenName, email, chordColor, chordPosition, darkMode } = req.body;
 
     try {
         const updateData = {};
@@ -41,6 +41,9 @@ router.put("/profile", requireAuth, async (req, res) => {
         if (email !== undefined) updateData.email = email.toLowerCase().trim();
         if (chordColor !== undefined) updateData.chordColor = chordColor;
         if (chordPosition !== undefined) updateData.chordPosition = chordPosition;
+        if (darkMode !== undefined) updateData.darkMode = darkMode;
+
+        console.log('user data to put', updateData);
         
         const user = await User.findOneAndUpdate(
             { _id: req.user.userId },
@@ -60,6 +63,7 @@ router.put("/profile", requireAuth, async (req, res) => {
                 email: user.email,
                 chordColor: user.chordColor,
                 chordPosition: user.chordPosition,
+                darkMode: user.darkMode,
             }
         });
     } catch (error) {

@@ -24,7 +24,11 @@ const userSchema = new mongoose.Schema({
     type: String,
     enum: ["above", "inline"],
     default: "above"
-  }
+  },
+  darkMode: {
+    type: Boolean,
+    default: true
+  },
 }, {
   timestamps: true
 });

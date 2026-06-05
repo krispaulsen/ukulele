@@ -56,7 +56,7 @@ router.post("/login", async (req, res) => {
     const { email, password } = req.body;
 
     try {
-        const user = await User.findOne({ email });
+        const user = await User.findOne({ email }); // TODO: findOneAndUpdate to set lastLogin
         if (!user || !(await bcrypt.compare(password, user.password))) {
             return res.status(401).json({ error: "Invalid credentials" });
         }
@@ -64,8 +64,17 @@ router.post("/login", async (req, res) => {
         const token = jwt.sign({ userId: user._id }, config.sessionSecret, { expiresIn: TOKEN_TTL });
         res.cookie(TOKEN_COOKIE, token, cookieOptions(req));
 
+        console.log('api/auth/login user', user);
+
         res.json({
-            user: { userId: user._id, email: user.email, screenName: user.screenName }
+            user: {
+                userId: user._id,
+                email: user.email,
+                screenName: user.screenName,
+                chordColor: user.chordColor,
+                chordPosition: user.chordPosition,
+                darkMode: user.darkMode,
+            }
         });
     } catch (error) {
         console.error("Login error:", error);

@@ -26,16 +26,32 @@ export const UserProvider = ({ children }) => {
             const favoritesSet = new Set(favoritesArray);
             setFavorites(favoritesSet);
 
-            const updatedUserData = { ...userData, isLoggedIn: true, favorites: favoritesSet };
+            const updatedUserData = {
+                ...userData.user,
+                isLoggedIn: true,
+                favorites: favoritesSet
+            };
             console.log("User Logged In", updatedUserData);
             setUser(updatedUserData);
+
+            // set theme
+            if (updatedUserData.darkMode !== undefined) {
+                // use the user's preference
+                const theme =  updatedUserData.darkMode ? "dark" : "light";
+                localStorage.setItem("theme", theme);
+                document.documentElement.classList.remove('dark', 'light');
+                document.documentElement.classList.add(theme);
+            }
         } catch (submitError) {
             console.error(submitError.message || "Authentication failed");
             logout();
         };
     };
 
-    const logout = () => setUser(loggedOutUser);
+    const logout = () => {
+        localStorage.removeItem("theme");
+        setUser(loggedOutUser);
+    }
 
     const register = async (email, password, screenName) => {
         try {
@@ -57,12 +73,12 @@ export const UserProvider = ({ children }) => {
     const refreshUser = async () => {
         try {
             const profileData = await apiRequest("/api/users/profile");
+
+            console.log('profileData', profileData);
             
             setUser(prev => ({
                 ...prev,
                 ...profileData,
-                isLoggedIn: true,
-                favorites: prev.favorites // preserve favorites set
             }));
         } catch (error) {
             console.error("Failed to refresh user:", error);

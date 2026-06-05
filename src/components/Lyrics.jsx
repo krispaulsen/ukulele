@@ -1,4 +1,5 @@
-import { Fragment } from "react";
+import { Fragment, use } from "react";
+import { UserContext } from "../context/UserContext";
 
 function TabsBlock({children}) {
     const tabLines = children.split('\n');
@@ -25,11 +26,16 @@ function LyricsLine({children}) {
     return <div className="line">{children}</div>
 }
 
-function LyricsChord({chordName}) {
-    return <div className="chord">{chordName}</div>
+function LyricsChord({chordName, color, position}) {
+    const style = { color: `#${color}` };
+    if (position === "inline") {
+      return <span className="chord inline" style={style}>[{chordName}]</span>;
+    }
+    return <div className="chord above" style={style}>{chordName}</div>;
 }
 
 export default function Lyrics({columns=1, children}) {
+    const {user} = use(UserContext);
     
     function parseVerseBlock(part, partIndex) {
         /*
@@ -86,8 +92,10 @@ export default function Lyrics({columns=1, children}) {
                         const chordString = linePart.substring(1, linePart.length - 1);
                         lineElements.push(
                             <LyricsChord
-                                chordName={chordString}
                                 key={`chord-${partIndex}-${lineIndex}-${linePartIndex}`}
+                                chordName={chordString}
+                                color={user.chordColor}
+                                position={user.chordPosition}
                             />
                         );
                         return;

@@ -5,6 +5,7 @@ import { Checkbox, Input, Option, Select } from "../components/Forms";
 import { Modal, Flex } from "../components/ui";
 import { Button } from "@material-tailwind/react";
 import PalettePicker from "../components/ui/PalettePicker";
+import Lyrics from "../components/Lyrics";
 
 const CHORD_COLOR_OPTIONS = ["06c", "00c", "60c", "909", "c06", "c00", "c60", "990", "6c0", "0c0", "0c6", "099", "999"];
 
@@ -102,12 +103,13 @@ function ChangePasswordModal({ showPasswordModal, setShowPasswordModal }) {
 export default function ProfilePage() {
     const { user, refreshUser } = use(UserContext);
 
-    const [screenName, setScreenName] = useState("");
-    const [email, setEmail] = useState("");
+    const [screenName, setScreenName] = useState(user?.screenName);
+    const [email, setEmail] = useState(user?.email);
     const [isLoading, setIsLoading] = useState(true);
 
-    const [chordColor, setChordColor] = useState(CHORD_COLOR_OPTIONS[0]);
-    const [chordPosition, setChordPosition] = useState("");
+    const [chordColor, setChordColor] = useState(user?.chordColor || CHORD_COLOR_OPTIONS[0]);
+    const [chordPosition, setChordPosition] = useState(user?.chordPosition || "above");
+    const [darkMode, setDarkMode] = useState(user?.darkMode ?? true);
 
     const [profileSaving, setProfileSaving] = useState(false);
     const [prefsSaving, setPrefsSaving] = useState(false);
@@ -158,7 +160,7 @@ export default function ProfilePage() {
         try {
             await apiRequest("/api/users/profile", {
                 method: "PUT",
-                body: JSON.stringify({ chordColor, chordPosition })
+                body: JSON.stringify({ chordColor, chordPosition, darkMode })
             });
             setSaveMessage({ type: "success", text: "✅ Preferences updated successfully!" });
             refreshUser();
@@ -206,6 +208,8 @@ export default function ProfilePage() {
 
                     <Checkbox
                         label="Dark Mode"
+                        checked={darkMode}
+                        onClick={() => setDarkMode((prev) => !prev)}
                     />
                     
                     <PalettePicker
@@ -226,11 +230,7 @@ export default function ProfilePage() {
 
                     <fieldset className="border px-4 py-2">
                         <legend className="-mx-2 px-2">Preview</legend>
-                        <div className="song">
-                            <div className="line">
-                                <div className="chord">[C]</div>Somewhere <div className="chord">[Em]</div>over the rainbow, <div className="chord">[F]</div>way up <div className="chord">[C]</div>high
-                            </div>
-                        </div>
+                        <Lyrics>[C]Somewhere [Em]over the rainbow, [F]way up [C]high</Lyrics>
                     </fieldset>
 
                     <Button type="submit" disabled={prefsSaving} className="mt-4">

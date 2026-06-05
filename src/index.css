@@ -205,7 +205,7 @@ textarea {
         white-space: pre-wrap; /* important to keep chords spaced out */
     }
 
-    .song .chord {
+    .song .chord.above {
         position: relative;
         bottom: 1rem;
         display: inline-block;
@@ -215,12 +215,9 @@ textarea {
         cursor: default;
     }
 
-    .chords-inline .song .chord {
-        position: static;
-        bottom: 0;
-        display: inline;
-        width: auto;
-        margin-top: 0;
+    .song .chord.inline {
+        color: #06c;
+        cursor: default;
     }
 
     .song .tabs {

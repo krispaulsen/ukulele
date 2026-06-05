@@ -9,7 +9,8 @@ export default function Header() {
     const { user, login, logout } = use(UserContext);
     const [theme, setTheme] = useState(() => {
         const saved = localStorage.getItem('theme');
-        return saved ? saved : 'dark'; // Use saved data or default
+        if (saved) return saved; // try to use the theme in local storage
+        return user.darkMode ? 'dark' : 'light'; // otherwise, use profile value or default value
     });
 
     async function handleLogout() {
