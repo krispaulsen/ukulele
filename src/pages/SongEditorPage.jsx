@@ -18,6 +18,7 @@ function formatSongForForm(song) {
         artist: song?.artist ?? "",
         key: song?.key ?? "",
         capo: song?.capo ?? "",
+        notes: song?.notes ?? "",
         lyrics: song?.lyrics && (typeof song.lyrics === "string" ? song.lyrics : (song.lyrics ?? []).join("\n"))
     };
 }
@@ -91,6 +92,7 @@ export default function SongEditorPage({ mode }) {
             artist: form.artist.trim(),
             key: form.key.trim(),
             capo: form.capo,
+            notes: form.notes,
             chords: chordsInSong,
             lyrics: form.lyrics
         };
@@ -98,16 +100,19 @@ export default function SongEditorPage({ mode }) {
         try {
             let savedSong;
             if (mode === "new") {
+                // NEW
                 savedSong = await apiRequest("/api/songs", {
                     method: "POST",
                     body: JSON.stringify(payload)
                 });
             } else if (mode === "fork") {
+                // DUPLICATE
                 savedSong = await apiRequest(`/api/songs/${encodeURIComponent(slug)}/fork`, {
                     method: "POST",
                     body: JSON.stringify(payload)
                 });
             } else {
+                // EDIT
                 savedSong = await apiRequest(`/api/songs/${encodeURIComponent(slug)}`, {
                     method: "PUT",
                     body: JSON.stringify(payload)
@@ -137,6 +142,15 @@ export default function SongEditorPage({ mode }) {
                             <Input id="song-artist" label="Artist" value={form.artist} onChange={(event) => updateField("artist", event.target.value)} required />
 
                             {/* <Input id="song-key" label="Key" value={form.key} onChange={(event) => updateField("key", event.target.value)} /> */}
+
+                            <Textarea
+                                className="w-xs"
+                                id="song-notes"
+                                label="Notes"
+                                value={form.notes}
+                                rows={3}
+                                onChange={(event) => updateField("notes", event.target.value)}
+                            />
 
                             <Input
                                 id="song-capo"

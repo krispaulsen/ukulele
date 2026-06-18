@@ -57,7 +57,7 @@ export default function SongPage() {
                         </div>
                         {user?.isLoggedIn ? (
                             <div className="pt-2">
-                                {song.canEdit ? (
+                                {user.userId === song.ownerUserId ? (
                                     <Link to={`/song/${song.slug}/edit`}>
                                         <i className="fa-solid fa-pencil mr-1"></i>
                                         Edit
@@ -81,6 +81,8 @@ export default function SongPage() {
                             <strong>Capo:</strong> {song.capo}
                         </span>
                     </div> */}
+
+                    {song.notes && <p>{song.notes}</p>}
 
                     <h3>Chords</h3>
                     <Flex gap="gap-2" className="mb-4">

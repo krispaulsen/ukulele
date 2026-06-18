@@ -19,6 +19,7 @@ const songSchema = new mongoose.Schema({
   },
   key: String,
   capo: Number,
+  notes: String,
   chords: [String],
   lyrics: String,
   ownerUserId: {

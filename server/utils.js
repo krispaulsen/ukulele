@@ -17,6 +17,7 @@ export function songDocToDetails(song, currentUserId = null) {
         artist: song.artist,
         key: song.key,
         capo: song.capo,
+        notes: song.notes,
         chords: song.chords || [],
         lyrics: song.lyrics || "",
         ownerUserId: song.ownerUserId,
@@ -25,7 +26,7 @@ export function songDocToDetails(song, currentUserId = null) {
         favorites: song.favorites || 0,
         createdAt: song.createdAt,
         updatedAt: song.updatedAt,
-        isOwner: currentUserId ? song.ownerUserId === currentUserId : false
+        isOwner: currentUserId ? song.ownerUserId.toString() === currentUserId : false
     };
 }
 
@@ -49,6 +50,7 @@ export function validateSongPayload(payload) {
     const artist = String(payload.artist ?? "").trim();
     const key = String(payload.key ?? "").trim();
     const capo = payload.capo;
+    const notes = String(payload.notes ?? "").trim();
     const chords = Array.isArray(payload.chords)
         ? payload.chords.map((item) => String(item).trim()).filter(Boolean)
         : [];
@@ -58,5 +60,5 @@ export function validateSongPayload(payload) {
         return { ok: false, error: "Title and artist are required" };
     }
 
-    return { ok: true, value: { title, artist, key, capo, chords, lyrics } };
+    return { ok: true, value: { title, artist, key, capo, notes, chords, lyrics } };
 }

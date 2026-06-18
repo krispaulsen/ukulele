@@ -25,7 +25,7 @@ router.get("/", async (_req, res) => {
 router.get("/:slug", async (req, res) => {
     try {
         const song = await Song.findOne({ slug: req.params.slug })
-            .select("slug _id title artist key capo chords lyrics favorites createdAt updatedAt ownerUserId isPublic")
+            .select("slug _id title artist key capo notes chords lyrics favorites createdAt updatedAt ownerUserId isPublic")
             .lean();
 
         if (!song) {
@@ -94,7 +94,7 @@ router.put("/:slug", requireAuth, async (req, res) => {
             return res.status(404).json({ error: "Song not found" });
         }
 
-        if (song.ownerUserId !== req.user.userId) {
+        if (song.ownerUserId.toString() !== req.user.userId) {
             return res.status(403).json({ error: "Only the song owner can edit this song" });
         }
 
