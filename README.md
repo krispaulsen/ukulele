@@ -74,6 +74,10 @@ npm run dev
 | POST | `/api/favorites/:slug` | ✓ | Add a favorite |
 | DELETE | `/api/favorites/:slug` | ✓ | Remove a favorite |
 
+## Task List
+
+See [TASKS.md](./TASKS.md) for the current backlog of bugs, features, and improvements (including song deletion).
+
 ## Features
 
 **Members (authenticated users)**
