@@ -1,12 +1,12 @@
 import { Router } from "express";
 import Song from "../models/Song.js";
-import { validateSongPayload, resolveUniqueSongSlug, songDocToDetails } from "../utils.js";
+import { validateSongPayload, resolveUniqueSongSlug, formatSong } from "../utils.js";
 import { requireAuth } from "../middleware.js";
 
 const router = Router();
 
 // Get all public songs
-router.get("/", async (_req, res) => {
+router.get("/", async (req, res) => {
     try {
         const songs = await Song.find({ isPublic: true })
             // .select("slug title artist chords favorites updatedAt ownerUserId")
@@ -14,7 +14,8 @@ router.get("/", async (_req, res) => {
             .sort({ createdAt: -1 })
             .lean();
 
-        res.json(songs);
+        const currentUserId = req.user?.userId ? String(req.user.userId) : null;
+        res.json(songs.map(s => formatSong(s, currentUserId)));
     } catch (error) {
         console.error("Failed to fetch songs:", error);
         res.status(500).json({ error: "Failed to fetch songs" });
@@ -26,13 +27,15 @@ router.get("/:slug", async (req, res) => {
     try {
         const song = await Song.findOne({ slug: req.params.slug })
             .select("slug _id title artist key capo notes chords lyrics favorites createdAt updatedAt ownerUserId isPublic")
+            .populate('ownerUserId', 'screenName')
             .lean();
 
         if (!song) {
             return res.status(404).json({ error: "Song not found" });
         }
 
-        res.json(song);
+        const currentUserId = req.user?.userId ? String(req.user.userId) : null;
+        res.json(formatSong(song, currentUserId));
     } catch (error) {
         console.error("Failed to fetch song:", error);
         res.status(500).json({ error: "Failed to fetch song" });
@@ -49,7 +52,8 @@ router.post("/list", async (req, res) => {
             .populate('ownerUserId', 'screenName')
             .lean();
 
-        res.json(songs);
+        const currentUserId = req.user?.userId ? String(req.user.userId) : null;
+        res.json(songs.map(s => formatSong(s, currentUserId)));
     } catch (error) {
         console.error("Failed to fetch song list:", error);
         res.status(500).json({ error: "Failed to fetch song list" });
@@ -66,14 +70,19 @@ router.post("/", requireAuth, async (req, res) => {
     try {
         const slug = await resolveUniqueSongSlug(parsed.value.title);
 
-        const song = await Song.create({
+        const created = await Song.create({
             slug,
             ...parsed.value,
             ownerUserId: req.user.userId,
             isPublic: true
         });
 
-        res.status(201).json(song);
+        // Populate to get screenName for consistent response shape
+        const createdPopulated = await Song.findById(created._id)
+            .populate('ownerUserId', 'screenName')
+            .lean();
+        const currentUserId = req.user?.userId ? String(req.user.userId) : null;
+        res.status(201).json(formatSong(createdPopulated, currentUserId));
     } catch (error) {
         console.error("Failed to create song:", error);
         res.status(500).json({ error: "Failed to create song" });
@@ -101,7 +110,11 @@ router.put("/:slug", requireAuth, async (req, res) => {
         Object.assign(song, parsed.value);
         await song.save();
 
-        res.json(songDocToDetails(song.toObject(), req.user.userId));
+        const updatedPopulated = await Song.findById(song._id)
+            .populate('ownerUserId', 'screenName')
+            .lean();
+        const currentUserId = req.user?.userId ? String(req.user.userId) : null;
+        res.json(formatSong(updatedPopulated, currentUserId));
     } catch (error) {
         console.error("Failed to update song:", error);
         res.status(500).json({ error: "Failed to update song" });
@@ -131,7 +144,11 @@ router.post("/:slug/fork", requireAuth, async (req, res) => {
             originalSlug: source.slug,
         });
 
-        res.status(201).json(songDocToDetails(forkedSong.toObject(), req.user.userId));
+        const forkedPopulated = await Song.findById(forkedSong._id)
+            .populate('ownerUserId', 'screenName')
+            .lean();
+        const currentUserId = req.user?.userId ? String(req.user.userId) : null;
+        res.status(201).json(formatSong(forkedPopulated, currentUserId));
     } catch (error) {
         console.error("Failed to fork song:", error);
         res.status(500).json({ error: "Failed to fork song" });

@@ -2,7 +2,7 @@
 
 This document tracks features, bugs, and improvements for the Ukulele Songbook web app.
 
-**Last updated:** 2026-06-17
+**Last updated:** 2026-06-19
 
 ## High Priority
 
@@ -25,21 +25,27 @@ This document tracks features, bugs, and improvements for the Ukulele Songbook w
 
 ## Bugs & Data Issues
 
-- [ ] Fix "Submitted By" column in `SongList`
+- [x] Fix "Submitted By" column in `SongList`
   - Backend list responses populate `ownerUserId` as an object after `.populate('ownerUserId', 'screenName')`
   - `SongList.jsx` reads `song.screenName` (always undefined)
-  - Fix: either flatten `screenName` + `ownerUserId` in responses (recommended: add helper), or update `SongList` to read `song.ownerUserId?.screenName`
-  - Also ensure `/api/songs/list` (used by Favorites) behaves the same
-- [ ] Fix incorrect `userId` in profile update response (`server/routes/users.js`)
+  - ✅ Fixed by adding `formatSong()` helper in `server/utils.js` and applying to GET `/`, GET `/:slug`, and POST `/list`. Now always returns top-level `screenName` + `ownerUserId` as plain string.
+  - Also updated single song endpoint for consistency.
+  - Minor polish to the date display in SongList.
+- [x] Fix incorrect `userId` in profile update response (`server/routes/users.js`)
   - Currently returns `userId: user.userId` (undefined). Change to `user._id`
-- [ ] Fix casing typo in `server/utils.js`
+- [x] Fix casing typo in `server/utils.js`
   - `originalslug: song.originalslug` should be `originalSlug: song.originalSlug`
-  - This breaks fork metadata in `songDocToDetails`
-- [ ] Inconsistent song owner data across endpoints
-  - `GET /api/songs` and `/list` → populates owner
-  - `GET /api/songs/:slug` → raw `ownerUserId` (no populate)
-  - `SongPage.jsx` owner check: `user.userId === song.ownerUserId` (fragile type/coercion)
-  - Recommendation: make single-song endpoint populate ownerUserId (or return `owner: { screenName, id }` + `isOwner`)
+  - ✅ Fixed (plus stringified ownerUserId) while implementing the format helper.
+- [x] Inconsistent song owner data across endpoints
+  - All song responses (GET /, GET /:slug, POST /list, POST create, PUT, POST fork) now consistently return:
+    - `ownerUserId` as plain string (via `formatSong`)
+    - top-level `screenName`
+    - `isOwner` boolean (computed using attached user when present)
+  - `formatSong` (and `songDocToDetails`) updated to always produce these fields with correct types.
+  - Query endpoints now pass `req.user?.userId` to `formatSong`; mutations populate owner before formatting for full screenName.
+  - `SongPage.jsx` owner check updated to prefer `song.isOwner` (with fallback).
+  - Create/fork/update now return same normalized shape as reads.
+  - ✅ Fixed (no more fragile direct id equality for ownership decisions on song data)
 - [ ] `SongPage` and detail views do not display key/capo, original fork source, or owner name (most is commented out)
 - [ ] `ProfilePage` state initialization from stale `user` prop; date fields (created/lastLogin) never shown (see TODO)
 - [ ] Minor: `FavoritesPage` sets `favoriteSongs` to `null` on error, causing odd render branch
@@ -71,6 +77,37 @@ This document tracks features, bugs, and improvements for the Ukulele Songbook w
 - [ ] Better fork UX
   - After forking, perhaps show "Forked from X" link
   - Allow editing the original title/artist during fork (already supported)
+- [ ] **Tab Player** that reads and plays ukulele tablature
+  - Parse existing `[| ... |]` tablature blocks already supported in `song.lyrics` (see `Lyrics.jsx` and editor syntax help)
+  - Identify the four strings by line labels (A|, E|, C|, G| or G|, C|, E|, A| etc.) or by conventional top-to-bottom order
+  - Use Web Audio API for playback: map string + fret number to frequency using standard re-entrant ukulele tuning (G4 ≈ 392 Hz, C4 ≈ 262 Hz, E4 ≈ 330 Hz, A4 = 440 Hz)
+  - Playback semantics:
+    - Scan columns left-to-right across the tab
+    - Digits = fret to pluck on that string at this step; simultaneous digits on a column = strummed chord
+    - Treat spaces, `-`, `|`, letters as timing separators or rests
+    - Play a short plucked envelope per note (simple oscillator + gain ADSR)
+  - Player UI and controls (new `TabPlayer` component):
+    - Play / Pause / Stop / Restart
+    - Tempo control (step duration or BPM slider; reasonable defaults e.g. 120 BPM or 150-250ms per column)
+    - Progress indicator that advances across the tab
+    - Clickable timeline / position to seek (start playing from a chosen column)
+    - Optional: loop the tab (or current song section), volume, metronome
+  - Visual synchronization:
+    - While playing, highlight or animate the active column(s) inside rendered tabs (extend `TabsBlock` or render a dedicated playable tab view)
+    - Show current string/fret being sounded (optional note readout)
+  - Integration points:
+    - `SongPage`: auto-detect tabs in lyrics; surface player controls near the Lyrics heading or per `[|]` block
+    - Live preview inside `SongEditorPage` (reuse Lyrics + new player)
+    - Possibly a dedicated tab-only view or "Practice mode"
+  - Extract reusable tab parsing (to a `src/lib/tabs.js` or similar) that both display and player can use
+  - Graceful degradation and edge cases:
+    - Songs without tabs: no player UI
+    - Malformed tabs: skip or warn; still render the static block
+    - Support common variations (leading spaces, different dash styles, chord names above tabs)
+  - Other
+    - Add at least one seed song that includes a real tab example (for manual testing)
+    - Update README "Features" if shipped
+    - Nice extras later: alternate tunings (low G, D tuning), MIDI export, recording, slow-down without pitch change
 
 ## UI / UX / Components
 

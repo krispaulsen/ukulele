@@ -57,7 +57,7 @@ export default function SongPage() {
                         </div>
                         {user?.isLoggedIn ? (
                             <div className="pt-2">
-                                {user.userId === song.ownerUserId ? (
+                                {(song.isOwner || user?.userId === song.ownerUserId) ? (
                                     <Link to={`/song/${song.slug}/edit`}>
                                         <i className="fa-solid fa-pencil mr-1"></i>
                                         Edit

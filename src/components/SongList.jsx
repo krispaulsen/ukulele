@@ -50,8 +50,7 @@ export default function SongList({ items, updatePopularList = () => {} }) {
                             <td>{song.artist}</td>
                             <td>{song.chords.join(', ')}</td>
                             <td>
-                                {song.screenName} {' '}
-                                {new Date(song.updatedAt).toLocaleDateString()}
+                                {song.screenName || "Unknown"} • {new Date(song.updatedAt).toLocaleDateString()}
                             </td>
                         </tr>
                     );

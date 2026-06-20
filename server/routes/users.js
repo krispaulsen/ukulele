@@ -58,7 +58,7 @@ router.put("/profile", requireAuth, async (req, res) => {
         res.json({
             message: "Profile updated successfully",
             user: {
-                userId: user.userId,
+                userId: user._id,
                 screenName: user.screenName,
                 email: user.email,
                 chordColor: user.chordColor,
