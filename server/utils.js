@@ -9,6 +9,35 @@ export function slugify(value) {
         .replace(/^-+|-+$/g, "");
 }
 
+/**
+ * Extract a YouTube video ID (11 chars) from a full URL, short link, embed, or raw ID.
+ * Returns empty string if nothing valid is found.
+ */
+export function extractYouTubeId(input) {
+    if (!input) return "";
+    const str = String(input).trim();
+    if (!str) return "";
+
+    // Already a clean ID
+    if (/^[a-zA-Z0-9_-]{11}$/.test(str)) {
+        return str;
+    }
+
+    // Common patterns
+    const patterns = [
+        /(?:v=|\/v\/|youtu\.be\/|\/embed\/|\/shorts\/)([a-zA-Z0-9_-]{11})/i,
+        /[?&]v=([a-zA-Z0-9_-]{11})/i,
+    ];
+
+    for (const pattern of patterns) {
+        const match = str.match(pattern);
+        if (match && match[1]) {
+            return match[1];
+        }
+    }
+    return "";
+}
+
 export function songDocToDetails(song, currentUserId = null) {
     const ownerId = song.ownerUserId
         ? (typeof song.ownerUserId === "object" ? String(song.ownerUserId._id || song.ownerUserId) : String(song.ownerUserId))
@@ -28,6 +57,7 @@ export function songDocToDetails(song, currentUserId = null) {
         notes: song.notes,
         chords: song.chords || [],
         lyrics: song.lyrics || "",
+        youtube: song.youtube || "",
         ownerUserId: ownerId,
         screenName,
         originalSlug: song.originalSlug,
@@ -64,12 +94,13 @@ export function validateSongPayload(payload) {
         ? payload.chords.map((item) => String(item).trim()).filter(Boolean)
         : [];
     const lyrics = String(payload.lyrics ?? "").trim();
+    const youtube = extractYouTubeId(payload.youtube);
 
     if (!title || !artist) {
         return { ok: false, error: "Title and artist are required" };
     }
 
-    return { ok: true, value: { title, artist, key, capo, notes, chords, lyrics } };
+    return { ok: true, value: { title, artist, key, capo, notes, chords, lyrics, youtube } };
 }
 
 /**

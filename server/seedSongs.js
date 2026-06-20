@@ -36,6 +36,7 @@ async function seed() {
                     capo: song.capo,
                     chords: song.chords,
                     lyrics: song.lyrics,
+                    youtube: song.youtube || "",
                     isPublic: true,
                 },
                 $setOnInsert: {

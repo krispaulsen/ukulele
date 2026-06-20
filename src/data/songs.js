@@ -36,6 +36,7 @@ export const songs = [
 [F]Way up [C]high
 [F]And the [C]dreams that you dreamed of
 [G]Once in a lullaby [Am]
-`
+`,
+        youtube: "V1bFr2SWP1I"
     }
 ];

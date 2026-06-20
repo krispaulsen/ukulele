@@ -19,6 +19,7 @@ function formatSongForForm(song) {
         key: song?.key ?? "",
         capo: song?.capo ?? "",
         notes: song?.notes ?? "",
+        youtube: song?.youtube ?? "",
         lyrics: song?.lyrics && (typeof song.lyrics === "string" ? song.lyrics : (song.lyrics ?? []).join("\n"))
     };
 }
@@ -93,6 +94,7 @@ export default function SongEditorPage({ mode }) {
             key: form.key.trim(),
             capo: form.capo,
             notes: form.notes,
+            youtube: form.youtube ? form.youtube.trim() : "",
             chords: chordsInSong,
             lyrics: form.lyrics
         };
@@ -159,6 +161,14 @@ export default function SongEditorPage({ mode }) {
                                 value={form.capo}
                                 min="0"
                                 onChange={(event) => updateField("capo", event.target.value)}
+                            />
+
+                            <Input
+                                id="song-youtube"
+                                label="YouTube Video"
+                                value={form.youtube}
+                                placeholder="https://youtu.be/... or video ID"
+                                onChange={(event) => updateField("youtube", event.target.value)}
                             />
 
                             <Textarea

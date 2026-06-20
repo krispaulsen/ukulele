@@ -22,6 +22,7 @@ const songSchema = new mongoose.Schema({
   notes: String,
   chords: [String],
   lyrics: String,
+  youtube: String,
   ownerUserId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
