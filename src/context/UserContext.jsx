@@ -13,7 +13,33 @@ export const UserProvider = ({ children }) => {
 
     useEffect(() => {
         setUser(prev => ({ ...prev, favorites }));
-    }, [favorites])
+    }, [favorites]);
+
+    // Hydrate login state and favorites from cookie on mount (if valid session)
+    useEffect(() => {
+        const hydrate = async () => {
+            try {
+                const meData = await apiRequest("/api/auth/me");
+                const meUser = (meData && meData.user) || {};
+                let favArray = await apiRequest("/api/favorites").catch(() => []);
+                if (!Array.isArray(favArray)) favArray = [];
+                const favSet = new Set(favArray);
+                const normalizedUser = {
+                    ...meUser,
+                    userId: meUser.userId || (meUser._id ? String(meUser._id) : undefined),
+                    isLoggedIn: true,
+                    favorites: favSet
+                };
+                setFavorites(favSet);
+                setUser(normalizedUser);
+            } catch (e) {
+                // no valid session or error -> stay logged out
+                setUser(loggedOutUser);
+                setFavorites(new Set());
+            }
+        };
+        hydrate();
+    }, []);
 
     const login = async (email, password) => {
         try {
@@ -22,7 +48,8 @@ export const UserProvider = ({ children }) => {
                 body: JSON.stringify({ email, password })
             });
 
-            const favoritesArray = await apiRequest("/api/favorites");
+            let favoritesArray = await apiRequest("/api/favorites");
+            if (!Array.isArray(favoritesArray)) favoritesArray = [];
             const favoritesSet = new Set(favoritesArray);
             setFavorites(favoritesSet);
 
@@ -86,27 +113,46 @@ export const UserProvider = ({ children }) => {
     };
 
     const toggleFavorite = async (slug) => {
-        const isFavorite = favorites.has(slug);
+        const wasFavorite = favorites.has(slug);
         try {
-            if (isFavorite) {
+            if (wasFavorite) {
                 await apiRequest(`/api/favorites/${encodeURIComponent(slug)}`, { method: "DELETE" });
+                const newSet = new Set(favorites);
+                newSet.delete(slug);
+                setFavorites(newSet);
+                setUser(prev => ({ ...prev, favorites: newSet }));
             } else {
                 await apiRequest(`/api/favorites/${encodeURIComponent(slug)}`, { method: "POST" });
+                const newSet = new Set(favorites);
+                newSet.add(slug);
+                setFavorites(newSet);
+                setUser(prev => ({ ...prev, favorites: newSet }));
             }
-            await refreshFavorites();
+            // refresh in background for server truth (e.g. count), but UI already updated
+            refreshFavorites().catch(() => {});
         } catch (error) {
             console.error(error.message || "Failed to update favorites");
+            // on error, re-sync
+            refreshFavorites().catch(() => {});
         }
     };
 
     async function refreshFavorites() {
         try {
-            const favoritesArray = await apiRequest("/api/favorites");
-            setFavorites(new Set(favoritesArray));
+            const result = await apiRequest("/api/favorites");
+            if (result === null) {
+                // 304 not modified or similar; keep current state (don't clear)
+                return;
+            }
+            let favoritesArray = result;
+            if (!Array.isArray(favoritesArray)) favoritesArray = [];
+            const newSet = new Set(favoritesArray);
+            setFavorites(newSet);
+            setUser(prev => ({ ...prev, favorites: newSet }));
         } catch {
             setFavorites(new Set());
+            setUser(prev => ({ ...prev, favorites: new Set() }));
         }
-        setUser({ ...user, favorites });
     }
 
     return (

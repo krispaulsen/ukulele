@@ -3,12 +3,16 @@ export async function apiRequest(path, options = {}) {
         credentials: "include",
         headers: {
             "Content-Type": "application/json",
+            "Cache-Control": "no-cache, no-store, must-revalidate",
+            "Pragma": "no-cache",
+            "Expires": "0",
             ...(options.headers ?? {})
         },
+        cache: "no-store",
         ...options
     });
 
-    if (!response.ok) {
+    if (!response.ok && response.status !== 304) {
         let errorMessage = `Request failed with status ${response.status}`;
         try {
             const payload = await response.json();
@@ -21,7 +25,7 @@ export async function apiRequest(path, options = {}) {
         throw new Error(errorMessage);
     }
 
-    if (response.status === 204) {
+    if (response.status === 204 || response.status === 304) {
         return null;
     }
 
