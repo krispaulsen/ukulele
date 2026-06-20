@@ -4,7 +4,7 @@ export function Flex({children, gap="gap-4", wrap, growChildren, className, ...r
     const classString = clsx([
         'flex',
         gap,
-        wrap ? 'wrap' : null,
+        wrap ? 'flex-wrap' : null,
         growChildren ? 'flex-expand' : null,
         className
     ]);

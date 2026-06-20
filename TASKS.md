@@ -2,7 +2,7 @@
 
 This document tracks features, bugs, and improvements for the Ukulele Songbook web app.
 
-**Last updated:** 2026-06-19
+**Last updated:** 2026-06-20
 
 ## High Priority
 
@@ -108,6 +108,60 @@ This document tracks features, bugs, and improvements for the Ukulele Songbook w
     - Add at least one seed song that includes a real tab example (for manual testing)
     - Update README "Features" if shipped
     - Nice extras later: alternate tunings (low G, D tuning), MIDI export, recording, slow-down without pitch change
+- [ ] **Transpose Chords** control on the Song page
+  - Add interactive transpose controls on `SongPage` (near the "Chords" section or above Lyrics)
+    - Buttons: transpose down (-1), transpose up (+1)
+    - Display of current playing key (e.g. "Key: C (original: Am, capo 0)" or similar)
+    - "Reset" button to return to original
+    - Optional: direct key selector or semitone stepper input
+  - Implement a reusable chord transposition utility:
+    - `transposeChord(name, semitones)` — correctly handle roots (C, C#, Db, etc.) + suffixes (m, 7, m7, sus2, sus4, dim, aug, add9, 6, 9, maj7, etc.)
+    - Support both sharp and flat representations (try to preserve style of original when possible)
+    - Create `src/lib/chords.js` (or similar) with note/chord helpers
+  - Apply transposition to all displayed chords:
+    - The list of chord diagrams (transpose `song.chords` names and render diagrams for the new names)
+    - All `[Chord]` tokens inside lyrics (update the `Lyrics` component to accept a `transpose` offset or pre-transposed content)
+  - Keep original song data untouched (transpose is a pure client-side view transformation using React state)
+  - When key/capo are surfaced (see related task), show both original key and transposed key
+  - Graceful handling:
+    - Unknown chords fall back to the original name (or show warning)
+    - Chords that don't have exact shapes in `CHORD_SHAPES` still display the transposed name (diagram can show a placeholder or first available shape)
+  - Consider interactions:
+    - Transposing may make a capo suggestion useful (e.g. "Play as G with capo 2")
+    - Should not affect the stored `chords` array on the song or the editor
+  - Other
+    - Update the "Chords" heading or add a small "Transposed" badge when offset != 0
+    - Later: remember last transpose per song in localStorage
+    - Later: allow sharing a transposed link (?key=C or ?transpose=2)
+- [ ] **Sharps / Flats toggle** for displayed chords and keys
+  - Add a toggle control on `SongPage` (grouped with transpose controls) to switch the accidental style for all accidentals.
+  - Toggle options: prefer sharps (♯) vs prefer flats (♭)
+  - Affects all chord display on the page:
+    - Inline chords inside the lyrics (e.g. `[C#7]` ↔ `[Db7]`)
+    - Chord diagram titles
+    - Displayed key name (when key/capo UI is implemented)
+  - Should work seamlessly with the transpose feature — user can transpose and then flip between sharp/flat spellings of the same chords.
+  - Add pure utility functions (e.g. in `src/lib/chords.js`):
+    - `toSharps(chord)`
+    - `toFlats(chord)`
+    - `convertChordAccidentals(chord, 'sharp' | 'flat')`
+    - Handle roots only: C# ↔ Db, D# ↔ Eb, F# ↔ Gb, G# ↔ Ab, A# ↔ Bb (and their minor/7/etc variants)
+  - Implementation notes:
+    - Operate on the currently rendered/transposed chord names
+    - Do not mutate the original `song.chords` or `song.lyrics`
+    - The `Lyrics` component (or a wrapper) should support an "accidental preference" prop or post-process chord names
+  - Smart defaults (optional but recommended):
+    - When the (transposed) key is F, Bb, Eb, Ab, Db, Gb → default to flats
+    - When the key is G, D, A, E, B, F#, C# → default to sharps
+    - Provide a manual override via the toggle
+  - Graceful handling for chords that don't have accidentals (no change) and rare enharmonics.
+  - UI:
+    - Simple toggle or two-button group next to transpose +/- controls
+    - Maybe show a small indicator like "♯" or "♭" when non-default
+  - Other:
+    - Later: make the preference part of user profile settings (chord display preferences)
+    - Later: remember last choice per song or globally via localStorage
+    - Should also apply if/when we support printing or exporting chords
 
 ## UI / UX / Components
 

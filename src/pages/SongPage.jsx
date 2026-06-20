@@ -41,7 +41,10 @@ export default function SongPage() {
 
             {song && !isLoading ? (
                 <section className="details">
+                    <Flex wrap>
+                        <div className="grow">
                     <Flex className="mb-4">
+                                {/* Favorite icon, title, edit button */}
                         {user?.isLoggedIn && (
                             <IconButton
                                 className={`favorite-btn ${user?.favorites?.has(song.slug) ? "active" : ""}`}
@@ -72,6 +75,15 @@ export default function SongPage() {
                         ) : null}
                     </Flex>
 
+                            <p>
+                                Submitted by: {' '}
+                                {song.screenName || "Unknown"} • {new Date(song.updatedAt).toLocaleDateString()}
+                            </p>
+
+                            {song.capo && <p>Capo: {song.capo}</p>}
+
+                            {song.notes && <p>{song.notes}</p>}
+
                     {/* {song.originalSlug ? <p className="song-note">Forked from: {song.originalSlug}</p> : null}
                     <div className="song-info">
                         <span>
@@ -81,21 +93,25 @@ export default function SongPage() {
                             <strong>Capo:</strong> {song.capo}
                         </span>
                     </div> */}
+                        </div>
 
-                    {song.notes && <p>{song.notes}</p>}
-
+                        <div className="grow">
                     <h3>Chords</h3>
                     <Flex gap="gap-2" className="mb-4">
                         {song.chords.map((chord) => (
                             <UkuleleChordDiagram key={chord} chord={chord} />
                         ))}
                     </Flex>
+                        </div>
+                    </Flex>
 
+                    <div>
                     <Flex className="justify-between">
                         <h3>Lyrics</h3>
                         <Input type="number" label="# Columns" value={numCols} min="1" max="6" onChange={(e) => setNumCols(e.target.value)} />
                     </Flex>
                     <Lyrics columns={numCols}>{song.lyrics}</Lyrics>
+                    </div>
                 </section>
             ) : null}
         </>
