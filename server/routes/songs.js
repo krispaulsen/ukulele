@@ -5,17 +5,37 @@ import { requireAuth } from "../middleware.js";
 
 const router = Router();
 
-// Get all public songs
+// Get all public songs (supports pagination + optional search)
 router.get("/", async (req, res) => {
     try {
-        const songs = await Song.find({ isPublic: true })
-            // .select("slug title artist chords favorites updatedAt ownerUserId")
+        const page = Math.max(1, parseInt(req.query.page, 10) || 1);
+        const limit = Math.min(100, Math.max(1, parseInt(req.query.limit, 10) || 10));
+        const q = String(req.query.q || "").trim();
+
+        let filter = { isPublic: true };
+        if (q) {
+            filter = {
+                isPublic: true,
+                $or: [
+                    { title: { $regex: q, $options: "i" } },
+                    { artist: { $regex: q, $options: "i" } }
+                ]
+            };
+        }
+
+        const total = await Song.countDocuments(filter);
+
+        const songs = await Song.find(filter)
             .populate('ownerUserId', 'screenName')
             .sort({ createdAt: -1 })
+            .skip((page - 1) * limit)
+            .limit(limit)
             .lean();
 
         const currentUserId = req.user?.userId ? String(req.user.userId) : null;
-        res.json(songs.map(s => formatSong(s, currentUserId)));
+        const items = songs.map(s => formatSong(s, currentUserId));
+
+        res.json({ items, total, page, limit, totalPages: Math.ceil(total / limit) || 1 });
     } catch (error) {
         console.error("Failed to fetch songs:", error);
         res.status(500).json({ error: "Failed to fetch songs" });

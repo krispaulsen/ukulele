@@ -1,38 +1,73 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { apiRequest } from "../lib/api";
 import SongList from "../components/SongList";
 import { Link } from "../components/ui";
 import { Input } from "../components/Forms";
+
+const PAGE_SIZE = 10;
 
 export default function SearchPage({ onToggleFavorite, favoriteSongIds }) {
     const [isLoading, setIsLoading] = useState(true);
     const [loadError, setLoadError] = useState("");
     const [songs, setSongs] = useState([]);
     const [popularSongs, setPopularSongs] = useState([]);
-    const [query, setQuery] = useState('');
+    const [page, setPage] = useState(1);
+    const [total, setTotal] = useState(0);
+    const [totalPages, setTotalPages] = useState(1);
+    const [hasLoaded, setHasLoaded] = useState(false);
 
-    const filteredSongs = useMemo(() => {
-        const q = query.trim().toLowerCase();
-        if (!q) return songs;
+    const [searchTerm, setSearchTerm] = useState("");
+    const [query, setQuery] = useState(""); // debounced value used for fetch
 
-        return songs.filter(
-            (song) =>
-                song.title.toLowerCase().includes(q) || song.artist.toLowerCase().includes(q)
-        );
-    }, [songs, query]);
+    // Debounce searchTerm into query (and reset to page 1 on new search)
+    useEffect(() => {
+        const id = setTimeout(() => setQuery(searchTerm), 300);
+        return () => clearTimeout(id);
+    }, [searchTerm]);
 
-    async function refreshSongs() {
+    // Refetch when debounced query or page changes (inlined to avoid any closure issues with page/query).
+    useEffect(() => {
         setIsLoading(true);
         setLoadError("");
-        try {
-            const data = await apiRequest("/api/songs");
-            setSongs(data);
-        } catch (error) {
-            setLoadError(error.message || "Failed to load songs");
-        } finally {
-            setIsLoading(false);
-        }
-    }
+        const q = query.trim();
+        let url = `/api/songs?page=${page}&limit=${PAGE_SIZE}`;
+        if (q) url += `&q=${encodeURIComponent(q)}`;
+
+        apiRequest(url)
+            .then((data) => {
+                if (Array.isArray(data)) {
+                    // Legacy (pre-pagination) response shape from server.
+                    // Client-side slice + filter so pagination/search still "work" until backend is restarted.
+                    console.warn("[SearchPage] Received legacy array from /api/songs (no pagination). Restart the dev server to pick up backend changes for real ?page/?limit/?q support.");
+                    let legacy = data;
+                    const qq = q.toLowerCase();
+                    if (qq) {
+                        legacy = legacy.filter((song) =>
+                            (song.title || "").toLowerCase().includes(qq) ||
+                            (song.artist || "").toLowerCase().includes(qq)
+                        );
+                    }
+                    const start = (page - 1) * PAGE_SIZE;
+                    setSongs(legacy.slice(start, start + PAGE_SIZE));
+                    setTotal(legacy.length);
+                    setTotalPages(Math.ceil(legacy.length / PAGE_SIZE) || 1);
+                } else {
+                    setSongs(data?.items || []);
+                    setTotal(data?.total || 0);
+                    setTotalPages(data?.totalPages || 1);
+                }
+            })
+            .catch((error) => {
+                setLoadError(error.message || "Failed to load songs");
+                setSongs([]);
+                setTotal(0);
+                setTotalPages(1);
+            })
+            .finally(() => {
+                setIsLoading(false);
+                setHasLoaded(true);
+            });
+    }, [query, page]);
 
     async function refreshPopular() {
         try {
@@ -44,9 +79,13 @@ export default function SearchPage({ onToggleFavorite, favoriteSongIds }) {
     }
 
     useEffect(() => {
-        refreshSongs();
         refreshPopular();
     }, []);
+
+    const handleSearchChange = (event) => {
+        setSearchTerm(event.target.value);
+        setPage(1);
+    };
 
     return (
         <>
@@ -59,10 +98,15 @@ export default function SearchPage({ onToggleFavorite, favoriteSongIds }) {
                 type="text"
                 label="Search Songs"
                 placeholder="Type song title or artist..."
-                value={query}
-                onChange={(event) => setQuery(event.target.value)}
+                value={searchTerm}
+                onChange={handleSearchChange}
             />
-            <SongList items={filteredSongs} updatePopularList={refreshPopular} />
+            <SongList
+                items={songs}
+                updatePopularList={refreshPopular}
+                pagination={hasLoaded ? { page, totalPages, total, limit: PAGE_SIZE } : undefined}
+                onPageChange={setPage}
+            />
 
             <h3 className="mt-6">Most Favorited Songs</h3>
             {popularSongs.length === 0 ? (
@@ -72,6 +116,7 @@ export default function SearchPage({ onToggleFavorite, favoriteSongIds }) {
                     {popularSongs.map((song) => (
                         <li key={song.slug}>
                             <Link to={`/song/${song.slug}`}>{song.title}</Link>
+                            {` • `}
                             <span>{song.favorites} favorites</span>
                         </li>
                     ))}

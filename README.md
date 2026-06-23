@@ -64,7 +64,7 @@ npm run dev
 | POST | `/api/auth/login` | — | Log in |
 | GET | `/api/auth/me` | ✓ | Get current user |
 | POST | `/api/auth/logout` | — | Log out |
-| GET | `/api/songs` | — | List all public songs |
+| GET | `/api/songs` | — | List public songs (paginated + optional search). Query params: `?page=1&limit=20&q=term`. Response: `{ items: [...], total, page, limit, totalPages }` (limit defaults to 20 server-side; max 100) |
 | GET | `/api/songs/:slug` | — | Get a single song |
 | POST | `/api/songs` | ✓ | Create a song |
 | PUT | `/api/songs/:slug` | ✓ | Update a song (owner only) |
