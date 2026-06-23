@@ -29,6 +29,13 @@ router.get("/", requireAuth, async (req, res) => {
         const favorites = await Favorite.find({ userId: req.user.userId })
             .select("slug -_id")
             .lean();
+
+        res.set("Cache-Control", "private, no-cache, no-store, must-revalidate");
+        res.set("Pragma", "no-cache");
+        res.set("Expires", "0");
+        res.removeHeader("ETag");
+        res.removeHeader("Last-Modified");
+
         res.json(favorites.map(f => f.slug));
     } catch (error) {
         console.error("Failed to fetch favorites:", error);
@@ -49,6 +56,11 @@ router.post("/:slug", requireAuth, async (req, res) => {
         await Favorite.create({ userId: req.user.userId, slug });
         await Song.updateOne({ slug }, { $inc: { favorites: 1 } });
 
+        res.set("Cache-Control", "private, no-cache, no-store, must-revalidate");
+        res.set("Pragma", "no-cache");
+        res.set("Expires", "0");
+        res.removeHeader("ETag");
+        res.removeHeader("Last-Modified");
         res.status(201).json({ slug, userId: req.user.userId });
     } catch (error) {
         if (error.code === 11000) {
@@ -73,6 +85,11 @@ router.delete("/:slug", requireAuth, async (req, res) => {
             await Song.updateOne({ slug }, { $inc: { favorites: -1 } });
         }
 
+        res.set("Cache-Control", "private, no-cache, no-store, must-revalidate");
+        res.set("Pragma", "no-cache");
+        res.set("Expires", "0");
+        res.removeHeader("ETag");
+        res.removeHeader("Last-Modified");
         res.status(204).end();
     } catch (error) {
         console.error("Failed to remove favorite:", error);

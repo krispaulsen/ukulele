@@ -12,7 +12,7 @@ export async function apiRequest(path, options = {}) {
         ...options
     });
 
-    if (!response.ok && response.status !== 304) {
+    if (!response.ok) {
         let errorMessage = `Request failed with status ${response.status}`;
         try {
             const payload = await response.json();
@@ -25,7 +25,7 @@ export async function apiRequest(path, options = {}) {
         throw new Error(errorMessage);
     }
 
-    if (response.status === 204 || response.status === 304) {
+    if (response.status === 204) {
         return null;
     }
 

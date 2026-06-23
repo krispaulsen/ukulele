@@ -139,12 +139,7 @@ export const UserProvider = ({ children }) => {
 
     async function refreshFavorites() {
         try {
-            const result = await apiRequest("/api/favorites");
-            if (result === null) {
-                // 304 not modified or similar; keep current state (don't clear)
-                return;
-            }
-            let favoritesArray = result;
+            let favoritesArray = await apiRequest("/api/favorites");
             if (!Array.isArray(favoritesArray)) favoritesArray = [];
             const newSet = new Set(favoritesArray);
             setFavorites(newSet);

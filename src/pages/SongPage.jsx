@@ -84,7 +84,7 @@ export default function SongPage() {
                                 {song.screenName || "Unknown"} • {new Date(song.updatedAt).toLocaleDateString()}
                             </p>
 
-                            {song.capo && <p>Capo: {song.capo}</p>}
+                            {song.capo ? <p>Capo: {song.capo}</p> : null}
 
                             {song.notes && <p>{song.notes}</p>}
 
