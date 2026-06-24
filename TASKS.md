@@ -190,7 +190,7 @@ This document tracks features, bugs, and improvements for the Ukulele Songbook w
 - [ ] Improve frontend error boundaries or global toast for API errors
 - [ ] Add client-side route guards that redirect unauthenticated users trying to hit /song/new etc.
 - [ ] Remove or finish dead/commented code (key fields, originalSlug block, old selects)
-- [ ] Consider adding unit tests (backend route handlers, utils) and a test script
+- [x] Consider adding unit tests (backend route handlers, utils) and a test script — Basic tests added via Vitest (utils, middleware, api client + component starter) + `npm test` / `npm run test:watch`
 - [ ] Standardize ID handling: always use string `_id` / `userId` in API responses
 
 ## Documentation & Dev
@@ -198,7 +198,7 @@ This document tracks features, bugs, and improvements for the Ukulele Songbook w
 - [ ] Keep README.md API table and feature list in sync after changes
 - [ ] Add a short "Contributing" or "Known Issues" section
 - [ ] Document environment variables clearly (already in README)
-- [ ] Add a `npm test` or lint command if desired
+- [x] Add a `npm test` or lint command if desired — `npm test` / `test:watch` added (basic tests implemented)
 
 ## Nice-to-Have / Future
 
