@@ -65,10 +65,20 @@ export default function SongPage() {
                                 {user?.isLoggedIn ? (
                                     <div className="pt-2">
                                         {(song.isOwner || user?.userId === song.ownerUserId) ? (
-                                            <Link to={`/song/${song.slug}/edit`}>
-                                                <i className="fa-solid fa-pencil mr-1"></i>
-                                                Edit
-                                            </Link>
+                                            <>
+                                                {!song.isPublic ? (
+                                                    <>
+                                                        <i className="fa-solid fa-eye-slash" />
+                                                        {' '}
+                                                        <span>Private</span>
+                                                        {' '}
+                                                    </>
+                                                ) : null}
+                                                <Link to={`/song/${song.slug}/edit`}>
+                                                    <i className="fa-solid fa-pencil mr-1"></i>
+                                                    Edit
+                                                </Link>
+                                            </>
                                         ) : (
                                             <Link to={`/song/${song.slug}/fork`}>
                                                 <i className="fa-regular fa-clone mr-1"></i>

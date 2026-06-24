@@ -90,7 +90,8 @@ describe('validateSongPayload', () => {
       notes: '',
       chords: [],
       lyrics: '',
-      youtube: ''
+      youtube: '',
+      isPublic: false
     });
   });
 
@@ -141,6 +142,12 @@ describe('validateSongPayload', () => {
     });
     expect(result.value.youtube).toBe('xyz98765432');
   });
+
+  it('normalizes isPublic to boolean (defaults false when absent/falsy)', () => {
+    expect(validateSongPayload({ title: 'T', artist: 'A' }).value.isPublic).toBe(false);
+    expect(validateSongPayload({ title: 'T', artist: 'A', isPublic: true }).value.isPublic).toBe(true);
+    expect(validateSongPayload({ title: 'T', artist: 'A', isPublic: 0 }).value.isPublic).toBe(false);
+  })
 });
 
 describe('formatSong', () => {
@@ -164,6 +171,7 @@ describe('formatSong', () => {
     expect(formatted.ownerUserId).toBe('user123');
     expect(formatted.screenName).toBe('TestUser');
     expect(formatted.isOwner).toBe(true);
+    expect(formatted.isPublic).toBe(true);
   });
 
   it('extracts from populated owner object', () => {

@@ -62,7 +62,13 @@ router.get("/:slug", async (req, res) => {
         }
 
         const currentUserId = req.user?.userId ? String(req.user.userId) : null;
-        res.json(formatSong(song, currentUserId));
+        const view = formatSong(song, currentUserId);
+        if (!song.isPublic && !view.isOwner) {
+            return res.status(404).json({
+                error: "Song not found"
+            }); // hide existence
+        }
+        res.json(view);
     } catch (error) {
         console.error("Failed to fetch song:", error);
         res.status(500).json({ error: "Failed to fetch song" });
@@ -80,6 +86,7 @@ router.post("/list", async (req, res) => {
             .lean();
 
         const currentUserId = req.user?.userId ? String(req.user.userId) : null;
+        // TODO: enforce song.isPublic or owned by currentUserId
         res.json(songs.map(s => formatSong(s, currentUserId)));
     } catch (error) {
         console.error("Failed to fetch song list:", error);
@@ -100,8 +107,7 @@ router.post("/", requireAuth, async (req, res) => {
         const created = await Song.create({
             slug,
             ...parsed.value,
-            ownerUserId: req.user.userId,
-            isPublic: true
+            ownerUserId: req.user.userId
         });
 
         // Populate to get screenName for consistent response shape

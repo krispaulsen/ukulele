@@ -79,7 +79,10 @@ export default function SongList({ items = [], updatePopularList = () => {}, pag
                                     </td>
                                 )}
                                 <td>
-                                    <Link className="song-btn" to={`/song/${song.slug}`}>{song.title}</Link>
+                                    <Link className="song-btn" to={`/song/${song.slug}`}>
+                                        {song.isOwner && !song.isPublic ? <i className="fa-solid fa-eye-slash" title="Private"></i> : null}
+                                        {' '}{song.title}
+                                    </Link>
                                 </td>
                                 <td>{song.artist}</td>
                                 <td>{song.chords.join(', ')}</td>

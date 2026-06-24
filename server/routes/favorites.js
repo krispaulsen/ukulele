@@ -53,6 +53,7 @@ router.post("/:slug", requireAuth, async (req, res) => {
             return res.status(404).json({ error: "Song not found" });
         }
 
+        // TODO: ensure the song isPublic or owned by req.user
         await Favorite.create({ userId: req.user.userId, slug });
         await Song.updateOne({ slug }, { $inc: { favorites: 1 } });
 

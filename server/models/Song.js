@@ -32,7 +32,7 @@ const songSchema = new mongoose.Schema({
   originalSlug: String,
   isPublic: {
     type: Boolean,
-    default: true
+    default: false
   },
   favorites: {
     type: Number,

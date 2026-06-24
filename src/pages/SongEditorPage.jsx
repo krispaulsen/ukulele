@@ -9,7 +9,8 @@ import Lyrics from "../components/Lyrics";
 import {
     Button,
     Card,
-    Collapse
+    Collapse,
+    Switch
 } from "@material-tailwind/react";
 
 function formatSongForForm(song) {
@@ -20,7 +21,8 @@ function formatSongForForm(song) {
         capo: song?.capo ?? "",
         notes: song?.notes ?? "",
         youtube: song?.youtube ?? "",
-        lyrics: song?.lyrics && (typeof song.lyrics === "string" ? song.lyrics : (song.lyrics ?? []).join("\n"))
+        lyrics: song?.lyrics && (typeof song.lyrics === "string" ? song.lyrics : (song.lyrics ?? []).join("\n")),
+        isPublic: song?.isPublic ?? false
     };
 }
 
@@ -51,7 +53,12 @@ export default function SongEditorPage({ mode }) {
             setError("");
             try {
                 const song = await apiRequest(`/api/songs/${encodeURIComponent(slug)}`);
-                setForm(formatSongForForm(song));
+                // if mode === "fork" set isPublic to false
+                if (mode === "fork") {
+                    setForm(formatSongForForm({...song, isPublic: false}));
+                } else {
+                    setForm(formatSongForForm(song));
+                }
             } catch (loadError) {
                 setError(loadError.message || "Failed to load song");
             } finally {
@@ -96,7 +103,8 @@ export default function SongEditorPage({ mode }) {
             notes: form.notes,
             youtube: form.youtube ? form.youtube.trim() : "",
             chords: chordsInSong,
-            lyrics: form.lyrics
+            lyrics: form.lyrics,
+            isPublic: form.isPublic
         };
 
         try {
@@ -200,6 +208,16 @@ export default function SongEditorPage({ mode }) {
                                     </table>
                                 </Card>
                             </Collapse>
+
+                            <Flex className="mb-4">
+                                <span>Private</span>
+                                <Switch
+                                    color="teal"
+                                    checked={!!form.isPublic}
+                                    onChange={(event) => updateField("isPublic", event.target.checked)}
+                                />
+                                <span>Public</span>
+                            </Flex>
 
                             <Button type="submit" disabled={isSaving}>
                                 {isSaving ? "Saving..." : "Save Song"}

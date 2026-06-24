@@ -50,12 +50,14 @@ This document tracks features, bugs, and improvements for the Ukulele Songbook w
 - [ ] `ProfilePage` state initialization from stale `user` prop; date fields (created/lastLogin) never shown (see TODO)
 - [ ] Minor: `FavoritesPage` sets `favoriteSongs` to `null` on error, causing odd render branch
 - [ ] `UserContext.refreshFavorites` does a set after the async call that can race with `setUser`
+- [ ] `PUT /song/:slug` if a song is changed from public to private, what should happen to favorites having that song?
+  - Change `GET /favorites` to only fetch public songs?
 
 ## Features
 
 - [x] Display "My Songs" (songs I own) — implemented on the My Songbook (/favorites) page as a server-paginated list using `?mine=true` (and generalized `?ownerUserId`) support on `GET /api/songs`. (Not placed on Profile page.)
-- [ ] Finish song privacy (`isPublic`)
-  - Add checkbox "Make public" (default checked) in song editor form
+- [x] Finish song privacy (`isPublic`)
+  - Add checkbox "Make public" (default unchecked) in song editor form
   - Pass `isPublic` through `validateSongPayload` (or extend)
   - Support updating `isPublic` on PUT
   - Decide visibility rules:

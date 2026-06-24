@@ -95,12 +95,13 @@ export function validateSongPayload(payload) {
         : [];
     const lyrics = String(payload.lyrics ?? "").trim();
     const youtube = extractYouTubeId(payload.youtube);
+    const isPublic = !!payload.isPublic;
 
     if (!title || !artist) {
         return { ok: false, error: "Title and artist are required" };
     }
 
-    return { ok: true, value: { title, artist, key, capo, notes, chords, lyrics, youtube } };
+    return { ok: true, value: { title, artist, key, capo, notes, chords, lyrics, youtube, isPublic } };
 }
 
 /**
