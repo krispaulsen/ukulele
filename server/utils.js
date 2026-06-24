@@ -136,3 +136,59 @@ export function formatSong(song, currentUserId = null) {
         isOwner
     };
 }
+
+/**
+ * Builds a MongoDB filter object for the public song list (GET /api/songs).
+ * Supports:
+ *  - ?ownerUserId=xxx or ?owner=xxx : songs owned by a specific user
+ *  - ?mine=true : shorthand for the current authenticated user's songs
+ *
+ * Privacy rule:
+ *  - If the requester is the target owner (detected via currentUser), private songs are returned.
+ *  - Otherwise only isPublic songs are returned for that owner (or all public songs if no owner filter).
+ *
+ * q search (title/artist, case-insensitive) is combined with the base condition.
+ */
+export function getSongListFilter(params = {}, currentUser = null) {
+    const q = String(params.q || params.query || "").trim();
+    const rawOwner = String(params.ownerUserId || params.owner || "").trim();
+    const mineFlag = String(params.mine || "").trim().toLowerCase();
+    const isMine = mineFlag === "1" || mineFlag === "true" || mineFlag === "yes";
+
+    let targetOwnerId = null;
+    let viewingOwn = false;
+
+    if (isMine) {
+        if (currentUser && currentUser.userId) {
+            targetOwnerId = String(currentUser.userId);
+            viewingOwn = true;
+        }
+    } else if (rawOwner) {
+        targetOwnerId = rawOwner;
+        if (currentUser && currentUser.userId && targetOwnerId === String(currentUser.userId)) {
+            viewingOwn = true;
+        }
+    }
+
+    let filter;
+    if (targetOwnerId) {
+        filter = { ownerUserId: targetOwnerId };
+        if (!viewingOwn) {
+            filter.isPublic = true;
+        }
+    } else {
+        filter = { isPublic: true };
+    }
+
+    if (q) {
+        filter = {
+            ...filter,
+            $or: [
+                { title: { $regex: q, $options: "i" } },
+                { artist: { $regex: q, $options: "i" } }
+            ]
+        };
+    }
+
+    return filter;
+}

@@ -64,7 +64,7 @@ npm run dev
 | POST | `/api/auth/login` | — | Log in |
 | GET | `/api/auth/me` | ✓ | Get current user |
 | POST | `/api/auth/logout` | — | Log out |
-| GET | `/api/songs` | — | List public songs (paginated + optional search). Query params: `?page=1&limit=20&q=term`. Response: `{ items: [...], total, page, limit, totalPages }` (limit defaults to 20 server-side; max 100) |
+| GET | `/api/songs` | — | List public songs (paginated + optional search). Query params: `?page=1&limit=20&q=term`. Also supports `?ownerUserId=xxx` (or `?owner=xxx`) to list songs by a user (only public unless you are that user) and `?mine=true` for the current user's songs (incl. private). Response: `{ items: [...], total, page, limit, totalPages }` (limit defaults to 10 server-side; max 100) |
 | GET | `/api/songs/:slug` | — | Get a single song |
 | POST | `/api/songs` | ✓ | Create a song |
 | PUT | `/api/songs/:slug` | ✓ | Update a song (owner only) |
@@ -86,6 +86,7 @@ See [TASKS.md](./TASKS.md) for the current backlog of bugs, features, and improv
 - Edit songs you own
 - Fork songs from other users and edit your copy
 - Favorite songs and view your favorites
+- View a paginated list of all songs you own ("My Songs") on the My Songbook page
 - View globally most-favorited songs
 
 **Guests (unauthenticated users)**

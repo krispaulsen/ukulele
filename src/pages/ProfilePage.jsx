@@ -1,9 +1,9 @@
 import { use, useEffect, useState } from "react";
 import { UserContext } from "../context/UserContext";
 import { apiRequest } from "../lib/api";
-import { Checkbox, Input, Option, Select } from "../components/Forms";
+import { Input, Option, Select } from "../components/Forms";
 import { Modal, Flex } from "../components/ui";
-import { Button } from "@material-tailwind/react";
+import { Button, Checkbox } from "@material-tailwind/react";
 import PalettePicker from "../components/ui/PalettePicker";
 import Lyrics from "../components/Lyrics";
 
@@ -209,7 +209,7 @@ export default function ProfilePage() {
                     <Checkbox
                         label="Dark Mode"
                         checked={darkMode}
-                        onClick={() => setDarkMode((prev) => !prev)}
+                        onChange={() => setDarkMode((prev) => !prev)}
                     />
                     
                     <PalettePicker

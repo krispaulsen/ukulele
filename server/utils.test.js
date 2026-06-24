@@ -4,7 +4,8 @@ import {
   extractYouTubeId,
   validateSongPayload,
   formatSong,
-  songDocToDetails
+  songDocToDetails,
+  getSongListFilter
 } from './utils.js';
 
 describe('slugify', () => {
@@ -233,5 +234,72 @@ describe('songDocToDetails', () => {
   it('works when currentUserId matches as string', () => {
     const doc = { slug: 'x', title: 'x', artist: 'x', ownerUserId: 'uid-9' };
     expect(songDocToDetails(doc, 'uid-9').isOwner).toBe(true);
+  });
+});
+
+describe('getSongListFilter', () => {
+  it('returns only public songs when no owner or mine is provided', () => {
+    expect(getSongListFilter({})).toEqual({ isPublic: true });
+    expect(getSongListFilter({ q: '' })).toEqual({ isPublic: true });
+  });
+
+  it('returns owner filter (no isPublic) when using mine + current user', () => {
+    const user = { userId: 'u42' };
+    const f = getSongListFilter({ mine: 'true' }, user);
+    expect(f).toEqual({ ownerUserId: 'u42' });
+  });
+
+  it('returns owner filter (no isPublic) when ownerUserId matches current user', () => {
+    const user = { userId: 'abc123' };
+    expect(getSongListFilter({ ownerUserId: 'abc123' }, user)).toEqual({ ownerUserId: 'abc123' });
+    expect(getSongListFilter({ owner: 'abc123' }, user)).toEqual({ ownerUserId: 'abc123' });
+  });
+
+  it('adds isPublic when requesting another user\'s songs', () => {
+    const user = { userId: 'me' };
+    expect(getSongListFilter({ ownerUserId: 'other' }, user)).toEqual({ ownerUserId: 'other', isPublic: true });
+    // unauthenticated viewer
+    expect(getSongListFilter({ ownerUserId: 'someone' }, null)).toEqual({ ownerUserId: 'someone', isPublic: true });
+  });
+
+  it('combines q search with owner or public base', () => {
+    const noOwnerQ = getSongListFilter({ q: 'hello' });
+    expect(noOwnerQ).toEqual({
+      isPublic: true,
+      $or: [
+        { title: { $regex: 'hello', $options: 'i' } },
+        { artist: { $regex: 'hello', $options: 'i' } }
+      ]
+    });
+
+    const ownQ = getSongListFilter({ q: 'world', mine: '1' }, { userId: 'u1' });
+    expect(ownQ).toEqual({
+      ownerUserId: 'u1',
+      $or: [
+        { title: { $regex: 'world', $options: 'i' } },
+        { artist: { $regex: 'world', $options: 'i' } }
+      ]
+    });
+
+    const otherQ = getSongListFilter({ q: 'x', ownerUserId: 'u2' }, { userId: 'u1' });
+    expect(otherQ).toEqual({
+      ownerUserId: 'u2',
+      isPublic: true,
+      $or: [
+        { title: { $regex: 'x', $options: 'i' } },
+        { artist: { $regex: 'x', $options: 'i' } }
+      ]
+    });
+  });
+
+  it('mine without current user still produces a filter (auth check is done by caller)', () => {
+    // helper itself is pure; caller (route) enforces 401
+    const f = getSongListFilter({ mine: true }, null);
+    expect(f).toEqual({ isPublic: true }); // falls back
+  });
+
+  it('handles falsy/edge inputs gracefully', () => {
+    expect(getSongListFilter({ q: '   ' })).toEqual({ isPublic: true });
+    expect(getSongListFilter({ ownerUserId: '' })).toEqual({ isPublic: true });
   });
 });

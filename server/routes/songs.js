@@ -1,27 +1,34 @@
 import { Router } from "express";
 import Song from "../models/Song.js";
-import { validateSongPayload, resolveUniqueSongSlug, formatSong } from "../utils.js";
+import { validateSongPayload, resolveUniqueSongSlug, formatSong, getSongListFilter } from "../utils.js";
 import { requireAuth } from "../middleware.js";
 
 const router = Router();
 
-// Get all public songs (supports pagination + optional search)
+// Get songs (supports pagination + optional search).
+// By default returns only public songs.
+// ?ownerUserId=xxx or ?owner=xxx limits to a specific owner (public only unless you are that owner).
+// ?mine=true returns all songs owned by the authenticated caller (public + private).
 router.get("/", async (req, res) => {
     try {
         const page = Math.max(1, parseInt(req.query.page, 10) || 1);
         const limit = Math.min(100, Math.max(1, parseInt(req.query.limit, 10) || 10));
         const q = String(req.query.q || "").trim();
 
-        let filter = { isPublic: true };
-        if (q) {
-            filter = {
-                isPublic: true,
-                $or: [
-                    { title: { $regex: q, $options: "i" } },
-                    { artist: { $regex: q, $options: "i" } }
-                ]
-            };
+        const ownerParam = req.query.ownerUserId || req.query.owner;
+        const mineParam = req.query.mine;
+
+        // Early auth check for explicit "mine" requests
+        const mineFlag = String(mineParam || "").trim().toLowerCase();
+        const isMineRequest = mineFlag === "1" || mineFlag === "true" || mineFlag === "yes";
+        if (isMineRequest && !req.user?.userId) {
+            return res.status(401).json({ error: "Authentication required to view your songs" });
         }
+
+        const filter = getSongListFilter(
+            { q, ownerUserId: ownerParam, mine: mineParam },
+            req.user
+        );
 
         const total = await Song.countDocuments(filter);
 

@@ -53,9 +53,7 @@ This document tracks features, bugs, and improvements for the Ukulele Songbook w
 
 ## Features
 
-- [ ] Display "My Songs" (songs I own) on Profile page
-  - Add API helper or reuse `/api/songs` filtered client-side, or new endpoint `GET /api/songs/mine`
-  - Show title, artist, last updated, link to view/edit
+- [x] Display "My Songs" (songs I own) — implemented on the My Songbook (/favorites) page as a server-paginated list using `?mine=true` (and generalized `?ownerUserId`) support on `GET /api/songs`. (Not placed on Profile page.)
 - [ ] Finish song privacy (`isPublic`)
   - Add checkbox "Make public" (default checked) in song editor form
   - Pass `isPublic` through `validateSongPayload` (or extend)
