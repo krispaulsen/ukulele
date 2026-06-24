@@ -15,12 +15,22 @@ export const UserProvider = ({ children }) => {
         setUser(prev => ({ ...prev, favorites }));
     }, [favorites]);
 
-    // Hydrate login state and favorites from cookie on mount (if valid session)
+    // Hydrate login state and favorites from cookie on mount.
+    // /api/auth/me is public and returns { user: null } when unauthenticated,
+    // so we avoid spurious 401 errors in the console for guests.
     useEffect(() => {
         const hydrate = async () => {
             try {
                 const meData = await apiRequest("/api/auth/me");
-                const meUser = (meData && meData.user) || {};
+                const meUser = meData && meData.user;
+
+                if (!meUser) {
+                    // no valid session
+                    setUser(loggedOutUser);
+                    setFavorites(new Set());
+                    return;
+                }
+
                 let favArray = await apiRequest("/api/favorites").catch(() => []);
                 if (!Array.isArray(favArray)) favArray = [];
                 const favSet = new Set(favArray);
@@ -33,7 +43,7 @@ export const UserProvider = ({ children }) => {
                 setFavorites(favSet);
                 setUser(normalizedUser);
             } catch (e) {
-                // no valid session or error -> stay logged out
+                // network error or unexpected failure -> stay logged out
                 setUser(loggedOutUser);
                 setFavorites(new Set());
             }

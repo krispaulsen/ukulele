@@ -3,7 +3,6 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { config } from "../config.js";
 import User from "../models/User.js";
-import { requireAuth } from "../middleware.js";
 
 const router = Router();
 
@@ -82,12 +81,24 @@ router.post("/login", async (req, res) => {
     }
 });
 
-// Get current user
-router.get("/me", requireAuth, async (req, res) => {
+// Get current user (or null if not logged in). This endpoint is intentionally
+// public so that the client can hydrate auth state without causing a 401
+// console error for unauthenticated visitors.
+router.get("/me", async (req, res) => {
+    const TOKEN_COOKIE = "session";
     try {
+        if (!req.user) {
+            // Clear any invalid/stale session cookie that failed verification
+            if (req.cookies && req.cookies[TOKEN_COOKIE]) {
+                res.clearCookie(TOKEN_COOKIE);
+            }
+            return res.json({ user: null });
+        }
+
         const user = await User.findOne({ _id: req.user.userId }).select("-password");
         if (!user) {
-            return res.status(404).json({ error: "User not found" });
+            res.clearCookie(TOKEN_COOKIE);
+            return res.json({ user: null });
         }
         res.json({ user });
     } catch (error) {

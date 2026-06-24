@@ -12,29 +12,34 @@ import songRoutes from "./routes/songs.js";
 import userRoutes from "./routes/users.js";
 
 dotenv.config();
-connectDB();
 
-const app = express();
+async function start() {
+  await connectDB();
 
-app.use(cors({
-    origin: process.env.FRONTEND_URL || "http://localhost:5173",
-    credentials: true
-}));
-app.use(cookieParser());
-app.use(express.json());
-app.use(attachUser);
+  const app = express();
 
-// ====================== ROUTES ======================
+  app.use(cors({
+      origin: process.env.FRONTEND_URL || "http://localhost:5173",
+      credentials: true
+  }));
+  app.use(cookieParser());
+  app.use(express.json());
+  app.use(attachUser);
 
-app.get("/api/health", (_req, res) => res.json({ ok: true }));
+  // ====================== ROUTES ======================
 
-app.use("/api/auth", authRoutes);
-app.use("/api/favorites", favoriteRoutes);
-app.use("/api/songs", songRoutes);
-app.use("/api/users", userRoutes);
+  app.get("/api/health", (_req, res) => res.json({ ok: true }));
 
-// ====================== START ======================
+  app.use("/api/auth", authRoutes);
+  app.use("/api/favorites", favoriteRoutes);
+  app.use("/api/songs", songRoutes);
+  app.use("/api/users", userRoutes);
 
-app.listen(config.port, () => {
-    console.log(`✅ API running on http://localhost:${config.port}`);
-});
+  // ====================== START ======================
+
+  app.listen(config.port, () => {
+      console.log(`✅ API running on http://localhost:${config.port}`);
+  });
+}
+
+start();

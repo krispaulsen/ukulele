@@ -97,8 +97,8 @@ export default function SongList({ items = [], updatePopularList = () => {}, pag
                     {/* <span className="mr-2">{pagination.total ?? 0} result{(pagination.total ?? 0) === 1 ? "" : "s"}</span> */}
                     {totalP > 1 && (
                         <Flex gap="gap-1" className="items-center">
-                            <IconButton color="secondary" disabled={p <= 1} onClick={() => onPageChange?.(1)}><i class="fa-solid fa-angles-left"></i></IconButton>
-                            <IconButton color="secondary" disabled={p <= 1} onClick={() => onPageChange?.(p - 1)}><i class="fa-solid fa-angle-left"></i></IconButton>
+                            <IconButton color="secondary" disabled={p <= 1} onClick={() => onPageChange?.(1)}><i className="fa-solid fa-angles-left"></i></IconButton>
+                            <IconButton color="secondary" disabled={p <= 1} onClick={() => onPageChange?.(p - 1)}><i className="fa-solid fa-angle-left"></i></IconButton>
 
                             {pageItems.map((item, idx) =>
                                 item === "…"
@@ -112,8 +112,8 @@ export default function SongList({ items = [], updatePopularList = () => {}, pag
                                       </Button>
                             )}
 
-                            <IconButton color="secondary" disabled={p >= totalP} onClick={() => onPageChange?.(p + 1)}><i class="fa-solid fa-angle-right"></i></IconButton>
-                            <IconButton color="secondary" disabled={p >= totalP} onClick={() => onPageChange?.(totalP)}><i class="fa-solid fa-angles-right"></i></IconButton>
+                            <IconButton color="secondary" disabled={p >= totalP} onClick={() => onPageChange?.(p + 1)}><i className="fa-solid fa-angle-right"></i></IconButton>
+                            <IconButton color="secondary" disabled={p >= totalP} onClick={() => onPageChange?.(totalP)}><i className="fa-solid fa-angles-right"></i></IconButton>
                         </Flex>
                     )}
                 </Flex>

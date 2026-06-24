@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "concurrently \"npm:dev:server\" \"npm:dev:client\"",
     "dev:client": "vite",
-    "dev:server": "nodemon --watch server --ext js --exec \"node ./server/index.js\"",
+    "dev:server": "nodemon --watch server --ext js server/index.js",
     "build": "vite build",
     "preview": "vite preview",
     "seed:songs": "node ./server/seedSongs.js"
