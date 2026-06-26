@@ -112,15 +112,25 @@ export default function SearchPage({ onToggleFavorite, favoriteSongIds }) {
             {popularSongs.length === 0 ? (
                 <p>No favorites yet.</p>
             ) : (
-                <ul className="popular-list">
-                    {popularSongs.map((song) => (
-                        <li key={song.slug}>
-                            <Link to={`/song/${song.slug}`}>{song.title}</Link>
-                            {` • `}
-                            <span>{song.favorites} favorites</span>
-                        </li>
-                    ))}
-                </ul>
+                <table className="dataTable lg:max-w-1/2">
+                    <tbody>
+                        {popularSongs.map((song) => (
+                            <tr key={song.slug}>
+                                <td>
+                                    <div className="relative flex items-center justify-center">
+                                        <i className="fa-solid fa-heart text-2xl"></i>
+                                        <span className="absolute text-bg text-xs">
+                                            {song.favorites}
+                                            <span className="sr-only">favorites</span>
+                                        </span>
+                                    </div>
+                                </td>
+                                <td><Link to={`/song/${song.slug}`}>{song.title}</Link></td>
+                                <td>{song.artist}</td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
             )}
         </>
     );

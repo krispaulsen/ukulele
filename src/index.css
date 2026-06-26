@@ -75,6 +75,13 @@ html.dark {
     --color-bg-base: var(--color-taupe-800);
 }
 
+.text-fg {
+    color: var(--color-fg-base);
+}
+.text-bg {
+    color: var(--color-bg-base);
+}
+
 
 a {
     color: var(--color-orange-800);
