@@ -1,5 +1,11 @@
+const API_BASE = import.meta.env.VITE_API_URL || '';
+
 export async function apiRequest(path, options = {}) {
-    const response = await fetch(path, {
+    // Ensure path starts with /
+    const fullPath = path.startsWith('/') ? path : `/${path}`;
+    const url = `${API_BASE}${fullPath}`;
+
+    const response = await fetch(url, {
         credentials: "include",
         headers: {
             "Content-Type": "application/json",
@@ -20,7 +26,7 @@ export async function apiRequest(path, options = {}) {
                 errorMessage = payload.error;
             }
         } catch {
-            // Ignore parse failures and keep status-based error.
+            // Ignore parse failures
         }
         throw new Error(errorMessage);
     }
