@@ -19,11 +19,16 @@ async function start() {
   const app = express();
 
   app.use(cors({
-      origin: process.env.FRONTEND_URL || "http://localhost:5173",
-      credentials: true, // Important for cookies/auth
-      methods: ["GET", "POST", "PUT", "DELETE"],
-      allowedHeaders: ["Content-Type", "Authorization"]
-  }));
+    origin: [
+        process.env.FRONTEND_URL || "http://localhost:5173",
+        "https://ukulele-nine.vercel.app",
+        "https://*.vercel.app" // Allow all Vercel preview URLs
+    ],
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With"],
+    exposedHeaders: ["Set-Cookie"]
+}));
   app.use(cookieParser());
   app.use(express.json());
   app.use(attachUser);
