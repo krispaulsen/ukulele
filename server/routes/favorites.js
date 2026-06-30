@@ -55,7 +55,7 @@ router.post("/:slug", requireAuth, async (req, res) => {
 
         // TODO: ensure the song isPublic or owned by req.user
         await Favorite.create({ userId: req.user.userId, slug });
-        await Song.updateOne({ slug }, { $inc: { favorites: 1 } });
+        await Song.updateOne({ slug }, { $inc: { favorites: 1 } }, { timestamps: false });
 
         res.set("Cache-Control", "private, no-cache, no-store, must-revalidate");
         res.set("Pragma", "no-cache");
@@ -83,7 +83,7 @@ router.delete("/:slug", requireAuth, async (req, res) => {
         });
 
         if (deleted) {
-            await Song.updateOne({ slug }, { $inc: { favorites: -1 } });
+            await Song.updateOne({ slug }, { $inc: { favorites: -1 } }, { timestamps: false });
         }
 
         res.set("Cache-Control", "private, no-cache, no-store, must-revalidate");
