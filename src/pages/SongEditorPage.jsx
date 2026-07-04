@@ -144,8 +144,8 @@ export default function SongEditorPage({ mode }) {
             {error ? <p role="alert">{error}</p> : null}
 
             {!isLoading ? (
-                <Flex wrap growChildren className="w-full">
-                    <section>
+                <Flex wrap className="w-full">
+                    <section className="grow-0">
                         <Form className="song-form" onSubmit={handleSubmit}>
                             <Input id="song-title" label="Title" value={form.title} onChange={(event) => updateField("title", event.target.value)} required />
 
@@ -230,11 +230,11 @@ export default function SongEditorPage({ mode }) {
                         </Form>
                     </section>
 
-                    <section>
+                    <section className="grow">
                         <Lyrics>{form.lyrics}</Lyrics>
                     </section>
 
-                    <section>
+                    <section className="grow">
                         <SongEditor lyrics={form.lyrics} />
                     </section>
                 </Flex>
