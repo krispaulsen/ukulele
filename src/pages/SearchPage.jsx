@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { apiRequest } from "../lib/api";
 import SongList from "../components/SongList";
 import { Link } from "../components/ui";
@@ -7,31 +8,57 @@ import { Input } from "../components/Forms";
 const PAGE_SIZE = 10;
 
 export default function SearchPage({ onToggleFavorite, favoriteSongIds }) {
+    const [searchParams, setSearchParams] = useSearchParams();
+
+    // Derive page and search q from URL (source of truth for pagination + filter).
+    // This survives browser back/forward (and direct links/refresh).
+    const page = Math.max(1, parseInt(searchParams.get("page") || "1", 10));
+    const q = (searchParams.get("q") || "").trim();
+
     const [isLoading, setIsLoading] = useState(true);
     const [loadError, setLoadError] = useState("");
     const [songs, setSongs] = useState([]);
     const [popularSongs, setPopularSongs] = useState([]);
-    const [page, setPage] = useState(1);
     const [total, setTotal] = useState(0);
     const [totalPages, setTotalPages] = useState(1);
     const [hasLoaded, setHasLoaded] = useState(false);
 
-    const [searchTerm, setSearchTerm] = useState("");
-    const [query, setQuery] = useState(""); // debounced value used for fetch
-
-    // Debounce searchTerm into query (and reset to page 1 on new search)
+    // Local input state for controlled <Input>. Sync from URL q on mount/back/direct nav.
+    const [searchTerm, setSearchTerm] = useState(q);
     useEffect(() => {
-        const id = setTimeout(() => setQuery(searchTerm), 300);
-        return () => clearTimeout(id);
-    }, [searchTerm]);
+        setSearchTerm(q);
+    }, [q]);
 
-    // Refetch when debounced query or page changes (inlined to avoid any closure issues with page/query).
+    // Debounce local searchTerm, then commit to URL (this also resets page to 1).
+    // Using search params as source of truth means back/forward restores page + search.
+    useEffect(() => {
+        const id = setTimeout(() => {
+            const trimmed = searchTerm.trim();
+            // Only push update if different from the committed URL value.
+            if (trimmed !== q) {
+                setSearchParams((prev) => {
+                    const next = new URLSearchParams(prev);
+                    if (trimmed) {
+                        next.set("q", trimmed);
+                    } else {
+                        next.delete("q");
+                    }
+                    // New search always starts at page 1 (omit the param for cleanliness)
+                    next.delete("page");
+                    return next;
+                }, { replace: true });
+            }
+        }, 300);
+        return () => clearTimeout(id);
+    }, [searchTerm, q, setSearchParams]);
+
+    // Refetch when URL-derived page or q changes (survives navigation + remount).
     useEffect(() => {
         setIsLoading(true);
         setLoadError("");
-        const q = query.trim();
+        const qq = q; // already trimmed
         let url = `/api/songs?page=${page}&limit=${PAGE_SIZE}`;
-        if (q) url += `&q=${encodeURIComponent(q)}`;
+        if (qq) url += `&q=${encodeURIComponent(qq)}`;
 
         apiRequest(url)
             .then((data) => {
@@ -40,11 +67,11 @@ export default function SearchPage({ onToggleFavorite, favoriteSongIds }) {
                     // Client-side slice + filter so pagination/search still "work" until backend is restarted.
                     console.warn("[SearchPage] Received legacy array from /api/songs (no pagination). Restart the dev server to pick up backend changes for real ?page/?limit/?q support.");
                     let legacy = data;
-                    const qq = q.toLowerCase();
-                    if (qq) {
+                    const lower = qq.toLowerCase();
+                    if (lower) {
                         legacy = legacy.filter((song) =>
-                            (song.title || "").toLowerCase().includes(qq) ||
-                            (song.artist || "").toLowerCase().includes(qq)
+                            (song.title || "").toLowerCase().includes(lower) ||
+                            (song.artist || "").toLowerCase().includes(lower)
                         );
                     }
                     const start = (page - 1) * PAGE_SIZE;
@@ -67,7 +94,7 @@ export default function SearchPage({ onToggleFavorite, favoriteSongIds }) {
                 setIsLoading(false);
                 setHasLoaded(true);
             });
-    }, [query, page]);
+    }, [page, q]);
 
     async function refreshPopular() {
         try {
@@ -84,7 +111,19 @@ export default function SearchPage({ onToggleFavorite, favoriteSongIds }) {
 
     const handleSearchChange = (event) => {
         setSearchTerm(event.target.value);
-        setPage(1);
+        // Page reset happens inside the debounced URL update effect.
+    };
+
+    const handlePageChange = (newPage) => {
+        setSearchParams((prev) => {
+            const next = new URLSearchParams(prev);
+            if (newPage > 1) {
+                next.set("page", String(newPage));
+            } else {
+                next.delete("page");
+            }
+            return next;
+        }, { replace: true });
     };
 
     return (
@@ -105,7 +144,7 @@ export default function SearchPage({ onToggleFavorite, favoriteSongIds }) {
                 items={songs}
                 updatePopularList={refreshPopular}
                 pagination={hasLoaded ? { page, totalPages, total, limit: PAGE_SIZE } : undefined}
-                onPageChange={setPage}
+                onPageChange={handlePageChange}
             />
 
             <h3 className="mt-6">Most Favorited Songs</h3>

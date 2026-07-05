@@ -82,7 +82,8 @@ export const UserProvider = ({ children }) => {
         } catch (submitError) {
             console.error(submitError.message || "Authentication failed");
             logout();
-        };
+            throw submitError;
+        }
     };
 
     const logout = () => {
@@ -104,6 +105,7 @@ export const UserProvider = ({ children }) => {
         } catch (submitError) {
             console.error(submitError.message || "Registration failed");
             logout();
+            throw submitError;
         }
     };
     

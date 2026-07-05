@@ -1,4 +1,5 @@
-import { use, useState } from "react";
+import { use, useEffect, useRef, useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import { apiRequest } from "../lib/api";
 import { UserContext } from "../context/UserContext";
 import { Form, Input } from "../components/Forms";
@@ -11,17 +12,50 @@ export default function AuthPage({ defaultMode = "login", onAuthSuccess }) {
     const [screenName, setScreenName] = useState("");
     const [error, setError] = useState("");
     const [isSubmitting, setIsSubmitting] = useState(false);
-    const { login, logout, register } = use(UserContext);
+    const { user, login, register } = use(UserContext);
+
+    const location = useLocation();
+    const navigate = useNavigate();
+
+    // Snapshot the intended return target exactly once when this AuthPage mounts.
+    // This captures the `from` (with search like ?page=4) from the navigation state.
+    // Using a ref ensures we don't lose it due to later re-renders or route swaps.
+    const redirectTargetRef = useRef(null);
+    if (redirectTargetRef.current === null) {
+        const from = location.state?.from;
+        redirectTargetRef.current = (from && typeof from === "object")
+            ? {
+                pathname: from.pathname || "/",
+                search: from.search || "",
+                hash: from.hash || "",
+            }
+            : { pathname: "/" };
+    }
+
+    // If the user is already logged in on mount (or becomes logged in), send them back.
+    useEffect(() => {
+        if (user?.isLoggedIn) {
+            navigate(redirectTargetRef.current, { replace: true });
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [user?.isLoggedIn]);
 
     async function handleSubmit(event) {
         event.preventDefault();
         setError("");
         setIsSubmitting(true);
         try {
-            mode === "login" ? login(email, password) : register(email, password, screenName);
+            if (mode === "login") {
+                await login(email, password);
+            } else {
+                await register(email, password, screenName);
+            }
+            // Success: navigate back to the captured location (or home).
+            // The effect above will also fire due to the user state change.
+            navigate(redirectTargetRef.current, { replace: true });
         } catch (submitError) {
             setError(submitError.message || "Authentication failed");
-            logout();
+            // Context already called logout() on failure.
         } finally {
             setIsSubmitting(false);
         }

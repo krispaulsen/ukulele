@@ -1,4 +1,5 @@
 import { use, useState, useEffect } from "react";
+import { useLocation } from "react-router-dom";
 import { UserContext } from "../context/UserContext";
 import { apiRequest } from "../lib/api";
 import { Nav } from "./ui/Nav";
@@ -7,6 +8,12 @@ import { IconButton } from "@material-tailwind/react";
 
 export default function Header() {
     const { user, login, logout } = use(UserContext);
+    const location = useLocation();
+
+    // Normalize the location we pass in state (keeps pathname + search + hash for things like ?page=4).
+    const from = location && typeof location === "object"
+      ? { pathname: location.pathname || "/", search: location.search || "", hash: location.hash || "" }
+      : { pathname: "/" };
     const [theme, setTheme] = useState(() => {
         const saved = localStorage.getItem('theme');
         if (saved) return saved; // try to use the theme in local storage
@@ -53,8 +60,8 @@ export default function Header() {
                     </>
                 ) : (
                     <>
-                        <Link to="/auth">Login</Link>
-                        <Link to="/auth/register">Register</Link>
+                        <Link to="/auth" state={{ from }}>Login</Link>
+                        <Link to="/auth/register" state={{ from }}>Register</Link>
                     </>
                 )}
             </Nav>
