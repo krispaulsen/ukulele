@@ -182,5 +182,6 @@ Use the `toggleFavorite` from `UserContext`. Prefer it over calling the API dire
 
 - Dev: Vite on 5173 proxies `/api` to Express on 5000.
 - Production: Set `NODE_ENV=production`, proper `SESSION_SECRET`, secure cookies, etc.
+- **Deploy**: Frontend on Vercel (`vercel.json` rewrites `/api/*` → Render API + SPA fallback). API on Render. Leave `VITE_API_URL` unset so auth cookies are same-site. Only set `CROSS_ORIGIN_COOKIES=true` on the API if the browser calls the API host directly.
 - The project previously had CouchDB code (now commented out in `db.js`); current is Mongo + Mongoose.
 

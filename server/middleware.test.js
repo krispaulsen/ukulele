@@ -79,7 +79,10 @@ describe('requireAuth', () => {
 
     requireAuth(req, res, next);
 
-    expect(res.clearCookie).toHaveBeenCalledWith(TOKEN_COOKIE);
+    expect(res.clearCookie).toHaveBeenCalledWith(
+      TOKEN_COOKIE,
+      expect.objectContaining({ path: '/', httpOnly: true })
+    );
     expect(res.status).toHaveBeenCalledWith(401);
     expect(res.json).toHaveBeenCalledWith({ error: 'Authentication required' });
     expect(next).not.toHaveBeenCalled();
