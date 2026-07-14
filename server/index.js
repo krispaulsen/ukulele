@@ -18,24 +18,44 @@ async function start() {
 
   const app = express();
 
+  // Render (and similar hosts) terminate TLS at a reverse proxy.
+  app.set("trust proxy", 1);
+
+  const allowedOrigins = new Set(
+    [
+      process.env.FRONTEND_URL,
+      "http://localhost:5173",
+      "https://ukulele-nine.vercel.app",
+    ].filter(Boolean)
+  );
+
   app.use(cors({
-    origin: [
-        process.env.FRONTEND_URL || "http://localhost:5173",
-        "https://ukulele-nine.vercel.app",
-        "https://*.vercel.app" // Allow all Vercel preview URLs
-    ],
+    origin(origin, callback) {
+      // Non-browser clients (curl, server-to-server) often omit Origin.
+      if (!origin) {
+        return callback(null, true);
+      }
+      if (allowedOrigins.has(origin)) {
+        return callback(null, true);
+      }
+      // Vercel preview deployments: https://<project>-<hash>-<team>.vercel.app
+      if (/^https:\/\/[\w-]+\.vercel\.app$/.test(origin)) {
+        return callback(null, true);
+      }
+      return callback(null, false);
+    },
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowedHeaders: [
-        "Content-Type", 
-        "Authorization", 
+        "Content-Type",
+        "Authorization",
         "X-Requested-With",
         "Cache-Control",
         "Pragma",
         "Expires"
     ],
     exposedHeaders: ["Set-Cookie"]
-}));
+  }));
   app.use(cookieParser());
   app.use(express.json());
   app.use(attachUser);

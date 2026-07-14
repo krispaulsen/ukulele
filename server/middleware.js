@@ -1,7 +1,6 @@
 import jwt from "jsonwebtoken";
 import { config } from "./config.js";
-
-const TOKEN_COOKIE = "session";
+import { TOKEN_COOKIE, getSessionCookieClearOptions } from "./sessionCookie.js";
 
 // Attach req.user if a valid session cookie is present (non-blocking)
 export const attachUser = (req, _res, next) => {
@@ -21,7 +20,7 @@ export const attachUser = (req, _res, next) => {
 // Require a valid session or reject with 401
 export const requireAuth = (req, res, next) => {
     if (!req.user) {
-        res.clearCookie(TOKEN_COOKIE);
+        res.clearCookie(TOKEN_COOKIE, getSessionCookieClearOptions(req));
         return res.status(401).json({ error: "Authentication required" });
     }
     next();

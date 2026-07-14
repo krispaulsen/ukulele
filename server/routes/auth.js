@@ -3,18 +3,15 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { config } from "../config.js";
 import User from "../models/User.js";
+import {
+    TOKEN_COOKIE,
+    getSessionCookieOptions,
+    getSessionCookieClearOptions,
+} from "../sessionCookie.js";
 
 const router = Router();
 
-const TOKEN_COOKIE = "session";
 const TOKEN_TTL = "7d";
-
-const cookieOptions = (req) => ({
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "lax",
-    maxAge: 7 * 24 * 60 * 60 * 1000
-});
 
 // Register
 router.post("/register", async (req, res) => {
@@ -39,7 +36,7 @@ router.post("/register", async (req, res) => {
         });
 
         const token = jwt.sign({ userId: user._id }, config.sessionSecret, { expiresIn: TOKEN_TTL });
-        res.cookie(TOKEN_COOKIE, token, cookieOptions(req));
+        res.cookie(TOKEN_COOKIE, token, getSessionCookieOptions(req));
 
         res.status(201).json({
             user: { userId: user._id, email, screenName: user.screenName }
@@ -61,7 +58,7 @@ router.post("/login", async (req, res) => {
         }
 
         const token = jwt.sign({ userId: user._id }, config.sessionSecret, { expiresIn: TOKEN_TTL });
-        res.cookie(TOKEN_COOKIE, token, cookieOptions(req));
+        res.cookie(TOKEN_COOKIE, token, getSessionCookieOptions(req));
 
         console.log('api/auth/login user', user);
 
@@ -85,19 +82,18 @@ router.post("/login", async (req, res) => {
 // public so that the client can hydrate auth state without causing a 401
 // console error for unauthenticated visitors.
 router.get("/me", async (req, res) => {
-    const TOKEN_COOKIE = "session";
     try {
         if (!req.user) {
             // Clear any invalid/stale session cookie that failed verification
             if (req.cookies && req.cookies[TOKEN_COOKIE]) {
-                res.clearCookie(TOKEN_COOKIE);
+                res.clearCookie(TOKEN_COOKIE, getSessionCookieClearOptions(req));
             }
             return res.json({ user: null });
         }
 
         const user = await User.findOne({ _id: req.user.userId }).select("-password");
         if (!user) {
-            res.clearCookie(TOKEN_COOKIE);
+            res.clearCookie(TOKEN_COOKIE, getSessionCookieClearOptions(req));
             return res.json({ user: null });
         }
         res.json({ user });
@@ -108,7 +104,7 @@ router.get("/me", async (req, res) => {
 
 // Logout
 router.post("/logout", (req, res) => {
-    res.clearCookie(TOKEN_COOKIE);
+    res.clearCookie(TOKEN_COOKIE, getSessionCookieClearOptions(req));
     res.json({ message: "Logged out" });
 });
 

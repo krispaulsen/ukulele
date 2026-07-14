@@ -41,6 +41,17 @@ Required vars:
 - `API_PORT` — Port for the Express API (default: `5000`)
 - `FRONTEND_URL` — Frontend origin for CORS (default: `http://localhost:5173`)
 
+### Production deployment
+
+| Piece | Host | Notes |
+|-------|------|--------|
+| Frontend | Vercel | `vercel.json` rewrites `/api/*` → `https://ukulele.onrender.com` and SPA routes to `index.html` |
+| API | Render (`https://ukulele.onrender.com`) | Set `FRONTEND_URL` to the Vercel origin; prefer `NODE_ENV=production` |
+
+**Do not set `VITE_API_URL` on Vercel** when using the rewrite. The browser should call same-origin `/api/...` so the session cookie stays first-party (`SameSite=Lax`).
+
+If you ever point the frontend at the API host directly, set `CROSS_ORIGIN_COOKIES=true` on Render and `VITE_API_URL` on the frontend build.
+
 ### 2) Seed song documents
 
 ```
