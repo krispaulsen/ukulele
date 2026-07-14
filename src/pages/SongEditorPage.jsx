@@ -235,7 +235,10 @@ export default function SongEditorPage({ mode }) {
                     </section>
 
                     <section className="grow">
-                        <SongEditor lyrics={form.lyrics} />
+                        <SongEditor
+                            lyrics={form.lyrics}
+                            onChange={(lyrics) => updateField("lyrics", lyrics)}
+                        />
                     </section>
                 </Flex>
             ) : null}
