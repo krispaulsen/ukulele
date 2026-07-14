@@ -1,6 +1,8 @@
 {
-    "name": "",
-    "short_name": "",
+    "name": "Ukulele Songbook",
+    "short_name": "Ukulele",
+    "description": "Browse, create, and share ukulele song sheets.",
+    "lang": "en",
     "icons": [
         {
             "src": "/android-chrome-192x192.png",
@@ -13,7 +15,7 @@
             "type": "image/png"
         }
     ],
-    "theme_color": "#ffffff",
-    "background_color": "#ffffff",
+    "theme_color": "#44403e",
+    "background_color": "#d8d2d0",
     "display": "standalone"
 }

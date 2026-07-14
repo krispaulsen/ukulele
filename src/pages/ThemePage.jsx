@@ -2,14 +2,22 @@ import {
     Flex
 } from "../components/ui";
 import {
-    Button,
-    IconButton,
-    Input,
     Checkbox,
-    Select,
+    Form,
+    Input,
     Option,
+    Select,
     Textarea,
-    Switch,
+} from "../components/Forms";
+import {
+    Button,
+    Checkbox as MTCheckbox,
+    IconButton,
+    Input as MTInput,
+    Option as MTOption,
+    Select as MTSelect,
+    Switch as MTSwitch,
+    Textarea as MTTextarea,
 } from "@material-tailwind/react";
 
 export default function ThemePage() {
@@ -74,7 +82,27 @@ export default function ThemePage() {
                 <div><Button variant="link" color="secondary">Link</Button></div>
             </Flex>
 
+            <hr />
+            <p className="my-4">Material-tailwind form components:</p>
             <form className="w-1/2 flex flex-col gap-4">
+                <MTInput label="Input" />
+                <MTSelect label="Select">
+                    <MTOption value="o1">Option 1</MTOption>
+                    <MTOption value="o2">Option 2</MTOption>
+                    <MTOption value="o3">Option 3</MTOption>
+                </MTSelect>
+                <MTTextarea label="Textarea">
+                    Lorem ipsum dolor sit amet.
+                </MTTextarea>
+                <Flex gap="gap-8">
+                    <MTCheckbox label="Chedkbox" />
+                    <MTSwitch label="Switch" />
+                </Flex>
+            </form>
+
+            <hr />
+            <p className="my-4">Custom UI form components:</p>
+            <Form className="w-1/2">
                 <Input label="Input" />
                 <Select label="Select">
                     <Option value="o1">Option 1</Option>
@@ -84,11 +112,8 @@ export default function ThemePage() {
                 <Textarea label="Textarea">
                     Lorem ipsum dolor sit amet.
                 </Textarea>
-                <Flex gap="gap-8">
-                    <Checkbox label="Chedkbox" />
-                    <Switch label="Switch" />
-                </Flex>
-            </form>
+                <Checkbox label="Checkbox" />
+            </Form>
         </>
     )
 }

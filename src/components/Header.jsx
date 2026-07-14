@@ -3,8 +3,8 @@ import { useLocation } from "react-router-dom";
 import { UserContext } from "../context/UserContext";
 import { apiRequest } from "../lib/api";
 import { Nav } from "./ui/Nav";
-import { Button, Flex, Link } from "./ui";
-import { IconButton } from "@material-tailwind/react";
+import { Flex, Link } from "./ui";
+import { Button, IconButton } from "@material-tailwind/react";
 
 export default function Header() {
     const { user, login, logout } = use(UserContext);
@@ -48,7 +48,7 @@ export default function Header() {
             </Flex>
             <Nav>
                 <Link to="/">Home</Link>
-                <Link to="/theme">Theme</Link>
+                {/* <Link to="/theme">Theme</Link> */}
                 {user.isLoggedIn ? (
                     <>
                         <Link to="/song/new">Add Song</Link>

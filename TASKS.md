@@ -2,7 +2,7 @@
 
 This document tracks features, bugs, and improvements for the Ukulele Songbook web app.
 
-**Last updated:** 2026-06-20
+**Last updated:** 2026-07-08
 
 ## High Priority
 
@@ -110,9 +110,8 @@ This document tracks features, bugs, and improvements for the Ukulele Songbook w
     - Nice extras later: alternate tunings (low G, D tuning), MIDI export, recording, slow-down without pitch change
 - [ ] **Transpose Chords** control on the Song page
   - Add interactive transpose controls on `SongPage` (near the "Chords" section or above Lyrics)
-    - Buttons: transpose down (-1), transpose up (+1)
+    - Select box from +6 to -5 semitones.
     - Display of current playing key (e.g. "Key: C (original: Am, capo 0)" or similar)
-    - "Reset" button to return to original
     - Optional: direct key selector or semitone stepper input
   - Implement a reusable chord transposition utility:
     - `transposeChord(name, semitones)` — correctly handle roots (C, C#, Db, etc.) + suffixes (m, 7, m7, sus2, sus4, dim, aug, add9, 6, 9, maj7, etc.)
@@ -162,6 +161,92 @@ This document tracks features, bugs, and improvements for the Ukulele Songbook w
     - Later: make the preference part of user profile settings (chord display preferences)
     - Later: remember last choice per song or globally via localStorage
     - Should also apply if/when we support printing or exporting chords
+    - Rewrite sharps and flats using "♯" and "♭" rather than "#" and "b"
+- [ ] **Tablature Editor**
+  - Primary goal: make it much easier and less error-prone to author the `[| ... |]` tablature blocks than hand-editing raw text in the Lyrics textarea.
+  - Interaction model (visual grid primary):
+    - Dedicated visual editor UI (4-string grid or horizontal lanes).
+    - Users add/remove time columns (steps).
+    - For each column, set fret numbers (0-15 or so) per string via clicking a visual neck/fret positions, +/- buttons, or direct number entry.
+    - Clearly labeled strings matching app convention: A / E / C / G order (top-to-bottom inside the block, as documented in syntax help and used by `Lyrics.jsx` parser).
+    - Support for rests (empty cells), barlines (`|` separators), and basic timing (fixed column steps for v1; player drives the timing).
+    - Real-time preview of the generated raw tab text block.
+  - Playback integration:
+    - "Play / Pause / Stop" controls inside the editor (reuse/extend the Web Audio player logic planned for the Tab Player feature).
+    - While playing, highlight the active column in the grid (visual sync).
+    - Tempo control (column duration or BPM) consistent with Tab Player.
+    - Optional: loop, single-string mute for practice.
+  - Output & workflow:
+    - Prominent "Copy Tablature Block" button that produces the exact ready-to-paste text:
+      ```
+      [|
+      A|-------------|
+      E|-------------|
+      C|-------------|
+      G|-------------|
+      |]
+      ```
+    - Users copy and paste the block into the main Lyrics field (or SongEditor's text area) at the desired location.
+    - Copy/paste is the v1 integration model (no live two-way mutation of the parent form required yet).
+  - Entry points:
+    - Modal launcher from `SongEditorPage` (e.g. a button next to "Lyrics Markup Syntax" or above the lyrics textarea: "Open Tablature Editor").
+    - The modal hosts the full grid + preview + player + copy controls (convenient while writing a song).
+    - Dedicated page (e.g. route `/tab-editor`) for larger workspace or composing tabs independently of a song. The page can be public or auth-gated (recommend auth-gated to stay consistent with song creation flows).
+  - Shared implementation with Tab Player:
+    - Plan together: extract reusable tab logic early into `src/lib/tabs.js` (or `src/lib/tab.js`).
+    - Exports should include: `parseTab(text)` → normalized column data, `tabToText(columns)` or serializer, `playTab(...)` using Web Audio (osc + ADSR per string), column timing model.
+    - The editor grid operates on the same column/step data model used for playback and (later) static rendering.
+    - `Lyrics.jsx` TabsBlock can later be upgraded to use shared renderer if desired.
+  - Additional editor features / polish:
+    - Load/import: textarea to paste an existing `[|...|]` block and populate the grid (helps editing existing tabs).
+    - Toolbar: Add Column, Insert Rest Column, Delete Column, Clear All, Add Barline hint.
+    - Validation / hints: flag non-numeric frets, very high frets, mismatched line lengths on import.
+    - Number of columns guidance and scrollable grid for long tabs.
+    - "Insert as comment" or other metadata rows? (stretch)
+  - Other:
+    - Add at least one seed song containing a non-trivial tab (shared goal with the Tab Player task) for testing both display and the new editor.
+    - Ensure the editor can round-trip common examples without losing formatting intent.
+    - When Tab Player ships, ensure the editor's play experience matches the one on SongPage.
+    - Later: alternate tunings (low G etc.), variable column durations, chord name labels above columns, export MIDI or slow-down.
+    - Update syntax help / docs if the visual editor introduces new concepts.
+    - Update README Features when complete.
+- [ ] **Chromatic Tuner**
+  - Standalone client-side practice tool to help users tune their ukulele to standard re-entrant GCEA (G4 ≈ 392 Hz, C4 ≈ 262 Hz, E4 ≈ 330 Hz, A4 = 440 Hz).
+  - Access: surfaced as a top-level navigation item ("Tuner") in the Header/Nav so it is globally and quickly accessible (visible to guests and logged-in users).
+  - New public route + page: `/tuner` → `TunerPage.jsx` (or `Tools/Tuner`). Full experience, responsive, big controls suitable for phone-on-the-table use.
+  - Core functionality (mic-based pitch detection):
+    - Request microphone via `navigator.mediaDevices.getUserMedia({ audio: true })` on user gesture ("Start Listening").
+    - Continuous or on-demand analysis using Web Audio API (`AudioContext`, `AnalyserNode`, `MediaStreamSource`).
+    - Implement or adapt a lightweight pitch detector (e.g. autocorrelation, zero-crossing refinement, or simple YIN-style in pure JS — no external packages).
+    - Display for the detected pitch:
+      - Large prominent note name + octave (e.g. "G4", "C#4", "A♭4").
+      - Cents deviation: numeric value + visual meter (horizontal bar, "needle", or concentric rings). Color code: green near 0, blue flat, red sharp.
+      - Target indicator: "Listening for any string" or allow user to select a target string (G / C / E / A) so the UI can show "Tune to G4".
+    - Graceful states: "Microphone permission needed", "No signal / too quiet", "Multiple notes / noisy — pluck one string", permission denied message with manual reference tone fallback.
+  - Reference tone playback (ear training + rough tuning):
+    - Four buttons: "Play G (open)", "Play C", "Play E", "Play A".
+    - Uses `OscillatorNode` + gain envelope (sine or saw with short pluck-like decay) to produce clean reference pitches matching the frequencies in the Tab Player spec.
+    - "Stop" control. Optionally a continuous "sustain" mode.
+    - Volume control or simple master gain.
+  - UI / UX details:
+    - Clean, focused single-purpose screen: big central readout, meter below or integrated, row of reference buttons at bottom or side.
+    - "Listening..." indicator (animated) while mic is active + a "Stop" button.
+    - Brief instructions panel (collapsible): "Pluck one string at a time near the mic. Adjust the tuning peg slowly until the cents value is close to 0 (green)."
+    - A4 calibration: simple numeric input (default 440) for users with non-standard reference pitch. Affects both detection math and reference playback.
+    - Mobile considerations: large tap targets, works in portrait, minimal scrolling, stays awake if possible (or note to user).
+    - No song context required — works completely independently.
+  - Technical / implementation notes:
+    - Pure browser Web APIs (Web Audio + MediaDevices). Keep implementation in `src/lib/pitch.js` or `src/pages/TunerPage.jsx` (extract reusable detector later).
+    - Handle `AudioContext` resume() rules (must be after user gesture).
+    - Throttle / smooth the UI updates (e.g. 10-20 fps via rAF) to avoid jank.
+    - Detect when input is too weak or contains strong overtones; show "uncertain" state rather than jumping notes.
+    - Test across common devices/browsers; document any known limitations.
+  - Other:
+    - Because it is global, consider adding a small floating "Tune" action or link from SongPage / SongEditor in the future (not required for this task).
+    - Future enhancements (do not implement now): low-G / baritone / slack-key presets, strobe display, waveform/spectrum mini viz, automatic "which string is closest" suggestion, recording short clips.
+    - No backend or persistence required.
+    - Add to README "Features" (under a Tools or Practice section) once shipped.
+    - Consider adding a link from the existing "Tab Player" UI or editor later for a "tune then play" workflow.
 
 ## UI / UX / Components
 

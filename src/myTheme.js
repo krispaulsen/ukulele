@@ -85,19 +85,22 @@ const myTheme = {
             },
             sizes: {
                 sm: {
-                    fontSize: "text-sm leading-none",
+                    fontSize: "text-sm",
+                    lineHeight: "leading-none",
                     py: "py-1",
                     px: "px-2",
                     borderRadius: "rounded-lg",
                 },
                 md: {
-                    fontSize: "text-base leading-none",
+                    fontSize: "text-base",
+                    lineHeight: "leading-none",
                     py: "py-2",
                     px: "px-4",
                     borderRadius: "rounded-lg",
                 },
                 lg: {
-                    fontSize: "text-lg leading-none",
+                    fontSize: "text-lg",
+                    lineHeight: "leading-none",
                     py: "py-4",
                     px: "px-8",
                     borderRadius: "rounded-lg",
@@ -137,11 +140,17 @@ const myTheme = {
                         padding: "p-0",
                         background: "transparent",
                         color: "text-orange-800 dark:text-orange-300",
+                        lineHeight: "leading-normal",
+                        borderRadius: "rounded-none",
                         hover: "hover:text-orange-400 hover:underline",
                     },
                     secondary: {
+                        display: "inline",
+                        padding: "p-0",
                         background: "transparent",
                         color: "text-teal-600",
+                        lineHeight: "leading-normal",
+                        borderRadius: "rounded-none",
                         hover: "hover:text-teal-500 hover:underline",
                     }
                 }
