@@ -4,11 +4,11 @@ const Form = ({ children, ...rest }) => {
     return <form {...rest}>{children}</form>
 };
 
-const Input = ({ type = "text", id, label, ...rest }) => {
+const Input = ({ type = "text", id, label, wrapperClassName, ...rest }) => {
     const inputId = id ?? useId();
 
     return (
-        <div className="form-control">
+        <div className={`form-control ${wrapperClassName}`}>
             {label && <label htmlFor={inputId}>{label}</label>}
             <input id={inputId} type={type} {...rest} />
         </div>
