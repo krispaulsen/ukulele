@@ -1,9 +1,10 @@
 import { use, useEffect, useState, Fragment } from "react";
 import { useParams } from "react-router-dom";
 import { apiRequest } from "../lib/api";
+import { transposeChord } from "../lib/chords";
 import { UserContext } from "../context/UserContext";
 import { Flex, Link } from "../components/ui";
-import { Input } from "../components/Forms";
+import { Input, Select, Option } from "../components/Forms";
 import UkuleleChordDiagram from "../components/UkuleleChordDiagram";
 import Lyrics from "../components/Lyrics";
 import YouTubeEmbed from "../components/YouTubeEmbed";
@@ -74,6 +75,7 @@ export default function SongPage() {
     const [loadError, setLoadError] = useState("");
     const [numCols, setNumCols] = useState(DEFAULT_NUM_COLS);
     const [showVideo, setShowVideo] = useState(false);
+    const [transpose, setTranspose] = useState(0);
    
     const handleToggleVideo = () => setShowVideo(current => !current);
 
@@ -81,6 +83,7 @@ export default function SongPage() {
         async function loadSong() {
             setIsLoading(true);
             setLoadError("");
+            setTranspose(0);
             try {
                 const data = await apiRequest(`/api/songs/${encodeURIComponent(slug)}`);
                 setSong(data);
@@ -167,10 +170,23 @@ export default function SongPage() {
                         </div>
 
                         <div className="grow">
-                            <h3>Chords</h3>
+                            <Flex className="space-between">
+                                <h3>Chords</h3>
+                                <Select
+                                    label="Transpose"
+                                    wrapperClassName="my-0"
+                                    value={transpose === 0 ? "0" : transpose > 0 ? `+${transpose}` : String(transpose)}
+                                    options={['+6', '+5', '+4', '+3', '+2', '+1', '0', '-1', '-2', '-3', '-4', '-5']}
+                                    onChange={(e) => setTranspose(Number(e.target.value))}
+                                />
+                                {/* sharps/flats toggle goes here. */}
+                            </Flex>
                             <Flex gap="gap-2" className="mb-4">
                                 {song.chords.map((chord) => (
-                                    <UkuleleChordDiagram key={chord} chord={chord} />
+                                    <UkuleleChordDiagram
+                                        key={chord}
+                                        chord={transposeChord(chord, transpose)}
+                                    />
                                 ))}
                             </Flex>
                         </div>
@@ -194,7 +210,7 @@ export default function SongPage() {
                             <h3>Lyrics</h3>
                             <ColumnsControl numCols={numCols} setNumCols={setNumCols} />
                         </Flex>
-                        <Lyrics columns={numCols}>{song.lyrics}</Lyrics>
+                        <Lyrics columns={numCols} transpose={transpose}>{song.lyrics}</Lyrics>
                     </div>
                 </section>
             ) : null}

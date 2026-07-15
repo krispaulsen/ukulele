@@ -15,13 +15,15 @@ const Input = ({ type = "text", id, label, wrapperClassName, ...rest }) => {
     );
 };
 
-const Select = ({ id, label, value, options = [], children, ...rest }) => {
+const Select = ({ id, label, value, options = [], wrapperClassName, children, ...rest }) => {
     const inputId = id ?? useId();
+    // Controlled when `value` is provided; otherwise allow uncontrolled via defaultValue in rest
+    const valueProps = value !== undefined ? { value } : {};
 
     return (
-        <div className="form-control">
+        <div className={`form-control ${wrapperClassName}`}>
             {label && <label htmlFor={inputId}>{label}</label>}
-            <select id={inputId} defaultValue={value} {...rest}>
+            <select id={inputId} {...valueProps} {...rest}>
                 {children}
                 {options.map(option => {
                     if (typeof option === "string") return <option key={option} value={option}>{option}</option>

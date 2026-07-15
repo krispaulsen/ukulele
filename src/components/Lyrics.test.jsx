@@ -7,7 +7,7 @@ import { render, screen } from '@testing-library/react';
 import Lyrics from './Lyrics';
 import { UserContext } from '../context/UserContext';
 
-function renderLyrics(lyrics, { userOverrides = {}, columns } = {}) {
+function renderLyrics(lyrics, { userOverrides = {}, columns, transpose } = {}) {
   const user = {
     chordColor: '06c',
     chordPosition: 'above',
@@ -15,7 +15,7 @@ function renderLyrics(lyrics, { userOverrides = {}, columns } = {}) {
   };
   return render(
     <UserContext value={{ user }}>
-      <Lyrics columns={columns}>{lyrics}</Lyrics>
+      <Lyrics columns={columns} transpose={transpose}>{lyrics}</Lyrics>
     </UserContext>
   );
 }
@@ -142,5 +142,32 @@ Plain after tab`;
     // Two parts
     const parts = container.querySelectorAll('.part');
     expect(parts).toHaveLength(2);
+  });
+
+  it('transposes chord labels when transpose prop is set', () => {
+    const { container } = renderLyrics('[C]Hello [G]world', { transpose: 2 });
+
+    const chords = container.querySelectorAll('.chord.above');
+    expect(chords).toHaveLength(2);
+    expect(chords[0].textContent).toBe('D');
+    expect(chords[1].textContent).toBe('A');
+  });
+
+  it('transposes inline chords and keeps brackets', () => {
+    const { container } = renderLyrics('[Am]Text', {
+      transpose: 2,
+      userOverrides: { chordPosition: 'inline' },
+    });
+
+    const chord = container.querySelector('.chord.inline');
+    expect(chord).toBeInTheDocument();
+    expect(chord.textContent).toBe('[Bm]');
+  });
+
+  it('does not transpose comment labels', () => {
+    const { container } = renderLyrics('[(Intro)]\n[C]Hi', { transpose: 2 });
+
+    expect(container.querySelector('.comment').textContent).toBe('Intro');
+    expect(container.querySelector('.chord.above').textContent).toBe('D');
   });
 });
