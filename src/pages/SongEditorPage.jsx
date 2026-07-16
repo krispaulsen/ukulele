@@ -2,15 +2,14 @@ import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { apiRequest } from "../lib/api";
 import { Flex } from "../components/ui";
-import { Form, Input, Textarea } from "../components/Forms";
+import { Form, Input, Switch, Textarea } from "../components/Forms";
 import SongEditor from "../components/SongEditor";
 import Lyrics from "../components/Lyrics";
 // import { Button } from "@material-tailwind/react";
 import {
     Button,
     Card,
-    Collapse,
-    Switch
+    Collapse
 } from "@material-tailwind/react";
 
 function formatSongForForm(song) {
@@ -209,15 +208,13 @@ export default function SongEditorPage({ mode }) {
                                 </Card>
                             </Collapse>
 
-                            <Flex className="mb-4">
-                                <span>Private</span>
-                                <Switch
-                                    color="teal"
-                                    checked={!!form.isPublic}
-                                    onChange={(event) => updateField("isPublic", event.target.checked)}
-                                />
-                                <span>Public</span>
-                            </Flex>
+                            <Switch
+                                option0="Private"
+                                option1="Public"
+                                checked={!!form.isPublic}
+                                onChange={(event) => updateField("isPublic", event.target.checked)}
+                                wrapperClassName="mb-4"
+                            />
 
                             <Button type="submit" disabled={isSaving}>
                                 {isSaving ? "Saving..." : "Save Song"}

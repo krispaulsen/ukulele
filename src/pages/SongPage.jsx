@@ -1,13 +1,71 @@
 import { use, useEffect, useState, Fragment } from "react";
 import { useParams } from "react-router-dom";
 import { apiRequest } from "../lib/api";
+import { transposeChord } from "../lib/chords";
 import { UserContext } from "../context/UserContext";
 import { Flex, Link } from "../components/ui";
-import { Input } from "../components/Forms";
+import { Input, Option, Select, Switch } from "../components/Forms";
 import UkuleleChordDiagram from "../components/UkuleleChordDiagram";
 import Lyrics from "../components/Lyrics";
 import YouTubeEmbed from "../components/YouTubeEmbed";
 import { Collapse, IconButton } from "@material-tailwind/react";
+
+const DEFAULT_NUM_COLS = 3;
+const MAX_NUM_COLS = 6;
+
+function ColumnsControl({numCols, setNumCols}) {
+    const handleChange = (e) => {
+        const value = e.target.value;
+        if (isNaN(value)) {
+            setNumCols(DEFAULT_NUM_COLS);
+        } else if (value < 1) {
+            setNumCols(1);
+        } else if (value > MAX_NUM_COLS) {
+            setNumCols(MAX_NUM_COLS);
+        } else {
+            setNumCols(value);
+        }
+    }
+    const handleDecrement = () => {
+        if (numCols > 1) {
+            setNumCols(numCols - 1);
+        }
+    }
+    const handleIncrement = () => {
+        if (numCols < MAX_NUM_COLS) {
+            setNumCols(numCols + 1);
+        }
+    }
+
+    return (
+        <Flex gap="gap-0">
+            <IconButton
+                className="rounded-r-none"
+                onClick={handleDecrement}
+                disabled={numCols <= 1}
+            >
+                <i className="fa fa-minus"></i>
+            </IconButton>
+            <Input
+                type="number"
+                aria-label="# Columns"
+                value={numCols}
+                min="1"
+                max={MAX_NUM_COLS}
+                onChange={handleChange}
+                wrapperClassName="my-0 h-8"
+                className="m-0 p-0 w-8 h-8 !rounded-none text-center no-spinners"
+            />
+            <IconButton
+                className="rounded-l-none"
+                onClick={handleIncrement}
+                disabled={numCols >= MAX_NUM_COLS}
+            >
+                <i className="fa fa-plus"></i>
+            </IconButton>
+        </Flex>
+    )
+}
 
 export default function SongPage() {
     const { slug } = useParams();
@@ -15,8 +73,10 @@ export default function SongPage() {
     const [song, setSong] = useState(null);
     const [isLoading, setIsLoading] = useState(true);
     const [loadError, setLoadError] = useState("");
-    const [numCols, setNumCols] = useState(3);
+    const [numCols, setNumCols] = useState(DEFAULT_NUM_COLS);
     const [showVideo, setShowVideo] = useState(false);
+    const [transpose, setTranspose] = useState(0);
+    const [preferredAccidentals, setPreferredAccidentals] = useState('flats');
    
     const handleToggleVideo = () => setShowVideo(current => !current);
 
@@ -24,6 +84,7 @@ export default function SongPage() {
         async function loadSong() {
             setIsLoading(true);
             setLoadError("");
+            setTranspose(0);
             try {
                 const data = await apiRequest(`/api/songs/${encodeURIComponent(slug)}`);
                 setSong(data);
@@ -110,10 +171,31 @@ export default function SongPage() {
                         </div>
 
                         <div className="grow">
-                            <h3>Chords</h3>
+                            <Flex className="justify-between">
+                                <h3>Chords</h3>
+                                <Select
+                                    label="Transpose"
+                                    wrapperClassName="flex items-center gap-2 my-0"
+                                    value={transpose === 0 ? "0" : transpose > 0 ? `+${transpose}` : String(transpose)}
+                                    options={['+6', '+5', '+4', '+3', '+2', '+1', '0', '-1', '-2', '-3', '-4', '-5']}
+                                    onChange={(e) => setTranspose(Number(e.target.value))}
+                                />
+                                {/* Hide sharps/flats switch until feature is complete */}
+                                {/* <Switch
+                                    option0="♯"
+                                    option1="♭"
+                                    checked={preferredAccidentals === 'flats'}
+                                    onChange={(e) => {
+                                        setPreferredAccidentals(e.target.checked ? 'flats' : 'sharps')
+                                    }}
+                                /> */}
+                            </Flex>
                             <Flex gap="gap-2" className="mb-4">
                                 {song.chords.map((chord) => (
-                                    <UkuleleChordDiagram key={chord} chord={chord} />
+                                    <UkuleleChordDiagram
+                                        key={chord}
+                                        chord={transposeChord(chord, transpose)}
+                                    />
                                 ))}
                             </Flex>
                         </div>
@@ -135,9 +217,9 @@ export default function SongPage() {
                     <div>
                         <Flex className="justify-between">
                             <h3>Lyrics</h3>
-                            <Input type="number" label="# Columns" value={numCols} min="1" max="6" onChange={(e) => setNumCols(e.target.value)} />
+                            <ColumnsControl numCols={numCols} setNumCols={setNumCols} />
                         </Flex>
-                        <Lyrics columns={numCols}>{song.lyrics}</Lyrics>
+                        <Lyrics columns={numCols} transpose={transpose}>{song.lyrics}</Lyrics>
                     </div>
                 </section>
             ) : null}

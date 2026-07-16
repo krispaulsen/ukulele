@@ -65,7 +65,7 @@ This document tracks features, bugs, and improvements for the Ukulele Songbook w
     - Owners can still view their own private songs directly via slug?
   - Update seed and tests/docs
 - [ ] Show fork provenance on song detail page (uncomment + enhance the `originalSlug` block)
-- [ ] Implement real functionality in `SongEditor` component (currently stub)
+- [x] Implement real functionality in `SongEditor` component (currently stub)
   - "Remove This Line", "Add Lyrics/Chords", "Add Tablature", "Add Comment", "Add Space"
   - These should mutate the `lyrics` string in the parent form state
 - [ ] Surface key + capo properly in editor and on song view pages
@@ -108,7 +108,7 @@ This document tracks features, bugs, and improvements for the Ukulele Songbook w
     - Add at least one seed song that includes a real tab example (for manual testing)
     - Update README "Features" if shipped
     - Nice extras later: alternate tunings (low G, D tuning), MIDI export, recording, slow-down without pitch change
-- [ ] **Transpose Chords** control on the Song page
+- [x] **Transpose Chords** control on the Song page
   - Add interactive transpose controls on `SongPage` (near the "Chords" section or above Lyrics)
     - Select box from +6 to -5 semitones.
     - Display of current playing key (e.g. "Key: C (original: Am, capo 0)" or similar)

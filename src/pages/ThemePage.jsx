@@ -1,3 +1,4 @@
+import { useState } from "react";
 import {
     Flex
 } from "../components/ui";
@@ -7,6 +8,7 @@ import {
     Input,
     Option,
     Select,
+    Switch,
     Textarea,
 } from "../components/Forms";
 import {
@@ -21,6 +23,12 @@ import {
 } from "@material-tailwind/react";
 
 export default function ThemePage() {
+    const [isChecked, setIsChecked] = useState(false);
+
+    const handleSwitchChange = (e) => {
+        setIsChecked(e.target.checked);
+    }
+
     return (
         <>
             <ul className="mb-4">
@@ -112,7 +120,13 @@ export default function ThemePage() {
                 <Textarea label="Textarea">
                     Lorem ipsum dolor sit amet.
                 </Textarea>
-                <Checkbox label="Checkbox" />
+                <Flex gap="gap-8">
+                    <Checkbox label="Checkbox" />
+                    <Switch
+                        checked={isChecked}
+                        onChange={handleSwitchChange}
+                    />
+                </Flex>
             </Form>
         </>
     )

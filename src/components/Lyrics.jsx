@@ -1,5 +1,6 @@
 import { Fragment, use } from "react";
 import { UserContext } from "../context/UserContext";
+import { transposeChord } from "../lib/chords";
 
 function TabsBlock({children}) {
     const tabLines = children.split('\n');
@@ -34,7 +35,7 @@ function LyricsChord({chordName, color, position}) {
     return <div className="chord above" style={style}>{chordName}</div>;
 }
 
-export default function Lyrics({columns=1, children}) {
+export default function Lyrics({columns=1, transpose=0, children}) {
     const {user} = use(UserContext);
     
     function parseVerseBlock(part, partIndex) {
@@ -88,12 +89,13 @@ export default function Lyrics({columns=1, children}) {
 
                 lineParts.forEach((linePart, linePartIndex) => {
                     if (linePart.startsWith('[') && linePart.endsWith(']')) {
-                        // chord
+                        // chord (transpose is display-only; original lyrics string is unchanged)
                         const chordString = linePart.substring(1, linePart.length - 1);
+                        const displayName = transposeChord(chordString, transpose);
                         lineElements.push(
                             <LyricsChord
                                 key={`chord-${partIndex}-${lineIndex}-${linePartIndex}`}
-                                chordName={chordString}
+                                chordName={displayName}
                                 color={user.chordColor}
                                 position={user.chordPosition}
                             />
