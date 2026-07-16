@@ -25,7 +25,7 @@ export default function Modal({
 
     if (!isOpen) return null;
 
-    let classString = clsx("absolute m-4 bg-taupe-800 rounded-2xl shadow-xl overflow-hidden",
+    let classString = clsx("absolute m-4 bg-taupe-300 dark:bg-taupe-800 rounded-2xl shadow-xl overflow-hidden",
         position === "center" && "w-full"
         ["center", "left", "right"].includes(position) && "max-w-md",
         ["right", "left", "top"].includes(position) && "top-0",

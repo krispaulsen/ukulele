@@ -180,14 +180,15 @@ export default function SongPage() {
                                     options={['+6', '+5', '+4', '+3', '+2', '+1', '0', '-1', '-2', '-3', '-4', '-5']}
                                     onChange={(e) => setTranspose(Number(e.target.value))}
                                 />
-                                <Switch
+                                {/* Hide sharps/flats switch until feature is complete */}
+                                {/* <Switch
                                     option0="♯"
                                     option1="♭"
                                     checked={preferredAccidentals === 'flats'}
                                     onChange={(e) => {
                                         setPreferredAccidentals(e.target.checked ? 'flats' : 'sharps')
                                     }}
-                                />
+                                /> */}
                             </Flex>
                             <Flex gap="gap-2" className="mb-4">
                                 {song.chords.map((chord) => (

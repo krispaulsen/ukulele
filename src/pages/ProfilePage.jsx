@@ -1,9 +1,9 @@
 import { use, useEffect, useState } from "react";
 import { UserContext } from "../context/UserContext";
 import { apiRequest } from "../lib/api";
-import { Input, Option, Select } from "../components/Forms";
+import { Input, Option, Select, Switch } from "../components/Forms";
 import { Modal, Flex } from "../components/ui";
-import { Button, Checkbox } from "@material-tailwind/react";
+import { Button } from "@material-tailwind/react";
 import PalettePicker from "../components/ui/PalettePicker";
 import Lyrics from "../components/Lyrics";
 
@@ -206,11 +206,17 @@ export default function ProfilePage() {
                 <form onSubmit={handleSavePreferences}>
                     <h2 className="text-xl font-semibold mb-4">Preferences</h2>
 
-                    <Checkbox
-                        label="Dark Mode"
-                        checked={darkMode}
-                        onChange={() => setDarkMode((prev) => !prev)}
-                    />
+                    <div>
+                        <label htmlFor="modeToggle">Preferred Default Mode</label>
+                        <Switch
+                            id="modeToggle"
+                            option0="Light"
+                            option1="Dark"
+                            checked={darkMode}
+                            onChange={(e) => setDarkMode(e.target.checked)}
+                            wrapperClassName="mt-0"
+                        />
+                    </div>
                     
                     <PalettePicker
                         label="Chord Color"
