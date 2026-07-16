@@ -175,7 +175,7 @@ export default function SongPage() {
                                 <h3>Chords</h3>
                                 <Select
                                     label="Transpose"
-                                    wrapperClassName="my-0"
+                                    wrapperClassName="flex items-center gap-2 my-0"
                                     value={transpose === 0 ? "0" : transpose > 0 ? `+${transpose}` : String(transpose)}
                                     options={['+6', '+5', '+4', '+3', '+2', '+1', '0', '-1', '-2', '-3', '-4', '-5']}
                                     onChange={(e) => setTranspose(Number(e.target.value))}
