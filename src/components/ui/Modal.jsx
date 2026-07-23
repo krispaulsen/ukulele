@@ -3,11 +3,19 @@ import { clsx } from "clsx";
 import Backdrop from "./Backdrop";
 import { IconButton } from "@material-tailwind/react";
 
+const SIZE_MAX_WIDTH = {
+    sm: "max-w-sm",
+    md: "max-w-md",
+    lg: "max-w-3xl",
+    xl: "max-w-5xl",
+};
+
 export default function Modal({
     isOpen,
     onClose,
     header,
     position,
+    size = "md",
     isDismissable = true,
     closeOnBackdrop = true,
     showCloseBtn = true,
@@ -25,9 +33,11 @@ export default function Modal({
 
     if (!isOpen) return null;
 
+    const maxWidthClass = SIZE_MAX_WIDTH[size] ?? SIZE_MAX_WIDTH.md;
+
     let classString = clsx("absolute m-4 bg-taupe-300 dark:bg-taupe-800 rounded-2xl shadow-xl overflow-hidden",
-        position === "center" && "w-full"
-        ["center", "left", "right"].includes(position) && "max-w-md",
+        position === "center" && "w-full",
+        ["center", "left", "right"].includes(position) && maxWidthClass,
         ["right", "left", "top"].includes(position) && "top-0",
         ["right", "top", "bottom"].includes(position) && "right-0",
         ["left", "top", "bottom"].includes(position) && "left-0",

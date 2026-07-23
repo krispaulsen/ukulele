@@ -1,9 +1,10 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { apiRequest } from "../lib/api";
-import { Flex } from "../components/ui";
+import { Flex, Modal } from "../components/ui";
 import { Form, Input, Switch, Textarea } from "../components/Forms";
 import SongEditor from "../components/SongEditor";
+import TabEditor from "../components/TabEditor";
 import Lyrics from "../components/Lyrics";
 // import { Button } from "@material-tailwind/react";
 import {
@@ -33,6 +34,7 @@ export default function SongEditorPage({ mode }) {
     const [isSaving, setIsSaving] = useState(false);
     const [error, setError] = useState("");
     const [syntaxHelpOpen, setSyntaxHelpOpen] = useState(0);
+    const [tabEditorOpen, setTabEditorOpen] = useState(false);
 
     const title = useMemo(() => {
         if (mode === "new") return "Add Song";
@@ -187,6 +189,16 @@ export default function SongEditorPage({ mode }) {
                                 onChange={(event) => updateField("lyrics", event.target.value)}
                             />
 
+                            <div className="flex flex-wrap gap-2 mb-2">
+                                <Button
+                                    type="button"
+                                    color="secondary"
+                                    onClick={() => setTabEditorOpen(true)}
+                                >
+                                    Open Tab Editor
+                                </Button>
+                            </div>
+
                             <Button color="secondary"
                                 onClick={handleSyntaxToggle}
                                 className={syntaxHelpOpen ? "rounded-b-none" : null}
@@ -198,11 +210,13 @@ export default function SongEditorPage({ mode }) {
                                             <tr className="align-top"><td>Chord</td><td><code><strong className="text-orange-400">[</strong>C<strong className="text-orange-400">]</strong></code></td></tr>
                                             <tr className="align-top"><td>Comment line</td><td><code><strong className="text-orange-400">[(</strong>Comment<strong className="text-orange-400">)]</strong></code></td></tr>
                                             <tr className="align-top"><td>Tablature block</td><td><code className="block leading-none"><strong className="text-orange-400">[|</strong><br />
-                                                A|-------------<br />
-                                                E|-------------<br />
-                                                C|-------------<br />
-                                                G|-------------<br />
-                                            <strong className="text-orange-400">|]</strong></code></td></tr>
+                                                A|---3-2-0-a---<br />
+                                                E|---0-----2---<br />
+                                                C|---0-----2---<br />
+                                                G|---0-----2---<br />
+                                            <strong className="text-orange-400">|]</strong></code>
+                                            <div className="text-xs mt-1">One char per step: <code>0-9</code>, <code>a</code>=10, <code>b</code>=11, <code>c</code>=12. Or use Open Tab Editor.</div>
+                                            </td></tr>
                                         </tbody>
                                     </table>
                                 </Card>
@@ -239,6 +253,31 @@ export default function SongEditorPage({ mode }) {
                     </section>
                 </Flex>
             ) : null}
+
+            <Modal
+                isOpen={tabEditorOpen}
+                onClose={() => setTabEditorOpen(false)}
+                header="Tab Editor"
+                position="center"
+                size="xl"
+            >
+                <TabEditor
+                    mode="modal"
+                    showInsert
+                    showMarkupPreview
+                    onInsert={(markup) => {
+                        setForm((prev) => {
+                            const existing = String(prev.lyrics ?? "");
+                            const sep = existing && !existing.endsWith("\n") ? "\n" : "";
+                            return {
+                                ...prev,
+                                lyrics: `${existing}${sep}${markup}\n`,
+                            };
+                        });
+                        setTabEditorOpen(false);
+                    }}
+                />
+            </Modal>
         </>
     );
 }

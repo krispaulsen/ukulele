@@ -62,10 +62,11 @@ server/
   seedSongs.js
 
 src/
-  components/      # Reusable UI (SongList, Lyrics, UkuleleChordDiagram, YouTubeEmbed, Forms, ui/*)
-  pages/           # Route pages (SearchPage, SongPage, SongEditorPage, FavoritesPage, ...)
+  components/      # Reusable UI (SongList, Lyrics, TabEditor, UkuleleChordDiagram, YouTubeEmbed, Forms, ui/*)
+  pages/           # Route pages (SearchPage, SongPage, SongEditorPage, TabEditorPage, FavoritesPage, ...)
   context/         # UserContext (auth + favorites Set + login/logout + toggle + hydrate)
   lib/api.js       # apiRequest wrapper (credentials: 'include', no-cache, 204/304 → null)
+  lib/tabs.js      # Tab model parse/serialize (single-char frets: 0-9, a=10, b=11, …)
   data/            # seed songs + chordShapes
   ...
 ```
@@ -90,7 +91,7 @@ src/
 - Lyrics markup (parsed in `Lyrics.jsx`):
   - `[Chord]` for chords.
   - `[(Comment)]` for comments.
-  - `[| ... |]` for tablature blocks (4 strings: A/E/C/G order).
+  - `[| ... |]` for tablature blocks (4 strings: A/E/C/G order). One character per step: frets `0-9`, or `a`/`b`/`c`… for frets 10+.
 
 ### Auth & Authorization
 

@@ -77,14 +77,20 @@ This document tracks features, bugs, and improvements for the Ukulele Songbook w
 - [ ] Better fork UX
   - After forking, perhaps show "Forked from X" link
   - Allow editing the original title/artist during fork (already supported)
+- [x] **Tab Editor** (visual tablature builder)
+  - Standalone page `/tabs` (public; guests + members) + Header nav link
+  - Shared `src/lib/tabs.js` (parse/serialize, single-char frets: `0-9`, `a`=10, `b`=11, …)
+  - `TabEditor` grid UI: place frets, keypad, copy markup, import paste
+  - Modal on `SongEditorPage` (“Open Tab Editor”) → insert `[| … |]` into lyrics
 - [ ] **Tab Player** that reads and plays ukulele tablature
+  - Reuse `src/lib/tabs.js` parsing (already ships with Tab Editor)
   - Parse existing `[| ... |]` tablature blocks already supported in `song.lyrics` (see `Lyrics.jsx` and editor syntax help)
   - Identify the four strings by line labels (A|, E|, C|, G| or G|, C|, E|, A| etc.) or by conventional top-to-bottom order
   - Use Web Audio API for playback: map string + fret number to frequency using standard re-entrant ukulele tuning (G4 ≈ 392 Hz, C4 ≈ 262 Hz, E4 ≈ 330 Hz, A4 = 440 Hz)
   - Playback semantics:
     - Scan columns left-to-right across the tab
-    - Digits = fret to pluck on that string at this step; simultaneous digits on a column = strummed chord
-    - Treat spaces, `-`, `|`, letters as timing separators or rests
+    - Digits/letters = fret to pluck on that string at this step; simultaneous frets on a column = strummed chord
+    - Treat spaces, `-`, `|` as timing separators or rests; frets ≥ 10 use `a`, `b`, `c`, …
     - Play a short plucked envelope per note (simple oscillator + gain ADSR)
   - Player UI and controls (new `TabPlayer` component):
     - Play / Pause / Stop / Restart
@@ -99,7 +105,6 @@ This document tracks features, bugs, and improvements for the Ukulele Songbook w
     - `SongPage`: auto-detect tabs in lyrics; surface player controls near the Lyrics heading or per `[|]` block
     - Live preview inside `SongEditorPage` (reuse Lyrics + new player)
     - Possibly a dedicated tab-only view or "Practice mode"
-  - Extract reusable tab parsing (to a `src/lib/tabs.js` or similar) that both display and player can use
   - Graceful degradation and edge cases:
     - Songs without tabs: no player UI
     - Malformed tabs: skip or warn; still render the static block
