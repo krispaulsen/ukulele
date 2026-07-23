@@ -16,6 +16,7 @@ import {
   cellDisplayChar,
   MAX_FRET,
 } from "../lib/tabs";
+import PlayableTabs from "./PlayableTabs";
 
 const KEYPAD_FRETS = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
 
@@ -44,7 +45,7 @@ export default function TabEditor({
   const [cursor, setCursor] = useState({ stringIndex: 0, stepIndex: 0 });
   const [copyStatus, setCopyStatus] = useState("");
   /** When true, export `|` bar separators every DEFAULT_BAR_EVERY steps. */
-  const [includeBars, setIncludeBars] = useState(true);
+  const [includeBars, setIncludeBars] = useState(false);
   const gridRef = useRef(null);
 
   const markup = useMemo(
@@ -198,8 +199,10 @@ export default function TabEditor({
         <strong>a / b / c</strong> for frets 10 / 11 / 12). Arrow keys move;
         Backspace clears the cell. Column headers: <strong>+</strong> inserts a
         blank step before that column; <strong>×</strong> removes the column
-        (notes shift). Optionally include bar lines every {DEFAULT_BAR_EVERY}{" "}
-        steps in the exported markup.
+        (notes shift). Exported markup always uses uppercase labels (
+        <code>A|</code> <code>E|</code> <code>C|</code> <code>G|</code>) and
+        lowercase letters for frets 10+; optional bar lines every{" "}
+        {DEFAULT_BAR_EVERY} steps.
       </p>
 
       <Flex gap="gap-2" className="flex-wrap items-center">
@@ -418,16 +421,26 @@ export default function TabEditor({
       </div>
 
       {showMarkupPreview && (
-        <div>
-          <label className="text-xs text-gray-500 block mb-1" htmlFor="tab-markup-preview">
-            Markup preview
-          </label>
-          <pre
-            id="tab-markup-preview"
-            className="font-mono text-xs p-3 rounded-lg bg-taupe-100 dark:bg-taupe-900 border border-taupe-400 dark:border-taupe-600 overflow-x-auto whitespace-pre"
-          >
-            {markup}
-          </pre>
+        <div className="space-y-3">
+          <div>
+            <label className="text-xs text-gray-500 block mb-1" htmlFor="tab-markup-preview">
+              Markup preview
+            </label>
+            <pre
+              id="tab-markup-preview"
+              className="font-mono text-xs p-3 rounded-lg bg-taupe-100 dark:bg-taupe-900 border border-taupe-400 dark:border-taupe-600 overflow-x-auto whitespace-pre"
+            >
+              {markup}
+            </pre>
+          </div>
+          <div>
+            <p className="text-xs text-gray-500 mb-1">Play tab</p>
+            <PlayableTabs
+              markup={markup}
+              includeBars={includeBars}
+              showControls
+            />
+          </div>
         </div>
       )}
     </div>

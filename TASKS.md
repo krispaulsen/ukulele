@@ -82,37 +82,12 @@ This document tracks features, bugs, and improvements for the Ukulele Songbook w
   - Shared `src/lib/tabs.js` (parse/serialize, single-char frets: `0-9`, `a`=10, `b`=11, …)
   - `TabEditor` grid UI: place frets, keypad, copy markup, import paste
   - Modal on `SongEditorPage` (“Open Tab Editor”) → insert `[| … |]` into lyrics
-- [ ] **Tab Player** that reads and plays ukulele tablature
-  - Reuse `src/lib/tabs.js` parsing (already ships with Tab Editor)
-  - Parse existing `[| ... |]` tablature blocks already supported in `song.lyrics` (see `Lyrics.jsx` and editor syntax help)
-  - Identify the four strings by line labels (A|, E|, C|, G| or G|, C|, E|, A| etc.) or by conventional top-to-bottom order
-  - Use Web Audio API for playback: map string + fret number to frequency using standard re-entrant ukulele tuning (G4 ≈ 392 Hz, C4 ≈ 262 Hz, E4 ≈ 330 Hz, A4 = 440 Hz)
-  - Playback semantics:
-    - Scan columns left-to-right across the tab
-    - Digits/letters = fret to pluck on that string at this step; simultaneous frets on a column = strummed chord
-    - Treat spaces, `-`, `|` as timing separators or rests; frets ≥ 10 use `a`, `b`, `c`, …
-    - Play a short plucked envelope per note (simple oscillator + gain ADSR)
-  - Player UI and controls (new `TabPlayer` component):
-    - Play / Pause / Stop / Restart
-    - Tempo control (step duration or BPM slider; reasonable defaults e.g. 120 BPM or 150-250ms per column)
-    - Progress indicator that advances across the tab
-    - Clickable timeline / position to seek (start playing from a chosen column)
-    - Optional: loop the tab (or current song section), volume, metronome
-  - Visual synchronization:
-    - While playing, highlight or animate the active column(s) inside rendered tabs (extend `TabsBlock` or render a dedicated playable tab view)
-    - Show current string/fret being sounded (optional note readout)
-  - Integration points:
-    - `SongPage`: auto-detect tabs in lyrics; surface player controls near the Lyrics heading or per `[|]` block
-    - Live preview inside `SongEditorPage` (reuse Lyrics + new player)
-    - Possibly a dedicated tab-only view or "Practice mode"
-  - Graceful degradation and edge cases:
-    - Songs without tabs: no player UI
-    - Malformed tabs: skip or warn; still render the static block
-    - Support common variations (leading spaces, different dash styles, chord names above tabs)
-  - Other
-    - Add at least one seed song that includes a real tab example (for manual testing)
-    - Update README "Features" if shipped
-    - Nice extras later: alternate tunings (low G, D tuning), MIDI export, recording, slow-down without pitch change
+- [x] **Tab Player** that reads and plays ukulele tablature
+  - Reuse `src/lib/tabs.js` parsing; Web Audio in `src/lib/tabAudio.js` (re-entrant G4/C4/E4/A4)
+  - `PlayableTabs`: play/pause/stop/restart, BPM, loop, column highlight, click-to-seek
+  - Lyrics: static `div.tabs` + Play button → expand one player at a time (close collapses)
+  - Tab Editor: play markup preview (page + modal)
+  - Follow-ups: metronome, play-all-tabs playlist, seed song with tab, grid playhead sync, alternate tunings
 - [x] **Transpose Chords** control on the Song page
   - Add interactive transpose controls on `SongPage` (near the "Chords" section or above Lyrics)
     - Select box from +6 to -5 semitones.

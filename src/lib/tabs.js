@@ -1,7 +1,12 @@
 /**
  * Ukulele tablature model + parse/serialize helpers.
- * Single character per time step: 0-9, a=10, b=11, c=12, ...
- * String order (top → bottom): A, E, C, G.
+ *
+ * Canonical dialect (serialize / Tab Editor output):
+ * - String labels uppercase: A|, E|, C|, G| (top → bottom).
+ * - One character per step: '-' rest, '0'-'9' frets, lowercase 'a'-'f' for frets 10-15.
+ *
+ * Parse is best-effort and more lenient (optional labels, case-insensitive letters)
+ * for older or pasted tabs. Prefer writing the canonical form.
  */
 
 export const TAB_STRINGS = ["A", "E", "C", "G"];
@@ -120,21 +125,30 @@ function stripBlockMarkers(text) {
 }
 
 /**
- * Parse a string-line like `A|---3-0-a-|` into an array of frets (null for empty).
- * Skips spaces and decorative `|` bar markers (when not part of `A|` label).
+ * True if a line looks like tab body frets (with or without a leading `|`),
+ * not prose/junk. Used when string labels (A|, E|, …) are omitted.
  * @param {string} line
- * @returns {{ label: string, frets: (number|null)[] } | null}
  */
-function parseStringLine(line) {
-  const trimmed = String(line ?? "").trim();
-  if (!trimmed) return null;
+function looksLikeTabBody(line) {
+  let s = String(line ?? "").trim();
+  if (!s) return false;
+  // Drop a bare leading pipe (some tabs write `|---0---|` without A|)
+  if (s.startsWith("|") && !/^[AECG]\|/i.test(s)) {
+    s = s.slice(1);
+  }
+  if (!s) return false;
+  // Only frets, rests, bars, spaces
+  if (!/^[-0-9a-fA-F|\s]+$/.test(s)) return false;
+  return /[-0-9a-fA-F]/.test(s);
+}
 
-  // Match optional label A| E| C| G| (case-insensitive), rest is body
-  const m = trimmed.match(/^([AECG])\|(.*)$/i);
-  if (!m) return null;
-
-  const label = m[1].toUpperCase();
-  const body = m[2];
+/**
+ * Parse frets from a tab body string (after the optional `A|` label).
+ * Skips spaces and decorative `|` bar markers.
+ * @param {string} body
+ * @returns {(number|null)[]}
+ */
+function parseFretBody(body) {
   const frets = [];
   for (let i = 0; i < body.length; i++) {
     const ch = body[i];
@@ -149,12 +163,51 @@ function parseStringLine(line) {
     }
     // ignore unknown characters
   }
-  return { label, frets };
+  return frets;
+}
+
+/**
+ * Parse a string-line like `A|---3-0-a-|` into frets.
+ * Labels A|/E|/C|/G| are preferred but optional: if missing, pass `fallbackLabel`
+ * (e.g. from line order) and the body is accepted when it looks like tab.
+ * @param {string} line
+ * @param {string|null} [fallbackLabel] - used when line has no A|/E|/C|/G| prefix
+ * @returns {{ label: string, frets: (number|null)[] } | null}
+ */
+function parseStringLine(line, fallbackLabel = null) {
+  const trimmed = String(line ?? "").trim();
+  if (!trimmed) return null;
+
+  // Preferred: explicit label A| E| C| G| (case-insensitive)
+  const m = trimmed.match(/^([AECG])\|(.*)$/i);
+  if (m) {
+    return {
+      label: m[1].toUpperCase(),
+      frets: parseFretBody(m[2]),
+    };
+  }
+
+  // Unlabeled body: prepend conceptual label for parsing
+  if (fallbackLabel && looksLikeTabBody(trimmed)) {
+    let body = trimmed;
+    if (body.startsWith("|")) body = body.slice(1);
+    return {
+      label: String(fallbackLabel).toUpperCase(),
+      frets: parseFretBody(body),
+    };
+  }
+
+  return null;
 }
 
 /**
  * Parse tablature markup (full block or raw lines) into a tab model.
  * Best-effort: missing strings filled with nulls; length = max of parsed rows.
+ *
+ * String labels (A|, E|, C|, G|) are optional. Unlabeled lines that look like
+ * tab bodies are assigned in app order (A, E, C, G top → bottom), filling
+ * any strings not already set by an explicit label.
+ *
  * @param {string} text
  * @returns {{ steps: (number|null)[][] }}
  */
@@ -164,11 +217,33 @@ export function parseTabBlock(text) {
 
   /** @type {Record<string, (number|null)[]>} */
   const byLabel = {};
+  /** @type {string[]} */
+  const unlabeledBodies = [];
 
   for (const line of lines) {
-    const parsed = parseStringLine(line);
-    if (!parsed) continue;
-    byLabel[parsed.label] = parsed.frets;
+    const trimmed = String(line ?? "").trim();
+    if (!trimmed) continue;
+
+    if (/^[AECG]\|/i.test(trimmed)) {
+      const parsed = parseStringLine(trimmed);
+      if (parsed) byLabel[parsed.label] = parsed.frets;
+      continue;
+    }
+
+    if (looksLikeTabBody(trimmed)) {
+      unlabeledBodies.push(trimmed);
+    }
+    // else junk prose — ignore
+  }
+
+  // Assign unlabeled lines to remaining strings in TAB_STRINGS order
+  let ui = 0;
+  for (const label of TAB_STRINGS) {
+    if (byLabel[label]) continue;
+    if (ui >= unlabeledBodies.length) break;
+    const parsed = parseStringLine(unlabeledBodies[ui], label);
+    ui += 1;
+    if (parsed) byLabel[parsed.label] = parsed.frets;
   }
 
   const lengths = TAB_STRINGS.map((s) => byLabel[s]?.length ?? 0);

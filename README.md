@@ -105,7 +105,8 @@ See [TASKS.md](./TASKS.md) for the current backlog of bugs, features, and improv
 - View globally most-favorited songs
 - Build ukulele tablature in the Tab Editor (`/tabs`) and copy markup into songs
 
-**Tab Editor**
+**Tab Editor & Player**
 - Visual grid to place frets on A/E/C/G strings
-- Frets 0–9 as digits; frets 10+ as single letters (`a`=10, `b`=11, `c`=12, …)
+- Canonical markup: uppercase line labels (`A|` `E|` `C|` `G|`); frets `0`–`9`; frets 10–15 as lowercase `a`–`f`
 - Export as `[| … |]` lyrics markup; insert from the song editor via modal
+- Play tabs with Web Audio (playhead, tempo, loop) from the editor preview or a Play control on song lyrics

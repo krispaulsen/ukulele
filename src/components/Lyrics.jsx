@@ -1,43 +1,98 @@
-import { Fragment, use } from "react";
+import { Fragment, use, useState } from "react";
 import { UserContext } from "../context/UserContext";
 import { formatChordDisplay } from "../lib/chords";
+import PlayableTabs from "./PlayableTabs";
 
-function TabsBlock({children}) {
-    const tabLines = children.split('\n');
+function TabsBlock({ children }) {
+    const tabLines = children.split("\n");
     const numLines = tabLines.length;
     return (
         <div className="tabs">
-            {tabLines.map((line, index) => (<Fragment key={`tabsLine-${index}`}>
-                {line}
-                {index < numLines - 1 ? <br /> : null}
-            </Fragment>))}
+            {tabLines.map((line, index) => (
+                <Fragment key={`tabsLine-${index}`}>
+                    {line}
+                    {index < numLines - 1 ? <br /> : null}
+                </Fragment>
+            ))}
         </div>
     );
 }
 
-function VerseBlock({children}) {
-    return <div className="part">{children}</div>
+/**
+ * Compact tabs + Play; expands to PlayableTabs when activated.
+ * Only one block expanded at a time (controlled by parent).
+ */
+function ExpandableTabsBlock({ id, tabsString, activeId, onActivate, onDeactivate }) {
+    const isActive = activeId === id;
+
+    if (isActive) {
+        return (
+            <PlayableTabs
+                markup={tabsString}
+                autoPlay
+                showControls
+                showClose
+                onClose={onDeactivate}
+                className="mb-4"
+            />
+        );
+    }
+
+    return (
+        <div className="tabs-block-wrap flex items-start gap-2 mb-4">
+            <button
+                type="button"
+                className="shrink-0 mt-0.5 size-8 rounded border border-taupe-400 dark:border-taupe-600
+                    bg-taupe-100 dark:bg-taupe-800 hover:bg-orange-100 dark:hover:bg-orange-900
+                    text-orange-800 dark:text-orange-200"
+                aria-label="Play tablature"
+                title="Play tablature"
+                onClick={() => onActivate(id)}
+            >
+                <i className="fa-solid fa-play text-xs" />
+            </button>
+            <TabsBlock>{tabsString}</TabsBlock>
+        </div>
+    );
 }
 
-function CommentBlock({children}) {
-    return <div className="comment">{children}</div>
+function VerseBlock({ children }) {
+    return <div className="part">{children}</div>;
 }
 
-function LyricsLine({children}) {
-    return <div className="line">{children}</div>
+function CommentBlock({ children }) {
+    return <div className="comment">{children}</div>;
 }
 
-function LyricsChord({chordName, color, position}) {
+function LyricsLine({ children }) {
+    return <div className="line">{children}</div>;
+}
+
+function LyricsChord({ chordName, color, position }) {
     const style = { color: `#${color}` };
     if (position === "inline") {
-      return <span className="chord inline" style={style}>[{chordName}]</span>;
+        return (
+            <span className="chord inline" style={style}>
+                [{chordName}]
+            </span>
+        );
     }
-    return <div className="chord above" style={style}>{chordName}</div>;
+    return (
+        <div className="chord above" style={style}>
+            {chordName}
+        </div>
+    );
 }
 
-export default function Lyrics({columns=1, transpose=0, preferredAccidentals='flats', children}) {
-    const {user} = use(UserContext);
-    
+export default function Lyrics({
+    columns = 1,
+    transpose = 0,
+    preferredAccidentals = "flats",
+    children,
+}) {
+    const { user } = use(UserContext);
+    const [activeTabId, setActiveTabId] = useState(null);
+
     function parseVerseBlock(part, partIndex) {
         /*
             [(Intro)]
@@ -52,44 +107,50 @@ export default function Lyrics({columns=1, transpose=0, preferredAccidentals='fl
         */
         const elements = [];
 
-        // find tabsStrings before splinting the part into lines
+        // find tabsStrings before splitting the part into lines
         const subParts = part.trim().split(/(\[\|\n?.+?\n?\|\])/gs); // look for [| ... |]
         subParts.forEach((subPart, subPartIndex) => {
-            if (subPart.startsWith('[|') && subPart.endsWith('|]')) {
+            if (subPart.startsWith("[|") && subPart.endsWith("|]")) {
                 const tabsString = subPart.substring(2, subPart.length - 2).trim();
-                elements.push(<TabsBlock key={`tabs-${partIndex}-${subPartIndex}`}>{tabsString}</TabsBlock>);
-                return; // skip to next str in tabs.forEach()
+                const tabId = `tabs-${partIndex}-${subPartIndex}`;
+                elements.push(
+                    <ExpandableTabsBlock
+                        key={tabId}
+                        id={tabId}
+                        tabsString={tabsString}
+                        activeId={activeTabId}
+                        onActivate={setActiveTabId}
+                        onDeactivate={() => setActiveTabId(null)}
+                    />
+                );
+                return;
             }
 
             // else split into strings and look for comments and chords
-            const lines = subPart.trim().split('\n');
+            const lines = subPart.trim().split("\n");
             const partLines = [];
 
             lines.forEach((line, lineIndex) => {
                 const trimmedLine = line.trim();
-                if (trimmedLine === '') {
-                    // empty line
-                    // partLines.push(<br key={`br-${lineIndex}`} />);
-                    return; // skip to next line in lines.forEach()
+                if (trimmedLine === "") {
+                    return;
                 }
 
-                if (trimmedLine.startsWith('[(') && trimmedLine.endsWith(')]')) { // Look for [( ... )]
-                    // comment line
+                if (trimmedLine.startsWith("[(") && trimmedLine.endsWith(")]")) {
                     const commentString = trimmedLine.substring(2, trimmedLine.length - 2);
-                    partLines.push(<CommentBlock key={`comment-${partIndex}-${lineIndex}`}>{commentString}</CommentBlock>);
-                    return; // skip to next line in lines.forEach()
+                    partLines.push(
+                        <CommentBlock key={`comment-${partIndex}-${lineIndex}`}>
+                            {commentString}
+                        </CommentBlock>
+                    );
+                    return;
                 }
 
-                // this line must look like
-                // this: `   [G]    [Em]    [C]    [D]` (chords only, spaced out)
-                // or this: `[C]Somewhere over the [Em]rainbow` (chords and lyrics)
-                // or plain text: `no chords on this line` (just lyrics, no chords)
-                const lineParts = line.split(/(\[[^\]]+\])/g); // Look for [ ... ]
+                const lineParts = line.split(/(\[[^\]]+\])/g);
                 const lineElements = [];
 
                 lineParts.forEach((linePart, linePartIndex) => {
-                    if (linePart.startsWith('[') && linePart.endsWith(']')) {
-                        // chord (display-only; original lyrics string is unchanged)
+                    if (linePart.startsWith("[") && linePart.endsWith("]")) {
                         const chordString = linePart.substring(1, linePart.length - 1);
                         const displayName = formatChordDisplay(chordString, {
                             transpose,
@@ -105,26 +166,32 @@ export default function Lyrics({columns=1, transpose=0, preferredAccidentals='fl
                         );
                         return;
                     }
-                    // else this is plain text
                     lineElements.push(linePart);
                 });
-                partLines.push(<LyricsLine>{...lineElements}</LyricsLine>);
+                partLines.push(
+                    <LyricsLine key={`line-${partIndex}-${lineIndex}`}>{...lineElements}</LyricsLine>
+                );
             });
-            elements.push(<>{...partLines}</>);
+            elements.push(<Fragment key={`sub-${partIndex}-${subPartIndex}`}>{...partLines}</Fragment>);
         });
-        return <VerseBlock key={`part-${partIndex}`}>{...elements}</VerseBlock>;
+        return (
+            <VerseBlock key={`part-${partIndex}`}>{...elements}</VerseBlock>
+        );
     }
 
     function parseLyrics(lyrics) {
-        // first, split the lyrics into parts
-        const parts = lyrics?.trim().split('\n\n') || [];
+        const parts = lyrics?.trim().split("\n\n") || [];
         const elements = [];
         parts.forEach((part, partIndex) => {
             const verse = parseVerseBlock(part, partIndex);
             elements.push(verse);
         });
 
-        return <div className="song" style={{columnCount: columns}}>{...elements}</div>;
+        return (
+            <div className="song" style={{ columnCount: columns }}>
+                {...elements}
+            </div>
+        );
     }
 
     return parseLyrics(children);

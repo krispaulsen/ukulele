@@ -215,7 +215,11 @@ export default function SongEditorPage({ mode }) {
                                                 C|---0-----2---<br />
                                                 G|---0-----2---<br />
                                             <strong className="text-orange-400">|]</strong></code>
-                                            <div className="text-xs mt-1">One char per step: <code>0-9</code>, <code>a</code>=10, <code>b</code>=11, <code>c</code>=12. Or use Open Tab Editor.</div>
+                                            <div className="text-xs mt-1">
+                                                Labels uppercase (<code>A|</code>…<code>G|</code>).
+                                                One char per step: <code>0-9</code>; frets 10+ lowercase <code>a</code>=10, <code>b</code>=11, <code>c</code>=12.
+                                                Prefer Open Tab Editor for valid markup.
+                                            </div>
                                             </td></tr>
                                         </tbody>
                                     </table>

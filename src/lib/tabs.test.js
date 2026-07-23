@@ -120,6 +120,42 @@ G|----
     expect(parsed.steps[0][0]).toBe(1);
     expect(parsed.steps[1][0]).toBe(2);
   });
+
+  it("assigns unlabeled body lines to A,E,C,G in order", () => {
+    // Bodies without A|/E|/C|/G| — assigned top→bottom as A,E,C,G
+    const markup = `[|
+3-2-0---
+0----2--
+0----2--
+0----2--
+|]`;
+    const parsed = parseTabBlock(markup);
+    // "3-2-0---" → steps: 3, -, 2, -, 0, -, -, -
+    expect(parsed.steps[0][0]).toBe(3); // A
+    expect(parsed.steps[2][0]).toBe(2);
+    expect(parsed.steps[4][0]).toBe(0);
+    expect(parsed.steps[0][1]).toBe(0); // E "0----2--"
+    expect(parsed.steps[5][1]).toBe(2);
+    expect(parsed.steps[0][2]).toBe(0); // C
+    expect(parsed.steps[0][3]).toBe(0); // G
+  });
+
+  it("accepts unlabeled lines that start with a bare |", () => {
+    const parsed = parseTabBlock("|--0--\n|-----\n|-----\n|-----");
+    expect(parsed.steps[0][0]).toBe(null);
+    expect(parsed.steps[2][0]).toBe(0);
+  });
+
+  it("prefers explicit labels when mixed with unlabeled junk order", () => {
+    const markup = `[|
+E|5------
+not tab text
+A|0------
+|]`;
+    const parsed = parseTabBlock(markup);
+    expect(parsed.steps[0][0]).toBe(0); // A from label
+    expect(parsed.steps[0][1]).toBe(5); // E from label
+  });
 });
 
 describe("setCell / addSteps / insertStep / removeStep / clearTab", () => {
