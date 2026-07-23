@@ -154,3 +154,112 @@ export function transposeChord(name, semitones) {
 
   return `${transposedMain}/${transposedBass}`;
 }
+
+/**
+ * Normalize preferred accidentals option to a formatPitch style.
+ * @param {'sharps' | 'flats' | 'sharp' | 'flat' | string} preferred
+ * @returns {'sharp' | 'flat'}
+ */
+function preferredToStyle(preferred) {
+  if (preferred === "sharps" || preferred === "sharp") return "sharp";
+  return "flat";
+}
+
+/**
+ * Respell a simple chord token's root using preferred accidental style (ASCII #/b).
+ * @param {string} token
+ * @param {'sharp' | 'flat'} style
+ * @returns {string | null}
+ */
+function spellSimpleChord(token, style) {
+  if (!token || typeof token !== "string") return null;
+  const trimmed = token.trim();
+  if (!trimmed) return null;
+
+  const m = trimmed.match(/^([A-Ga-g])([#b♯♭]?)(.*)$/);
+  if (!m) return null;
+
+  const pitch = parsePitch(m[1] + m[2]);
+  if (!pitch) return null;
+
+  const root = formatPitch(pitch.index, style);
+  return root + m[3];
+}
+
+/**
+ * Respell chord roots (and bass notes) to prefer sharps or flats.
+ * Display-only helper; does not mutate stored song data.
+ * Returns ASCII accidentals (# / b).
+ *
+ * @param {string} name
+ * @param {'sharps' | 'flats' | 'sharp' | 'flat'} [preferred='flats']
+ * @returns {string}
+ */
+export function spellChord(name, preferred = "flats") {
+  if (name == null) return name;
+  const raw = String(name);
+  if (!raw.trim()) return raw;
+
+  // Comments or parenthetical labels used in lyrics markup
+  if (raw.startsWith("(") || raw.includes("(")) return raw;
+
+  const style = preferredToStyle(preferred);
+
+  const slashIndex = raw.indexOf("/");
+  if (slashIndex === -1) {
+    return spellSimpleChord(raw, style) ?? raw;
+  }
+
+  const main = raw.slice(0, slashIndex);
+  const bass = raw.slice(slashIndex + 1);
+  const spelledMain = spellSimpleChord(main, style);
+  if (spelledMain == null) return raw;
+
+  const bassTrim = bass.trim();
+  if (!bassTrim) return spelledMain + "/";
+
+  const spelledBass = spellSimpleChord(bassTrim, style);
+  if (spelledBass == null) return spelledMain + "/" + bass;
+
+  return `${spelledMain}/${spelledBass}`;
+}
+
+/**
+ * Replace ASCII pitch accidentals with typographic ♯ / ♭ for display.
+ * Only rewrites letter + accidental (root/bass), not quality suffixes like b9.
+ *
+ * @param {string} name
+ * @returns {string}
+ */
+export function prettyPrintChord(name) {
+  if (name == null) return name;
+  return String(name)
+    .replace(/([A-G])#/g, "$1♯")
+    .replace(/([A-G])b/g, "$1♭");
+}
+
+/**
+ * Lookup key for CHORD_SHAPES (ASCII flat spellings).
+ * Accepts sharp/flat and ♯/♭ forms.
+ *
+ * @param {string} name
+ * @returns {string}
+ */
+export function chordShapeKey(name) {
+  if (name == null) return name;
+  return spellChord(String(name), "flats");
+}
+
+/**
+ * Full display pipeline: transpose → preferred spelling → pretty accidentals.
+ * Purely cosmetic; does not change stored data.
+ *
+ * @param {string} name
+ * @param {{ transpose?: number, preferredAccidentals?: 'sharps' | 'flats' }} [options]
+ * @returns {string}
+ */
+export function formatChordDisplay(name, { transpose = 0, preferredAccidentals = "flats" } = {}) {
+  const transposed = transposeChord(name, transpose);
+  const spelled = spellChord(transposed, preferredAccidentals);
+  return prettyPrintChord(spelled);
+}

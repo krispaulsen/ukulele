@@ -29,6 +29,11 @@ const userSchema = new mongoose.Schema({
     type: Boolean,
     default: true
   },
+  preferredAccidentals: {
+    type: String,
+    enum: ["sharps", "flats"],
+    default: "flats"
+  },
 }, {
   timestamps: true
 });
