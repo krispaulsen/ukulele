@@ -16,6 +16,7 @@ import {
   cellDisplayChar,
   MAX_FRET,
 } from "../lib/tabs";
+import { fretToFrequency, tabAudio } from "../lib/tabAudio";
 import PlayableTabs from "./PlayableTabs";
 
 const KEYPAD_FRETS = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
@@ -69,6 +70,16 @@ export default function TabEditor({
     (fret) => {
       const { stringIndex, stepIndex } = cursor;
       updateModel((prev) => setCell(prev, stringIndex, stepIndex, fret));
+      // Preview the note when placing a fret (not when clearing).
+      if (fret !== null && fret !== undefined && Number.isFinite(fret)) {
+        const stringLabel = TAB_STRINGS[stringIndex];
+        const frequency = fretToFrequency(stringLabel, fret);
+        if (frequency != null) {
+          void tabAudio.resume().then(() => {
+            tabAudio.playColumn([{ frequency }]);
+          });
+        }
+      }
     },
     [cursor, updateModel]
   );
@@ -139,9 +150,17 @@ export default function TabEditor({
     [moveCursor, clearCell, placeFret]
   );
 
+  /** Body lines only (no `[|` / `|]`), ready to paste into a tablature textarea. */
+  const copyOutput = useMemo(() => {
+    let s = String(markup ?? "").trim();
+    if (s.startsWith("[|")) s = s.slice(2);
+    if (s.endsWith("|]")) s = s.slice(0, -2);
+    return s.trim();
+  }, [markup]);
+
   async function handleCopy() {
     try {
-      await navigator.clipboard.writeText(markup);
+      await navigator.clipboard.writeText(copyOutput);
       setCopyStatus("Copied!");
       setTimeout(() => setCopyStatus(""), 2000);
     } catch {
@@ -222,10 +241,10 @@ export default function TabEditor({
             onChange={(e) => setIncludeBars(e.target.checked)}
             className="size-4 accent-orange-600"
           />
-          Include bars in markup
+          Include bars in output
         </label>
         <Button type="button" color="primary" size="sm" onClick={handleCopy}>
-          Copy markup
+          Copy output
         </Button>
         {showInsert && typeof onInsert === "function" && (
           <Button type="button" color="primary" size="sm" onClick={() => onInsert(markup)}>
@@ -421,26 +440,13 @@ export default function TabEditor({
       </div>
 
       {showMarkupPreview && (
-        <div className="space-y-3">
-          <div>
-            <label className="text-xs text-gray-500 block mb-1" htmlFor="tab-markup-preview">
-              Markup preview
-            </label>
-            <pre
-              id="tab-markup-preview"
-              className="font-mono text-xs p-3 rounded-lg bg-taupe-100 dark:bg-taupe-900 border border-taupe-400 dark:border-taupe-600 overflow-x-auto whitespace-pre"
-            >
-              {markup}
-            </pre>
-          </div>
-          <div>
-            <p className="text-xs text-gray-500 mb-1">Play tab</p>
-            <PlayableTabs
-              markup={markup}
-              includeBars={includeBars}
-              showControls
-            />
-          </div>
+        <div>
+          <p className="text-xs text-gray-500 mb-1">Play tab</p>
+          <PlayableTabs
+            markup={markup}
+            includeBars={includeBars}
+            showControls
+          />
         </div>
       )}
     </div>

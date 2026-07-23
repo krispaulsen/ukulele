@@ -25,7 +25,7 @@ function Comment({ str, id, onChange }) {
             id={id}
             value={str}
             onChange={(event) => onChange(event.target.value)}
-            className="grow"
+            className="grow text-gray-700"
         />
     );
 }
@@ -101,7 +101,7 @@ function Chords({ str, chordsId, lyricsId, onChange }) {
                 <Label htmlFor={chordsId}>Chords</Label>
                 <input
                     id={chordsId}
-                    className="grow font-mono !rounded-b-none !border-b-0 !pb-0"
+                    className="grow font-mono !rounded-b-none !border-b-0 !pb-0 text-orange-800 dark:text-orange-300"
                     value={chordsStr}
                     onChange={(event) => onChange(mergeChordsAndLyrics(event.target.value, lyricsStr))}
                 />
@@ -236,7 +236,7 @@ function tabContentToLines(content) {
     return ["[|", ...inner.split("\n"), "|]"];
 }
 
-export default function SongEditor({ lyrics, onChange }) {
+export default function SongEditor({ lyrics, onChange, showTabEditorModal }) {
     const [blocks, setBlocks] = useState(() => parseBlocks(lyrics ?? ""));
     const baseId = useId();
     const committed = lyrics ?? "";
@@ -349,9 +349,15 @@ export default function SongEditor({ lyrics, onChange }) {
     return (
         <div>
             <BlockWrapper {...emptyMenuProps}>
-                <div className="grow text-right">
+                    <Button
+                        type="button"
+                        color="secondary"
+                        onClick={() => showTabEditorModal(true)}
+                        className="ml-auto"
+                    >
+                        Open Tab Editor
+                    </Button>
                     <ApplyChangesButton disabled={applyDisabled} onClick={handleApply} />
-                </div>
             </BlockWrapper>
             {blocks.length === 0 ? (
                 <BlockWrapper {...emptyMenuProps}>

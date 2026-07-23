@@ -10,7 +10,9 @@ import Lyrics from "../components/Lyrics";
 import {
     Button,
     Card,
-    Collapse
+    Collapse,
+    IconButton,
+    Tooltip
 } from "@material-tailwind/react";
 
 function formatSongForForm(song) {
@@ -33,7 +35,6 @@ export default function SongEditorPage({ mode }) {
     const [isLoading, setIsLoading] = useState(mode !== "new");
     const [isSaving, setIsSaving] = useState(false);
     const [error, setError] = useState("");
-    const [syntaxHelpOpen, setSyntaxHelpOpen] = useState(0);
     const [tabEditorOpen, setTabEditorOpen] = useState(false);
 
     const title = useMemo(() => {
@@ -69,9 +70,6 @@ export default function SongEditorPage({ mode }) {
 
         loadSong();
     }, [mode, slug]);
-
-    const handleSyntaxToggle = () => setSyntaxHelpOpen((currentValue) => !currentValue);
- 
 
     function updateField(name, value) {
         setForm((prev) => ({ ...prev, [name]: value }));
@@ -183,48 +181,46 @@ export default function SongEditorPage({ mode }) {
                             <Textarea
                                 className="font-mono w-xs"
                                 id="song-lyrics"
-                                label="Lyrics"
                                 value={form.lyrics}
                                 rows={10}
                                 onChange={(event) => updateField("lyrics", event.target.value)}
+                                label={
+                                    <Flex className="justify-between">
+                                        Lyrics
+                            
+                                        <Tooltip
+                                            content={
+                                                <table className="border-separate border-spacing-4 max-w-xs">
+                                                    <tbody>
+                                                        <tr className="align-top"><td>Chord</td><td><code><strong className="text-orange-400">[</strong>C<strong className="text-orange-400">]</strong></code></td></tr>
+                                                        <tr className="align-top"><td>Comment line</td><td><code><strong className="text-orange-400">[(</strong>Comment<strong className="text-orange-400">)]</strong></code></td></tr>
+                                                        <tr className="align-top"><td>Tablature block</td><td><code className="block leading-none"><strong className="text-orange-400">[|</strong><br />
+                                                            A|---3-2-0-a---<br />
+                                                            E|---0-----2---<br />
+                                                            C|---0-----2---<br />
+                                                            G|---0-----2---<br />
+                                                        <strong className="text-orange-400">|]</strong></code>
+                                                        <div className="text-xs mt-1">
+                                                            Labels uppercase (<code>A|</code>…<code>G|</code>).
+                                                            One char per step: <code>0-9</code>; frets 10+ lowercase <code>a</code>=10, <code>b</code>=11, <code>c</code>=12.
+                                                            Prefer Open Tab Editor for valid markup.
+                                                        </div>
+                                                        </td></tr>
+                                                    </tbody>
+                                                </table>
+                                            }
+                                        >
+                                            <IconButton
+                                                size="sm"
+                                                color="secondary"
+                                                aria-label="Toggle Syntax Help"
+                                            >
+                                                <i className="fa-solid fa-question"></i>
+                                            </IconButton>
+                                        </Tooltip>
+                                    </Flex>
+                                }
                             />
-
-                            <div className="flex flex-wrap gap-2 mb-2">
-                                <Button
-                                    type="button"
-                                    color="secondary"
-                                    onClick={() => setTabEditorOpen(true)}
-                                >
-                                    Open Tab Editor
-                                </Button>
-                            </div>
-
-                            <Button color="secondary"
-                                onClick={handleSyntaxToggle}
-                                className={syntaxHelpOpen ? "rounded-b-none" : null}
-                            >Lyrics Markup Syntax</Button>
-                            <Collapse open={syntaxHelpOpen} className="w-xs mb-4">
-                                <Card className="rounded-tl-none">
-                                    <table className="border-separate border-spacing-4 w-full">
-                                        <tbody>
-                                            <tr className="align-top"><td>Chord</td><td><code><strong className="text-orange-400">[</strong>C<strong className="text-orange-400">]</strong></code></td></tr>
-                                            <tr className="align-top"><td>Comment line</td><td><code><strong className="text-orange-400">[(</strong>Comment<strong className="text-orange-400">)]</strong></code></td></tr>
-                                            <tr className="align-top"><td>Tablature block</td><td><code className="block leading-none"><strong className="text-orange-400">[|</strong><br />
-                                                A|---3-2-0-a---<br />
-                                                E|---0-----2---<br />
-                                                C|---0-----2---<br />
-                                                G|---0-----2---<br />
-                                            <strong className="text-orange-400">|]</strong></code>
-                                            <div className="text-xs mt-1">
-                                                Labels uppercase (<code>A|</code>…<code>G|</code>).
-                                                One char per step: <code>0-9</code>; frets 10+ lowercase <code>a</code>=10, <code>b</code>=11, <code>c</code>=12.
-                                                Prefer Open Tab Editor for valid markup.
-                                            </div>
-                                            </td></tr>
-                                        </tbody>
-                                    </table>
-                                </Card>
-                            </Collapse>
 
                             <Switch
                                 option0="Private"
@@ -253,6 +249,7 @@ export default function SongEditorPage({ mode }) {
                         <SongEditor
                             lyrics={form.lyrics}
                             onChange={(lyrics) => updateField("lyrics", lyrics)}
+                            showTabEditorModal={setTabEditorOpen}
                         />
                     </section>
                 </Flex>
