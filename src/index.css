@@ -47,6 +47,19 @@
     --color-teal-900: oklch(38.6% 0.063 188.416);
     --color-teal-950: oklch(27.7% 0.046 192.524);
 
+    /* Sky (default Tailwind v4 palette) — used by tuner flat state, etc. */
+    /* --color-sky-50: oklch(97.7% 0.013 236.62);
+    --color-sky-100: oklch(95.1% 0.026 236.824); */
+    --color-sky-200: oklch(90.1% 0.058 230.902);
+    /* --color-sky-300: oklch(82.8% 0.111 230.318); */
+    --color-sky-400: oklch(74.6% 0.16 232.661);
+    --color-sky-500: oklch(68.5% 0.169 237.323);
+    --color-sky-600: oklch(58.8% 0.158 241.966);
+    /* --color-sky-700: oklch(50% 0.134 242.749);
+    --color-sky-800: oklch(44.3% 0.11 240.79); */
+    --color-sky-900: oklch(39.1% 0.09 240.876);
+    /* --color-sky-950: oklch(29.3% 0.066 243.157); */
+
     --color-taupe-50: oklch(98.6% 0.002 67.8);
     --color-taupe-100: oklch(96% 0.002 17.2);
     --color-taupe-200: oklch(92.2% 0.005 34.3);

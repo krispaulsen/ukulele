@@ -104,9 +104,16 @@ See [TASKS.md](./TASKS.md) for the current backlog of bugs, features, and improv
 - Browse all public songs
 - View globally most-favorited songs
 - Build ukulele tablature in the Tab Editor (`/tabs`) and copy markup into songs
+- Use the Chromatic Tuner (`/tuner`) with microphone pitch detection or reference tones
 
 **Tab Editor & Player**
 - Visual grid to place frets on A/E/C/G strings
 - Canonical markup: uppercase line labels (`A|` `E|` `C|` `G|`); frets `0`–`9`; frets 10–15 as lowercase `a`–`f`
 - Export as `[| … |]` lyrics markup; insert from the song editor via modal
 - Play tabs with Web Audio (playhead, tempo, loop) from the editor preview or a Play control on song lyrics
+
+**Chromatic Tuner**
+- Public practice tool at `/tuner` (header nav for guests and members)
+- Microphone pitch detection: note name, cents deviation, color-coded meter
+- Auto mode or lock to open G / C / E / A (standard re-entrant, A4 = 440 Hz)
+- Sustained reference tones for each open string plus volume control

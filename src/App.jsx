@@ -11,6 +11,7 @@ import SongEditorPage from "./pages/SongEditorPage";
 import ProfilePage from "./pages/ProfilePage";
 import ThemePage from "./pages/ThemePage";
 import TabEditorPage from "./pages/TabEditorPage";
+import TunerPage from "./pages/TunerPage";
 
 // Guard for protected routes. Captures the attempted location so we can
 // return the user here after they log in.
@@ -62,6 +63,7 @@ export default function App() {
                     <Route path="/" element={<SearchPage />} />
                     <Route path="/theme" element={<ThemePage />} />
                     <Route path="/tabs" element={<TabEditorPage />} />
+                    <Route path="/tuner" element={<TunerPage />} />
                     <Route path="/song/:slug" element={<SongPage />} />
 
                     {/* Auth routes are always present. Redirect away if already logged in.
