@@ -1,10 +1,11 @@
 import { CHORD_SHAPES } from "../data/chordShapes";
+import { chordShapeKey } from "../lib/chords";
 
 /**
  * Ukulele Chord Fingering Diagram SVG
  * 
  * @param {Object} props - The component props.
- * @param {string} props.chord - The chord name.
+ * @param {string} props.chord - The chord name (display label; may use ♯/♭).
  * @param {string} props.fingering - optional fingering shape that will override the shape matching the chord name. Should be 4 digits representing the four strings, and the fret number being held.
  * @param {number} props.width - the width of the svg.
  * @param {number} props.height - the height of the svg.
@@ -18,7 +19,9 @@ export default function UkuleleChordDiagram({ chord, fingering, width = 60, heig
     const stringSpacing = (width - hPadding - hPadding) / (strings - 1); // 16;
     const fretBoardWidth = (strings - 1) * stringSpacing;
     const fretBoardHeight = height - top; // 80;
-    const shape = fingering ?? CHORD_SHAPES[chord]?.[0] ?? "0000";
+    // CHORD_SHAPES uses flat ASCII keys (Db, Eb, …); normalize ♯/♭ and sharps for lookup
+    const shapeKey = chordShapeKey(chord);
+    const shape = fingering ?? CHORD_SHAPES[shapeKey]?.[0] ?? CHORD_SHAPES[chord]?.[0] ?? "0000";
     const shapeArr = shape.split('').map(Number);
 
     return (

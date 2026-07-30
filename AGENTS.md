@@ -62,10 +62,12 @@ server/
   seedSongs.js
 
 src/
-  components/      # Reusable UI (SongList, Lyrics, UkuleleChordDiagram, YouTubeEmbed, Forms, ui/*)
-  pages/           # Route pages (SearchPage, SongPage, SongEditorPage, FavoritesPage, ...)
+  components/      # Reusable UI (SongList, Lyrics, TabEditor, UkuleleChordDiagram, YouTubeEmbed, Forms, ui/*)
+  pages/           # Route pages (SearchPage, SongPage, SongEditorPage, TabEditorPage, FavoritesPage, ...)
   context/         # UserContext (auth + favorites Set + login/logout + toggle + hydrate)
   lib/api.js       # apiRequest wrapper (credentials: 'include', no-cache, 204/304 → null)
+  lib/tabs.js      # Tab model parse/serialize (single-char frets: 0-9, a=10, b=11, …)
+  lib/tabAudio.js  # Web Audio pluck + frequencies for Tab Player
   data/            # seed songs + chordShapes
   ...
 ```
@@ -90,7 +92,10 @@ src/
 - Lyrics markup (parsed in `Lyrics.jsx`):
   - `[Chord]` for chords.
   - `[(Comment)]` for comments.
-  - `[| ... |]` for tablature blocks (4 strings: A/E/C/G order).
+  - `[| ... |]` for tablature blocks. **Canonical dialect** (what Tab Editor writes / what authors should use):
+    - Four lines, top → bottom, with **uppercase** labels: `A|`, `E|`, `C|`, `G|`.
+    - One character per time step: rest `-`; frets `0`–`9`; frets 10–15 as **lowercase** `a`–`f` (`a`=10 … `f`=15). Optional bar `|` separators.
+    - Parser remains best-effort (unlabeled lines, case-insensitive letters) for older or pasted tabs; do not rely on that for new content.
 
 ### Auth & Authorization
 

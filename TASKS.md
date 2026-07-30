@@ -77,37 +77,17 @@ This document tracks features, bugs, and improvements for the Ukulele Songbook w
 - [ ] Better fork UX
   - After forking, perhaps show "Forked from X" link
   - Allow editing the original title/artist during fork (already supported)
-- [ ] **Tab Player** that reads and plays ukulele tablature
-  - Parse existing `[| ... |]` tablature blocks already supported in `song.lyrics` (see `Lyrics.jsx` and editor syntax help)
-  - Identify the four strings by line labels (A|, E|, C|, G| or G|, C|, E|, A| etc.) or by conventional top-to-bottom order
-  - Use Web Audio API for playback: map string + fret number to frequency using standard re-entrant ukulele tuning (G4 ≈ 392 Hz, C4 ≈ 262 Hz, E4 ≈ 330 Hz, A4 = 440 Hz)
-  - Playback semantics:
-    - Scan columns left-to-right across the tab
-    - Digits = fret to pluck on that string at this step; simultaneous digits on a column = strummed chord
-    - Treat spaces, `-`, `|`, letters as timing separators or rests
-    - Play a short plucked envelope per note (simple oscillator + gain ADSR)
-  - Player UI and controls (new `TabPlayer` component):
-    - Play / Pause / Stop / Restart
-    - Tempo control (step duration or BPM slider; reasonable defaults e.g. 120 BPM or 150-250ms per column)
-    - Progress indicator that advances across the tab
-    - Clickable timeline / position to seek (start playing from a chosen column)
-    - Optional: loop the tab (or current song section), volume, metronome
-  - Visual synchronization:
-    - While playing, highlight or animate the active column(s) inside rendered tabs (extend `TabsBlock` or render a dedicated playable tab view)
-    - Show current string/fret being sounded (optional note readout)
-  - Integration points:
-    - `SongPage`: auto-detect tabs in lyrics; surface player controls near the Lyrics heading or per `[|]` block
-    - Live preview inside `SongEditorPage` (reuse Lyrics + new player)
-    - Possibly a dedicated tab-only view or "Practice mode"
-  - Extract reusable tab parsing (to a `src/lib/tabs.js` or similar) that both display and player can use
-  - Graceful degradation and edge cases:
-    - Songs without tabs: no player UI
-    - Malformed tabs: skip or warn; still render the static block
-    - Support common variations (leading spaces, different dash styles, chord names above tabs)
-  - Other
-    - Add at least one seed song that includes a real tab example (for manual testing)
-    - Update README "Features" if shipped
-    - Nice extras later: alternate tunings (low G, D tuning), MIDI export, recording, slow-down without pitch change
+- [x] **Tab Editor** (visual tablature builder)
+  - Standalone page `/tabs` (public; guests + members) + Header nav link
+  - Shared `src/lib/tabs.js` (parse/serialize, single-char frets: `0-9`, `a`=10, `b`=11, …)
+  - `TabEditor` grid UI: place frets, keypad, copy markup, import paste
+  - Modal on `SongEditorPage` (“Open Tab Editor”) → insert `[| … |]` into lyrics
+- [x] **Tab Player** that reads and plays ukulele tablature
+  - Reuse `src/lib/tabs.js` parsing; Web Audio in `src/lib/tabAudio.js` (re-entrant G4/C4/E4/A4)
+  - `PlayableTabs`: play/pause/stop/restart, BPM, loop, column highlight, click-to-seek
+  - Lyrics: static `div.tabs` + Play button → expand one player at a time (close collapses)
+  - Tab Editor: play markup preview (page + modal)
+  - Follow-ups: metronome, play-all-tabs playlist, seed song with tab, grid playhead sync, alternate tunings
 - [x] **Transpose Chords** control on the Song page
   - Add interactive transpose controls on `SongPage` (near the "Chords" section or above Lyrics)
     - Select box from +6 to -5 semitones.
@@ -210,43 +190,13 @@ This document tracks features, bugs, and improvements for the Ukulele Songbook w
     - Later: alternate tunings (low G etc.), variable column durations, chord name labels above columns, export MIDI or slow-down.
     - Update syntax help / docs if the visual editor introduces new concepts.
     - Update README Features when complete.
-- [ ] **Chromatic Tuner**
-  - Standalone client-side practice tool to help users tune their ukulele to standard re-entrant GCEA (G4 ≈ 392 Hz, C4 ≈ 262 Hz, E4 ≈ 330 Hz, A4 = 440 Hz).
-  - Access: surfaced as a top-level navigation item ("Tuner") in the Header/Nav so it is globally and quickly accessible (visible to guests and logged-in users).
-  - New public route + page: `/tuner` → `TunerPage.jsx` (or `Tools/Tuner`). Full experience, responsive, big controls suitable for phone-on-the-table use.
-  - Core functionality (mic-based pitch detection):
-    - Request microphone via `navigator.mediaDevices.getUserMedia({ audio: true })` on user gesture ("Start Listening").
-    - Continuous or on-demand analysis using Web Audio API (`AudioContext`, `AnalyserNode`, `MediaStreamSource`).
-    - Implement or adapt a lightweight pitch detector (e.g. autocorrelation, zero-crossing refinement, or simple YIN-style in pure JS — no external packages).
-    - Display for the detected pitch:
-      - Large prominent note name + octave (e.g. "G4", "C#4", "A♭4").
-      - Cents deviation: numeric value + visual meter (horizontal bar, "needle", or concentric rings). Color code: green near 0, blue flat, red sharp.
-      - Target indicator: "Listening for any string" or allow user to select a target string (G / C / E / A) so the UI can show "Tune to G4".
-    - Graceful states: "Microphone permission needed", "No signal / too quiet", "Multiple notes / noisy — pluck one string", permission denied message with manual reference tone fallback.
-  - Reference tone playback (ear training + rough tuning):
-    - Four buttons: "Play G (open)", "Play C", "Play E", "Play A".
-    - Uses `OscillatorNode` + gain envelope (sine or saw with short pluck-like decay) to produce clean reference pitches matching the frequencies in the Tab Player spec.
-    - "Stop" control. Optionally a continuous "sustain" mode.
-    - Volume control or simple master gain.
-  - UI / UX details:
-    - Clean, focused single-purpose screen: big central readout, meter below or integrated, row of reference buttons at bottom or side.
-    - "Listening..." indicator (animated) while mic is active + a "Stop" button.
-    - Brief instructions panel (collapsible): "Pluck one string at a time near the mic. Adjust the tuning peg slowly until the cents value is close to 0 (green)."
-    - A4 calibration: simple numeric input (default 440) for users with non-standard reference pitch. Affects both detection math and reference playback.
-    - Mobile considerations: large tap targets, works in portrait, minimal scrolling, stays awake if possible (or note to user).
-    - No song context required — works completely independently.
-  - Technical / implementation notes:
-    - Pure browser Web APIs (Web Audio + MediaDevices). Keep implementation in `src/lib/pitch.js` or `src/pages/TunerPage.jsx` (extract reusable detector later).
-    - Handle `AudioContext` resume() rules (must be after user gesture).
-    - Throttle / smooth the UI updates (e.g. 10-20 fps via rAF) to avoid jank.
-    - Detect when input is too weak or contains strong overtones; show "uncertain" state rather than jumping notes.
-    - Test across common devices/browsers; document any known limitations.
-  - Other:
-    - Because it is global, consider adding a small floating "Tune" action or link from SongPage / SongEditor in the future (not required for this task).
-    - Future enhancements (do not implement now): low-G / baritone / slack-key presets, strobe display, waveform/spectrum mini viz, automatic "which string is closest" suggestion, recording short clips.
-    - No backend or persistence required.
-    - Add to README "Features" (under a Tools or Practice section) once shipped.
-    - Consider adding a link from the existing "Tab Player" UI or editor later for a "tune then play" workflow.
+- [x] **Chromatic Tuner**
+  - Standalone client-side practice tool for standard re-entrant GCEA (G4/C4/E4/A4, A4 = 440 Hz fixed)
+  - Public route `/tuner` + Header "Tuner" for guests and members
+  - Mic pitch detection (`pitchy` + Web Audio): note + cents meter (green within ±8¢), auto or lock to G/C/E/A
+  - Sustained reference tones (shared `tabAudio` sustain + open-string frequencies) with volume + Stop
+  - Pure pitch math in `src/lib/pitchMath.js` with unit tests; graceful mic denied / quiet / uncertain states
+  - Future (not in v1): A4 calibration UI, low-G/baritone, Wake Lock, strobe/spectrum, SongPage deep link
 
 ## UI / UX / Components
 

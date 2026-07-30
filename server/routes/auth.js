@@ -70,6 +70,7 @@ router.post("/login", async (req, res) => {
                 chordColor: user.chordColor,
                 chordPosition: user.chordPosition,
                 darkMode: user.darkMode,
+                preferredAccidentals: user.preferredAccidentals || "flats",
             }
         });
     } catch (error) {

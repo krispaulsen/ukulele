@@ -22,8 +22,9 @@ router.get("/profile", requireAuth, async (req, res) => {
             email: user.email,
             chordColor: user.chordColor,
             chordPosition: user.chordPosition,
+            darkMode: user.darkMode,
+            preferredAccidentals: user.preferredAccidentals || "flats",
             createdAt: user.createdAt,
-            // Add more fields later (bio, preferences, etc.)
         });
     } catch (error) {
         console.error("Failed to fetch profile:", error);
@@ -33,7 +34,7 @@ router.get("/profile", requireAuth, async (req, res) => {
 
 // PUT /api/users/profile - Update profile
 router.put("/profile", requireAuth, async (req, res) => {
-    const { screenName, email, chordColor, chordPosition, darkMode } = req.body;
+    const { screenName, email, chordColor, chordPosition, darkMode, preferredAccidentals } = req.body;
 
     try {
         const updateData = {};
@@ -42,6 +43,12 @@ router.put("/profile", requireAuth, async (req, res) => {
         if (chordColor !== undefined) updateData.chordColor = chordColor;
         if (chordPosition !== undefined) updateData.chordPosition = chordPosition;
         if (darkMode !== undefined) updateData.darkMode = darkMode;
+        if (preferredAccidentals !== undefined) {
+            if (preferredAccidentals !== "sharps" && preferredAccidentals !== "flats") {
+                return res.status(400).json({ error: "preferredAccidentals must be 'sharps' or 'flats'" });
+            }
+            updateData.preferredAccidentals = preferredAccidentals;
+        }
 
         console.log('user data to put', updateData);
         
@@ -64,6 +71,7 @@ router.put("/profile", requireAuth, async (req, res) => {
                 chordColor: user.chordColor,
                 chordPosition: user.chordPosition,
                 darkMode: user.darkMode,
+                preferredAccidentals: user.preferredAccidentals || "flats",
             }
         });
     } catch (error) {

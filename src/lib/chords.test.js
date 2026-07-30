@@ -1,5 +1,12 @@
 import { describe, it, expect } from "vitest";
-import { transposeChord, normalizeSemitones } from "./chords.js";
+import {
+  transposeChord,
+  normalizeSemitones,
+  spellChord,
+  prettyPrintChord,
+  formatChordDisplay,
+  chordShapeKey,
+} from "./chords.js";
 
 describe("normalizeSemitones", () => {
   it("maps into 0..11", () => {
@@ -74,5 +81,65 @@ describe("transposeChord", () => {
   it("handles negative offsets", () => {
     expect(transposeChord("D", -2)).toBe("C");
     expect(transposeChord("Am", -2)).toBe("Gm");
+  });
+});
+
+describe("spellChord", () => {
+  it("respells black keys to flats", () => {
+    expect(spellChord("C#", "flats")).toBe("Db");
+    expect(spellChord("F#m7", "flats")).toBe("Gbm7");
+    expect(spellChord("A#/C#", "flats")).toBe("Bb/Db");
+  });
+
+  it("respells black keys to sharps", () => {
+    expect(spellChord("Db", "sharps")).toBe("C#");
+    expect(spellChord("Bbm", "sharps")).toBe("A#m");
+    expect(spellChord("Eb/Gb", "sharps")).toBe("D#/F#");
+  });
+
+  it("leaves natural roots unchanged", () => {
+    expect(spellChord("C", "sharps")).toBe("C");
+    expect(spellChord("Am7", "flats")).toBe("Am7");
+    expect(spellChord("G/B", "sharps")).toBe("G/B");
+  });
+
+  it("accepts typographic accidentals as input", () => {
+    expect(spellChord("C♯", "flats")).toBe("Db");
+    expect(spellChord("D♭m", "sharps")).toBe("C#m");
+  });
+
+  it("leaves non-chords unchanged", () => {
+    expect(spellChord("(Intro)", "sharps")).toBe("(Intro)");
+    expect(spellChord("N.C.", "flats")).toBe("N.C.");
+  });
+});
+
+describe("prettyPrintChord", () => {
+  it("uses ♯ and ♭ for pitch accidentals", () => {
+    expect(prettyPrintChord("C#")).toBe("C♯");
+    expect(prettyPrintChord("Bb")).toBe("B♭");
+    expect(prettyPrintChord("F#m7")).toBe("F♯m7");
+    expect(prettyPrintChord("G/Bb")).toBe("G/B♭");
+  });
+
+  it("does not rewrite quality suffixes like b9", () => {
+    expect(prettyPrintChord("C7b9")).toBe("C7b9");
+  });
+});
+
+describe("formatChordDisplay", () => {
+  it("transposes, respells, and pretty-prints", () => {
+    expect(formatChordDisplay("C", { transpose: 1, preferredAccidentals: "flats" })).toBe("D♭");
+    expect(formatChordDisplay("C", { transpose: 1, preferredAccidentals: "sharps" })).toBe("C♯");
+    expect(formatChordDisplay("Bb", { transpose: 0, preferredAccidentals: "sharps" })).toBe("A♯");
+    expect(formatChordDisplay("F#m", { transpose: 0, preferredAccidentals: "flats" })).toBe("G♭m");
+  });
+});
+
+describe("chordShapeKey", () => {
+  it("normalizes to flat ASCII for CHORD_SHAPES lookup", () => {
+    expect(chordShapeKey("C#")).toBe("Db");
+    expect(chordShapeKey("C♯m7")).toBe("Dbm7");
+    expect(chordShapeKey("Eb")).toBe("Eb");
   });
 });

@@ -53,6 +53,8 @@ export default function Header() {
                     <>
                         <Link to="/song/new">Add Song</Link>
                         <Link to="/favorites">My Songbook</Link>
+                        <Link to="/tabs">Tab Editor</Link>
+                        <Link to="/tuner">Tuner</Link>
                         <Link to="/profile">My Profile</Link>
                         <Button variant="link" type="button" onClick={handleLogout}>
                             Log out
@@ -60,6 +62,8 @@ export default function Header() {
                     </>
                 ) : (
                     <>
+                        <Link to="/tabs">Tab Editor</Link>
+                        <Link to="/tuner">Tuner</Link>
                         <Link to="/auth" state={{ from }}>Login</Link>
                         <Link to="/auth/register" state={{ from }}>Register</Link>
                     </>

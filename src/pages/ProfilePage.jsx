@@ -110,6 +110,9 @@ export default function ProfilePage() {
     const [chordColor, setChordColor] = useState(user?.chordColor || CHORD_COLOR_OPTIONS[0]);
     const [chordPosition, setChordPosition] = useState(user?.chordPosition || "above");
     const [darkMode, setDarkMode] = useState(user?.darkMode ?? true);
+    const [preferredAccidentals, setPreferredAccidentals] = useState(
+        user?.preferredAccidentals === "sharps" ? "sharps" : "flats"
+    );
 
     const [profileSaving, setProfileSaving] = useState(false);
     const [prefsSaving, setPrefsSaving] = useState(false);
@@ -124,6 +127,10 @@ export default function ProfilePage() {
                 setEmail(data.email || "");
                 setChordColor(data.chordColor || CHORD_COLOR_OPTIONS[0]);
                 setChordPosition(data.chordPosition || "above");
+                setDarkMode(data.darkMode ?? true);
+                setPreferredAccidentals(
+                    data.preferredAccidentals === "sharps" ? "sharps" : "flats"
+                );
             } catch (error) {
                 console.error("Failed to load profile:", error);
             } finally {
@@ -160,7 +167,7 @@ export default function ProfilePage() {
         try {
             await apiRequest("/api/users/profile", {
                 method: "PUT",
-                body: JSON.stringify({ chordColor, chordPosition, darkMode })
+                body: JSON.stringify({ chordColor, chordPosition, darkMode, preferredAccidentals })
             });
             setSaveMessage({ type: "success", text: "✅ Preferences updated successfully!" });
             refreshUser();
@@ -207,7 +214,7 @@ export default function ProfilePage() {
                     <h2 className="text-xl font-semibold mb-4">Preferences</h2>
 
                     <div>
-                        <label htmlFor="modeToggle">Preferred Default Mode</label>
+                        <label htmlFor="modeToggle">Default Mode</label>
                         <Switch
                             id="modeToggle"
                             option0="Light"
@@ -234,9 +241,25 @@ export default function ProfilePage() {
                         <Option value="inline">Inline with Lyrics</Option>
                     </Select>
 
+                    <div>
+                        <label htmlFor="accidentalsToggle">Preferred Accidentals</label>
+                        <Switch
+                            id="accidentalsToggle"
+                            option0="♯"
+                            option1="♭"
+                            checked={preferredAccidentals === "flats"}
+                            onChange={(e) => {
+                                setPreferredAccidentals(e.target.checked ? "flats" : "sharps");
+                            }}
+                            wrapperClassName="mt-0"
+                        />
+                    </div>
+
                     <fieldset className="border px-4 py-2">
                         <legend className="-mx-2 px-2">Preview</legend>
-                        <Lyrics>[C]Somewhere [Em]over the rainbow, [F]way up [C]high</Lyrics>
+                        <Lyrics preferredAccidentals={preferredAccidentals}>
+                            [C]Somewhere [Em]over the rainbow, [F]way [Bb]up [C]high
+                        </Lyrics>
                     </fieldset>
 
                     <Button type="submit" disabled={prefsSaving} className="mt-4">

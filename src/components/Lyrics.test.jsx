@@ -69,6 +69,8 @@ E|---1---|
     expect(tabs.textContent).toContain('A|---0---|');
     expect(tabs.textContent).toContain('E|---1---|');
     expect(tabs.querySelectorAll('br')).toHaveLength(1);
+    // Compact play affordance (player expands on click)
+    expect(screen.getByRole('button', { name: /play tablature/i })).toBeInTheDocument();
   });
 
   it('handles mixed content: chords, text, comments, and tabs in verses', () => {

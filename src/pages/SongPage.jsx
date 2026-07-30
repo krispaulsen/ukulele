@@ -1,7 +1,7 @@
 import { use, useEffect, useState, Fragment } from "react";
 import { useParams } from "react-router-dom";
 import { apiRequest } from "../lib/api";
-import { transposeChord } from "../lib/chords";
+import { formatChordDisplay } from "../lib/chords";
 import { UserContext } from "../context/UserContext";
 import { Flex, Link } from "../components/ui";
 import { Input, Option, Select, Switch } from "../components/Forms";
@@ -76,15 +76,23 @@ export default function SongPage() {
     const [numCols, setNumCols] = useState(DEFAULT_NUM_COLS);
     const [showVideo, setShowVideo] = useState(false);
     const [transpose, setTranspose] = useState(0);
-    const [preferredAccidentals, setPreferredAccidentals] = useState('flats');
+    const userPreferredAccidentals =
+        user?.preferredAccidentals === "sharps" ? "sharps" : "flats";
+    const [preferredAccidentals, setPreferredAccidentals] = useState(userPreferredAccidentals);
    
     const handleToggleVideo = () => setShowVideo(current => !current);
+
+    // Default to the user's saved preference (and re-apply when navigating songs).
+    // Guests and users without a preference fall back to flats.
+    useEffect(() => {
+        setPreferredAccidentals(userPreferredAccidentals);
+        setTranspose(0);
+    }, [slug, userPreferredAccidentals]);
 
     useEffect(() => {
         async function loadSong() {
             setIsLoading(true);
             setLoadError("");
-            setTranspose(0);
             try {
                 const data = await apiRequest(`/api/songs/${encodeURIComponent(slug)}`);
                 setSong(data);
@@ -180,21 +188,23 @@ export default function SongPage() {
                                     options={['+6', '+5', '+4', '+3', '+2', '+1', '0', '-1', '-2', '-3', '-4', '-5']}
                                     onChange={(e) => setTranspose(Number(e.target.value))}
                                 />
-                                {/* Hide sharps/flats switch until feature is complete */}
-                                {/* <Switch
+                                <Switch
                                     option0="♯"
                                     option1="♭"
                                     checked={preferredAccidentals === 'flats'}
                                     onChange={(e) => {
                                         setPreferredAccidentals(e.target.checked ? 'flats' : 'sharps')
                                     }}
-                                /> */}
+                                />
                             </Flex>
                             <Flex gap="gap-2" className="mb-4">
                                 {song.chords.map((chord) => (
                                     <UkuleleChordDiagram
                                         key={chord}
-                                        chord={transposeChord(chord, transpose)}
+                                        chord={formatChordDisplay(chord, {
+                                            transpose,
+                                            preferredAccidentals,
+                                        })}
                                     />
                                 ))}
                             </Flex>
@@ -219,7 +229,13 @@ export default function SongPage() {
                             <h3>Lyrics</h3>
                             <ColumnsControl numCols={numCols} setNumCols={setNumCols} />
                         </Flex>
-                        <Lyrics columns={numCols} transpose={transpose}>{song.lyrics}</Lyrics>
+                        <Lyrics
+                            columns={numCols}
+                            transpose={transpose}
+                            preferredAccidentals={preferredAccidentals}
+                        >
+                            {song.lyrics}
+                        </Lyrics>
                     </div>
                 </section>
             ) : null}
