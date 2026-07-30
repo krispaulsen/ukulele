@@ -9,6 +9,9 @@ import {
 } from "../lib/tabs";
 import { columnNotes, stepDurationMs, tabAudio } from "../lib/tabAudio";
 
+const BPM_MIN = 40;
+const BPM_MAX = 240;
+
 /**
  * Playable monospaced tab display with Web Audio playback.
  *
@@ -36,7 +39,15 @@ export default function PlayableTabs({
   const [status, setStatus] = useState("idle"); // idle | playing | paused
   const [stepIndex, setStepIndex] = useState(0);
   const [bpm, setBpm] = useState(120);
+  /** Draft string while the BPM field is focused; null when not editing. */
+  const [bpmDraft, setBpmDraft] = useState(null);
   const [loop, setLoop] = useState(false);
+
+  function commitBpm(raw) {
+    const v = Number(raw);
+    if (!Number.isFinite(v)) return;
+    setBpm(Math.min(BPM_MAX, Math.max(BPM_MIN, Math.trunc(v))));
+  }
 
   const statusRef = useRef(status);
   const stepRef = useRef(stepIndex);
@@ -216,12 +227,26 @@ export default function PlayableTabs({
             BPM
             <input
               type="number"
-              min={40}
-              max={240}
-              value={bpm}
+              min={BPM_MIN}
+              max={BPM_MAX}
+              value={bpmDraft !== null ? bpmDraft : bpm}
+              onFocus={() => setBpmDraft(String(bpm))}
               onChange={(e) => {
-                const v = Number(e.target.value);
-                if (Number.isFinite(v)) setBpm(Math.min(240, Math.max(40, Math.trunc(v))));
+                const raw = e.target.value;
+                setBpmDraft(raw);
+                // Live-update playback only when the value is already in range
+                // so partial typing (e.g. "8" on the way to "80") is not clamped.
+                const v = Number(raw);
+                if (Number.isFinite(v) && v >= BPM_MIN && v <= BPM_MAX) {
+                  setBpm(Math.trunc(v));
+                }
+              }}
+              onBlur={() => {
+                commitBpm(bpmDraft ?? bpm);
+                setBpmDraft(null);
+              }}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") e.currentTarget.blur();
               }}
               className="w-14 px-1 py-0.5 rounded border border-taupe-400 dark:border-taupe-600 bg-transparent text-sm"
             />
