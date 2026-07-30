@@ -6,6 +6,7 @@ import bcrypt from "bcryptjs";
 import { songs } from "../src/data/songs.js";
 import Song from "./models/Song.js";
 import User from "./models/User.js";
+import { lyricsHasTabs } from "./utils.js";
 
 async function seed() {
     await mongoose.connect(process.env.MONGO_URI);
@@ -36,6 +37,7 @@ async function seed() {
                     capo: song.capo,
                     chords: song.chords,
                     lyrics: song.lyrics,
+                    hasTabs: lyricsHasTabs(song.lyrics),
                     youtube: song.youtube || "",
                     isPublic: true,
                 },
