@@ -268,9 +268,8 @@ export default function PlayableTabs({
             <IconButton
               type="button"
               color="secondary"
-              variant="outlined"
               size="sm"
-              className="border-0 ml-auto"
+              className="ml-auto"
               title="Close player"
               aria-label="Close player"
               onClick={() => {

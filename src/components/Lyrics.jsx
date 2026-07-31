@@ -1,6 +1,7 @@
 import { Fragment, use, useState } from "react";
 import { UserContext } from "../context/UserContext";
 import { formatChordDisplay } from "../lib/chords";
+import { IconButton } from "@material-tailwind/react";
 import PlayableTabs from "./PlayableTabs";
 
 function TabsBlock({ children }) {
@@ -40,17 +41,15 @@ function ExpandableTabsBlock({ id, tabsString, activeId, onActivate, onDeactivat
 
     return (
         <div className="tabs-block-wrap flex items-start gap-2 mb-4">
-            <button
-                type="button"
-                className="shrink-0 mt-0.5 size-8 rounded border border-taupe-400 dark:border-taupe-600
-                    bg-taupe-100 dark:bg-taupe-800 hover:bg-orange-100 dark:hover:bg-orange-900
-                    text-orange-800 dark:text-orange-200"
+            <IconButton
+                size="sm"
+                className="shrink-0 mt-0.5"
                 aria-label="Play tablature"
                 title="Play tablature"
                 onClick={() => onActivate(id)}
             >
                 <i className="fa-solid fa-play text-xs" />
-            </button>
+            </IconButton>
             <TabsBlock>{tabsString}</TabsBlock>
         </div>
     );

@@ -38,5 +38,33 @@ export const songs = [
 [G]Once in a lullaby [Am]
 `,
         youtube: "V1bFr2SWP1I"
+    },
+    {
+        slug: "rainbow-connection",
+        title: "Rainbow Connection",
+        artist: "Kermit",
+        key: "C",
+        cape: 0,
+        chords: ["G", "Em", "C", "D", "D7"],
+        lyrics: `[(Intro x2)]
+[|
+A|----2--2-----3----------
+E|---3--3--3--3-----------
+C|-2--------2-------------
+G|------------------------
+|]
+
+[(Verse 1)]
+[G]Why are there [Em]so many [C]songs about [D]rainbows?
+[G]And what's on the [Em]other [C]side [D] 
+[G]Rainbows are [Em]visions, but [C]only [D]illusions
+[G]Rainbows have [Em]nothing to [C]hide [D] 
+[C]So we've been told and some choose to believe it
+[D7]I know they're [D]wrong, wait and see
+
+[(Chorus)]
+[C]Someday we'll [D]find it, the [G]rainbow con[Em]nection
+The [C]lovers, the [D]dreamers and [G]me
+`
     }
 ];

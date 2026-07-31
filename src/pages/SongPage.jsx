@@ -197,7 +197,7 @@ export default function SongPage() {
                                     }}
                                 />
                             </Flex>
-                            <Flex gap="gap-2" className="mb-4">
+                            <Flex gap="gap-2" className="mb-4 flex-wrap">
                                 {song.chords.map((chord) => (
                                     <UkuleleChordDiagram
                                         key={chord}
