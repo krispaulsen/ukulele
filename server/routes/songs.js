@@ -53,7 +53,7 @@ router.get("/", async (req, res) => {
 router.get("/:slug", async (req, res) => {
     try {
         const song = await Song.findOne({ slug: req.params.slug })
-            .select("slug _id title artist key capo notes chords lyrics youtube favorites createdAt updatedAt ownerUserId isPublic")
+            .select("slug _id title artist key capo notes chords lyrics hasTabs youtube favorites createdAt updatedAt ownerUserId isPublic")
             .populate('ownerUserId', 'screenName')
             .lean();
 

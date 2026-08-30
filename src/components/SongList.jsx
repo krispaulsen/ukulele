@@ -85,7 +85,15 @@ export default function SongList({ items = [], updatePopularList = () => {}, pag
                                     </Link>
                                 </td>
                                 <td>{song.artist}</td>
-                                <td>{song.chords.join(', ')}</td>
+                                <td>
+                                    {(song.chords ?? []).join(', ')}
+                                    {song.hasTabs ? (
+                                        <span className="ml-2 whitespace-nowrap text-orange-500" title="Includes tablature">
+                                            <i className="fa-solid fa-table-cells" aria-hidden="true"></i>
+                                            {' '}Tabs
+                                        </span>
+                                    ) : null}
+                                </td>
                                 <td>
                                     {song.screenName || "Unknown"} • {new Date(song.updatedAt).toLocaleDateString()}
                                 </td>

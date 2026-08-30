@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest';
 import {
   slugify,
   extractYouTubeId,
+  lyricsHasTabs,
   validateSongPayload,
   formatSong,
   songDocToDetails,
@@ -79,6 +80,27 @@ describe('extractYouTubeId', () => {
   });
 });
 
+describe('lyricsHasTabs', () => {
+  it('returns true when lyrics contain a [| ... |] block', () => {
+    const lyrics = `[C]Hello
+[|
+A|---0---|
+E|---0---|
+C|---0---|
+G|---0---|
+|]
+[G]world`;
+    expect(lyricsHasTabs(lyrics)).toBe(true);
+  });
+
+  it('returns false for empty or chord-only lyrics', () => {
+    expect(lyricsHasTabs('')).toBe(false);
+    expect(lyricsHasTabs(null)).toBe(false);
+    expect(lyricsHasTabs('[Am]I was scared of [G]dark')).toBe(false);
+    expect(lyricsHasTabs('A|---0---| E|---0---|')).toBe(false);
+  });
+});
+
 describe('validateSongPayload', () => {
   it('accepts minimal valid payload and normalizes fields', () => {
     const result = validateSongPayload({ title: 'My Song', artist: 'Artist' });
@@ -90,9 +112,30 @@ describe('validateSongPayload', () => {
       notes: '',
       chords: [],
       lyrics: '',
+      hasTabs: false,
       youtube: '',
       isPublic: false
     });
+  });
+
+  it('sets hasTabs true when lyrics include a tab block', () => {
+    const result = validateSongPayload({
+      title: 'Tabby',
+      artist: 'Artist',
+      lyrics: '[|\nA|---0---|\nE|---0---|\nC|---0---|\nG|---0---|\n|]'
+    });
+    expect(result.ok).toBe(true);
+    expect(result.value.hasTabs).toBe(true);
+  });
+
+  it('ignores client-supplied hasTabs and recomputes from lyrics', () => {
+    const result = validateSongPayload({
+      title: 'T',
+      artist: 'A',
+      lyrics: '[C]no tabs here',
+      hasTabs: true
+    });
+    expect(result.value.hasTabs).toBe(false);
   });
 
   it('trims strings and filters empty chords', () => {
@@ -234,6 +277,7 @@ describe('songDocToDetails', () => {
     const details = songDocToDetails(lean);
     expect(details.chords).toEqual([]);
     expect(details.lyrics).toBe('');
+    expect(details.hasTabs).toBe(false);
     expect(details.youtube).toBe('');
     expect(details.favorites).toBe(0);
     expect(details.isOwner).toBe(false);

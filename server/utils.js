@@ -38,6 +38,14 @@ export function extractYouTubeId(input) {
     return "";
 }
 
+/**
+ * True when lyrics contain at least one tablature block `[| ... |]`.
+ * Matches the dialect used by Lyrics.jsx / Tab Editor.
+ */
+export function lyricsHasTabs(lyrics) {
+    return /\[\|[\s\S]*?\|\]/.test(String(lyrics ?? ""));
+}
+
 export function songDocToDetails(song, currentUserId = null) {
     const ownerId = song.ownerUserId
         ? (typeof song.ownerUserId === "object" ? String(song.ownerUserId._id || song.ownerUserId) : String(song.ownerUserId))
@@ -57,6 +65,7 @@ export function songDocToDetails(song, currentUserId = null) {
         notes: song.notes,
         chords: song.chords || [],
         lyrics: song.lyrics || "",
+        hasTabs: !!song.hasTabs,
         youtube: song.youtube || "",
         ownerUserId: ownerId,
         screenName,
@@ -94,6 +103,7 @@ export function validateSongPayload(payload) {
         ? payload.chords.map((item) => String(item).trim()).filter(Boolean)
         : [];
     const lyrics = String(payload.lyrics ?? "").trim();
+    const hasTabs = lyricsHasTabs(lyrics);
     const youtube = extractYouTubeId(payload.youtube);
     const isPublic = !!payload.isPublic;
 
@@ -101,7 +111,7 @@ export function validateSongPayload(payload) {
         return { ok: false, error: "Title and artist are required" };
     }
 
-    return { ok: true, value: { title, artist, key, capo, notes, chords, lyrics, youtube, isPublic } };
+    return { ok: true, value: { title, artist, key, capo, notes, chords, lyrics, hasTabs, youtube, isPublic } };
 }
 
 /**
