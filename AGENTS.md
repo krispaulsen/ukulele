@@ -6,7 +6,7 @@ This file provides guidance for AI agents (and human developers) working on the 
 
 A full-stack web app for browsing, creating, editing, forking, and favoriting ukulele song sheets (with chord diagrams, lyrics, and optional tablature or YouTube embeds).
 
-- **Authentication**: Email/password with JWT in httpOnly cookies.
+- **Authentication**: Email/password with JWT in httpOnly cookies. Forgot-password issues a hashed, one-hour token and emails a `/#/auth/reset?token=…` link (or returns `resetUrl` in non-production when SMTP is not configured).
 - **Core entities**: Songs (with chords, lyrics markup, optional youtube, key/capo, isPublic), Users, Favorites.
 - **Key flows**: Public browsing + authenticated song management + per-user favorites.
 
@@ -32,8 +32,9 @@ Required variables (see `.env.example`):
 - `MONGO_URI`
 - `SESSION_SECRET`
 - `API_PORT` (default 5000)
-- `FRONTEND_URL` (default [http://localhost:5173](http://localhost:5173))
+- `FRONTEND_URL` (default [http://localhost:5173](http://localhost:5173)) — also used in password-reset links
 - Seed user vars for `npm run seed:songs`
+- Optional SMTP vars for password-reset email (`SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS`, `MAIL_FROM`). Without SMTP in non-production, the forgot-password response includes `resetUrl`
 
 ### Common Commands
 
@@ -54,6 +55,8 @@ npm run seed:songs   # Seeds from src/data/songs.js (uses SEED_* env vars)
 server/
   models/          # Mongoose models (User, Song, Favorite)
   routes/          # auth.js, songs.js, favorites.js, users.js
+  passwordReset.js # reset token hash/URL + in-memory rate limit
+  mailer.js        # nodemailer password-reset email (no-op without SMTP)
   index.js         # Express app + middleware
   middleware.js    # attachUser (always), requireAuth (protected)
   utils.js         # slugify, extractYouTubeId, validateSongPayload, formatSong, songDocToDetails, resolveUniqueSongSlug

@@ -51,6 +51,35 @@ export const UserProvider = ({ children }) => {
         hydrate();
     }, []);
 
+    const completeLogin = async (authUser) => {
+        let favoritesArray = [];
+        try {
+            favoritesArray = await apiRequest("/api/favorites");
+        } catch {
+            favoritesArray = [];
+        }
+        if (!Array.isArray(favoritesArray)) favoritesArray = [];
+        const favoritesSet = new Set(favoritesArray);
+        setFavorites(favoritesSet);
+
+        const updatedUserData = {
+            ...authUser,
+            userId: authUser?.userId || (authUser?._id ? String(authUser._id) : undefined),
+            isLoggedIn: true,
+            favorites: favoritesSet
+        };
+        setUser(updatedUserData);
+
+        if (updatedUserData.darkMode !== undefined) {
+            const theme = updatedUserData.darkMode ? "dark" : "light";
+            localStorage.setItem("theme", theme);
+            document.documentElement.classList.remove("dark", "light");
+            document.documentElement.classList.add(theme);
+        }
+
+        return updatedUserData;
+    };
+
     const login = async (email, password) => {
         try {
             const userData = await apiRequest("/api/auth/login", {
@@ -58,27 +87,8 @@ export const UserProvider = ({ children }) => {
                 body: JSON.stringify({ email, password })
             });
 
-            let favoritesArray = await apiRequest("/api/favorites");
-            if (!Array.isArray(favoritesArray)) favoritesArray = [];
-            const favoritesSet = new Set(favoritesArray);
-            setFavorites(favoritesSet);
-
-            const updatedUserData = {
-                ...userData.user,
-                isLoggedIn: true,
-                favorites: favoritesSet
-            };
+            const updatedUserData = await completeLogin(userData.user);
             console.log("User Logged In", updatedUserData);
-            setUser(updatedUserData);
-
-            // set theme
-            if (updatedUserData.darkMode !== undefined) {
-                // use the user's preference
-                const theme =  updatedUserData.darkMode ? "dark" : "light";
-                localStorage.setItem("theme", theme);
-                document.documentElement.classList.remove('dark', 'light');
-                document.documentElement.classList.add(theme);
-            }
         } catch (submitError) {
             console.error(submitError.message || "Authentication failed");
             logout();
@@ -163,7 +173,7 @@ export const UserProvider = ({ children }) => {
     }
 
     return (
-        <UserContext value={{ user, login, logout, register, refreshUser, toggleFavorite }}>
+        <UserContext value={{ user, login, logout, register, refreshUser, toggleFavorite, completeLogin }}>
             {children}
         </UserContext>
     );

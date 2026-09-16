@@ -39,7 +39,8 @@ Required vars:
 - `MONGO_URI` — MongoDB connection string (e.g. `mongodb://localhost:27017/ukulele`)
 - `SESSION_SECRET` — Secret used to sign JWT session cookies
 - `API_PORT` — Port for the Express API (default: `5000`)
-- `FRONTEND_URL` — Frontend origin for CORS (default: `http://localhost:5173`)
+- `FRONTEND_URL` — Frontend origin for CORS and password-reset links (default: `http://localhost:5173`)
+- `SMTP_HOST` / `SMTP_PORT` / `SMTP_USER` / `SMTP_PASS` / `MAIL_FROM` — Optional SMTP settings for password-reset emails. Production recommendation: Resend (`smtp.resend.com`, port `465`, user `resend`, password = API key). In development without SMTP, the API logs the reset link (and returns it as `resetUrl`).
 
 ### Production deployment
 
@@ -49,6 +50,10 @@ Required vars:
 | API | Render (`https://ukulele.onrender.com`) | Set `FRONTEND_URL` to the Vercel origin; prefer `NODE_ENV=production` |
 
 **Do not set `VITE_API_URL` on Vercel** when using the rewrite. The browser should call same-origin `/api/...` so the session cookie stays first-party (`SameSite=Lax`).
+
+Set SMTP on the API host (`SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS`, `MAIL_FROM`) so forgot-password emails send in production. Keep `FRONTEND_URL` pointed at the public site origin so reset links are correct.
+
+**Password-reset mail (Resend, no mailbox):** verify `myukulele.website` in [Resend](https://resend.com/domains), paste the DNS records they show into Porkbun (this is not email hosting), then set the Resend SMTP values on Render. Username is the literal word `resend`; password is the API key. `MAIL_FROM` can be `noreply@myukulele.website` even if that address has no inbox. Do not put SMTP vars on Vercel.
 
 If you ever point the frontend at the API host directly, set `CROSS_ORIGIN_COOKIES=true` on Render and `VITE_API_URL` on the frontend build.
 
@@ -75,6 +80,8 @@ npm run dev
 | POST | `/api/auth/login` | — | Log in |
 | GET | `/api/auth/me` | ✓ | Get current user |
 | POST | `/api/auth/logout` | — | Log out |
+| POST | `/api/auth/forgot-password` | — | Request a password reset email (`{ email }`). Always returns the same message whether or not the address exists. In non-production, may also include `resetUrl` |
+| POST | `/api/auth/reset-password` | — | Set a new password (`{ token, password }`) and start a session |
 | GET | `/api/songs` | — | List public songs (paginated + optional search). Query params: `?page=1&limit=20&q=term`. Also supports `?ownerUserId=xxx` (or `?owner=xxx`) to list songs by a user (only public unless you are that user) and `?mine=true` for the current user's songs (incl. private). Response: `{ items: [...], total, page, limit, totalPages }` (limit defaults to 10 server-side; max 100) |
 | GET | `/api/songs/:slug` | — | Get a single song |
 | POST | `/api/songs` | ✓ | Create a song |
@@ -93,6 +100,7 @@ See [TASKS.md](./TASKS.md) for the current backlog of bugs, features, and improv
 
 **Members (authenticated users)**
 - Register/login with email + password
+- Reset a forgotten password via email (or a logged reset link in development)
 - Add songs
 - Edit songs you own
 - Fork songs from other users and edit your copy
@@ -101,6 +109,7 @@ See [TASKS.md](./TASKS.md) for the current backlog of bugs, features, and improv
 - View globally most-favorited songs
 
 **Guests (unauthenticated users)**
+- Request a password reset from the login page
 - Browse all public songs
 - View globally most-favorited songs
 - Build ukulele tablature in the Tab Editor (`/tabs`) and copy markup into songs

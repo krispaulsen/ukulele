@@ -4,6 +4,8 @@ import { apiRequest } from "./lib/api";
 import { UserContext } from "./context/UserContext";
 import Header from "./components/Header";
 import AuthPage from "./pages/AuthPage";
+import ForgotPasswordPage from "./pages/ForgotPasswordPage";
+import ResetPasswordPage from "./pages/ResetPasswordPage";
 import FavoritesPage from "./pages/FavoritesPage";
 import SearchPage from "./pages/SearchPage";
 import SongPage from "./pages/SongPage";
@@ -75,6 +77,14 @@ export default function App() {
                     <Route
                         path="/auth/register"
                         element={user?.isLoggedIn ? <Navigate to={getFromTarget()} replace /> : <AuthPage defaultMode="register" />}
+                    />
+                    <Route
+                        path="/auth/forgot"
+                        element={user?.isLoggedIn ? <Navigate to="/" replace /> : <ForgotPasswordPage />}
+                    />
+                    <Route
+                        path="/auth/reset"
+                        element={<ResetPasswordPage />}
                     />
 
                     {/* Protected routes are always declared so they can match when logged out

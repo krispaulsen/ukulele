@@ -2,7 +2,7 @@
 
 This document tracks features, bugs, and improvements for the Ukulele Songbook web app.
 
-**Last updated:** 2026-07-08
+**Last updated:** 2026-09-15
 
 ## High Priority
 
@@ -215,7 +215,7 @@ This document tracks features, bugs, and improvements for the Ukulele Songbook w
 - [ ] Update `songDocToDetails` and responses to be consistent (include `isOwner`, `ownerScreenName` etc.)
 - [ ] Document the internal `POST /api/songs/list` endpoint or make a proper GET `/api/songs?slugs=...`
 - [ ] Add lastLogin tracking (see TODO in auth route)
-- [ ] (Future) Add password reset flow
+- [x] Add password reset flow — `POST /api/auth/forgot-password` + `POST /api/auth/reset-password`, hashed one-hour token on the user, optional SMTP via nodemailer, `/auth/forgot` + `/auth/reset` pages. Changing password from profile clears any outstanding reset token.
 - [ ] Clean up deprecated Mongoose option note in users route
 
 ## Code Quality & Refactoring
