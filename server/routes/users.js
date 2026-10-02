@@ -96,7 +96,8 @@ router.put("/change-password", requireAuth, async (req, res) => {
     }
 
     try {
-        const user = await User.findOne({ _id: req.user.userId });
+        const user = await User.findOne({ _id: req.user.userId })
+            .select("+passwordResetToken +passwordResetExpires");
         if (!user) {
             return res.status(404).json({ error: "User not found" });
         }
@@ -107,9 +108,11 @@ router.put("/change-password", requireAuth, async (req, res) => {
             return res.status(401).json({ error: "Current password is incorrect" });
         }
 
-        // Hash and save new password
+        // Hash and save new password; drop any outstanding reset token.
         const hashedPassword = await bcrypt.hash(newPassword, 10);
         user.password = hashedPassword;
+        user.passwordResetToken = undefined;
+        user.passwordResetExpires = undefined;
         await user.save();
 
         res.json({ message: "Password changed successfully" });
