@@ -200,6 +200,8 @@ This document tracks features, bugs, and improvements for the Ukulele Songbook w
 
 ## UI / UX / Components
 
+See also **Backlog — UX polish (design decisions needed)** below for the Oct 2026 header/theme/button/chord-color items.
+
 - [x] Add delete confirmation consistently using `Modal` (SongPage owner delete)
 - [ ] Improve loading / error / empty states across pages (Search, Favorites, Song)
 - [ ] Make `SongList` support optional actions per row (e.g., delete button for owners in "My Songs")
@@ -234,6 +236,39 @@ This document tracks features, bugs, and improvements for the Ukulele Songbook w
 - [ ] Add a short "Contributing" or "Known Issues" section
 - [ ] Document environment variables clearly (already in README)
 - [x] Add a `npm test` or lint command if desired — `npm test` / `test:watch` added (basic tests implemented)
+
+
+## Backlog — UX polish (design decisions needed)
+
+Captured 2026-10-01. **Do not implement until Kris decides the open questions below.**
+
+### 1. UX style consistency
+- [ ] Keep dark mode look (dark background + current dark foregrounds); improve light mode so it feels equally good
+- [ ] Resolve button inconsistency: lean toward a shared `Button` with className presets (e.g. `primary`) that own all states (default / hover / active / disabled), vs variant/color props or scattered utilities
+  - **Needs decision:** Button API approach before any large refactor
+
+### 2. Profile chord color picker
+- [ ] Options currently don’t fit the site palette; need readable contrast in both light and dark (shared set, or per-mode alternates)
+  - **Needs decision:** Shared palette vs light/dark alternate swatches; which colors
+
+### 3. Header redesign (space)
+- [ ] Align menu with site title (not below)
+- [ ] User icon menu: My Profile + Log Out as submenu
+- [ ] Hamburger menu on small screens
+- [ ] Drop separate Home link; site title/logo navigates home
+  - **Needs decision:** Exact layout / breakpoint for hamburger (can propose defaults)
+
+### 4. Site title treatment
+- [ ] More interesting font and/or SVG logo
+  - **Needs decision:** Font choice and/or logo design (SVG asset)
+
+### 5. Icon button accessibility
+- [ ] Add missing `title` attributes on icon buttons
+  - No design decision blocking; can ship with sensible labels once started
+
+### 6. Chord diagram colors
+- [ ] Diagram colors too vibrant / don’t match site palette — tone to site colors
+  - **Needs decision:** Target palette tokens (may share with #2)
 
 ## Nice-to-Have / Future
 
