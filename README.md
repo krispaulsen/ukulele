@@ -79,6 +79,7 @@ npm run dev
 | GET | `/api/songs/:slug` | — | Get a single song |
 | POST | `/api/songs` | ✓ | Create a song |
 | PUT | `/api/songs/:slug` | ✓ | Update a song (owner only) |
+| DELETE | `/api/songs/:slug` | ✓ | Delete a song (owner only; also removes favorites for that slug) |
 | POST | `/api/songs/:slug/fork` | ✓ | Fork a song |
 | GET | `/api/favorites/top` | — | Top favorited songs |
 | GET | `/api/favorites` | ✓ | Current user's favorites |
@@ -95,6 +96,7 @@ See [TASKS.md](./TASKS.md) for the current backlog of bugs, features, and improv
 - Register/login with email + password
 - Add songs
 - Edit songs you own
+- Delete songs you own (with confirmation)
 - Fork songs from other users and edit your copy
 - Favorite songs and view your favorites
 - View a paginated list of all songs you own ("My Songs") on the My Songbook page
