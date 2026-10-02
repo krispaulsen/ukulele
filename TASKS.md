@@ -2,11 +2,11 @@
 
 This document tracks features, bugs, and improvements for the Ukulele Songbook web app.
 
-**Last updated:** 2026-09-15
+**Last updated:** 2026-10-01
 
 ## High Priority
 
-- [ ] **Add ability to delete a song (owner only)**
+- [x] **Add ability to delete a song (owner only)**
   - Backend
     - Add `DELETE /api/songs/:slug` route (protected by `requireAuth`)
     - Verify the requester is the song owner (same logic as PUT edit)
@@ -200,7 +200,7 @@ This document tracks features, bugs, and improvements for the Ukulele Songbook w
 
 ## UI / UX / Components
 
-- [ ] Add delete confirmation consistently using `Modal`
+- [x] Add delete confirmation consistently using `Modal` (SongPage owner delete)
 - [ ] Improve loading / error / empty states across pages (Search, Favorites, Song)
 - [ ] Make `SongList` support optional actions per row (e.g., delete button for owners in "My Songs")
 - [ ] Add "Add to favorites" / heart on the song detail page more prominently (already there but only icon)
@@ -210,7 +210,7 @@ This document tracks features, bugs, and improvements for the Ukulele Songbook w
 
 ## Backend / API / Auth
 
-- [ ] Add `DELETE /api/songs/:slug` (see High Priority)
+- [x] Add `DELETE /api/songs/:slug` (see High Priority)
 - [ ] Consider rate limiting or basic validation improvements
 - [ ] Update `songDocToDetails` and responses to be consistent (include `isOwner`, `ownerScreenName` etc.)
 - [ ] Document the internal `POST /api/songs/list` endpoint or make a proper GET `/api/songs?slugs=...`
