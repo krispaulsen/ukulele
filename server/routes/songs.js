@@ -1,6 +1,5 @@
 import { Router } from "express";
 import Song from "../models/Song.js";
-import Favorite from "../models/Favorite.js";
 import { validateSongPayload, resolveUniqueSongSlug, formatSong, getSongListFilter } from "../utils.js";
 import { requireAuth } from "../middleware.js";
 
@@ -152,31 +151,6 @@ router.put("/:slug", requireAuth, async (req, res) => {
     } catch (error) {
         console.error("Failed to update song:", error);
         res.status(500).json({ error: "Failed to update song" });
-    }
-});
-
-
-// DELETE existing song (owner only)
-router.delete("/:slug", requireAuth, async (req, res) => {
-    try {
-        const song = await Song.findOne({ slug: req.params.slug });
-
-        if (!song) {
-            return res.status(404).json({ error: "Song not found" });
-        }
-
-        if (song.ownerUserId.toString() !== req.user.userId) {
-            return res.status(403).json({ error: "Only the song owner can delete this song" });
-        }
-
-        const slug = song.slug;
-        await song.deleteOne();
-        await Favorite.deleteMany({ slug });
-
-        return res.status(204).send();
-    } catch (error) {
-        console.error("Failed to delete song:", error);
-        res.status(500).json({ error: "Failed to delete song" });
     }
 });
 
