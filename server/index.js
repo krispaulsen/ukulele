@@ -10,6 +10,7 @@ import authRoutes from "./routes/auth.js";
 import favoriteRoutes from "./routes/favorites.js";
 import songRoutes from "./routes/songs.js";
 import userRoutes from "./routes/users.js";
+import { isSmtpConfigured } from "./mailer.js";
 
 dotenv.config();
 
@@ -73,6 +74,9 @@ async function start() {
 
   app.listen(config.port, () => {
       console.log(`✅ API running on http://localhost:${config.port}`);
+      if (process.env.NODE_ENV === "production" && !isSmtpConfigured()) {
+          console.warn("⚠️ SMTP_HOST is not set; password reset emails will not be sent.");
+      }
   });
 }
 

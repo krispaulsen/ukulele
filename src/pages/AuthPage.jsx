@@ -3,6 +3,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { apiRequest } from "../lib/api";
 import { UserContext } from "../context/UserContext";
 import { Form, Input } from "../components/Forms";
+import { Link } from "../components/ui";
 import { Button } from "@material-tailwind/react";
 
 export default function AuthPage({ defaultMode = "login", onAuthSuccess }) {
@@ -95,7 +96,13 @@ export default function AuthPage({ defaultMode = "login", onAuthSuccess }) {
                             required
                         />
                     </>
-                ) : null}
+                ) : (
+                    <p className="text-sm">
+                        <Link to="/auth/forgot" className="text-orange-300 hover:underline">
+                            Forgot password?
+                        </Link>
+                    </p>
+                )}
 
                 <Button type="submit" disabled={isSubmitting} variant="primary" className="my-2">
                     {isSubmitting ? "Please wait..." : mode === "login" ? "Log in" : "Create account"}
