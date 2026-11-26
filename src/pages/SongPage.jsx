@@ -1,9 +1,9 @@
 import { use, useEffect, useState, Fragment } from "react";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { apiRequest } from "../lib/api";
 import { formatChordDisplay } from "../lib/chords";
 import { UserContext } from "../context/UserContext";
-import { Flex, Link } from "../components/ui";
+import { Button, Flex, Link, Modal } from "../components/ui";
 import { Input, Option, Select, Switch } from "../components/Forms";
 import UkuleleChordDiagram from "../components/UkuleleChordDiagram";
 import Lyrics from "../components/Lyrics";
@@ -79,8 +79,29 @@ export default function SongPage() {
     const userPreferredAccidentals =
         user?.preferredAccidentals === "sharps" ? "sharps" : "flats";
     const [preferredAccidentals, setPreferredAccidentals] = useState(userPreferredAccidentals);
+    const [deleteOpen, setDeleteOpen] = useState(false);
+    const [isDeleting, setIsDeleting] = useState(false);
+    const [deleteError, setDeleteError] = useState("");
+    const navigate = useNavigate();
    
     const handleToggleVideo = () => setShowVideo(current => !current);
+
+    async function handleConfirmDelete() {
+        if (!song?.slug || isDeleting) return;
+        setIsDeleting(true);
+        setDeleteError("");
+        try {
+            await apiRequest(`/api/songs/${encodeURIComponent(song.slug)}`, {
+                method: "DELETE",
+            });
+            setDeleteOpen(false);
+            navigate("/");
+        } catch (error) {
+            setDeleteError(error.message || "Failed to delete song");
+        } finally {
+            setIsDeleting(false);
+        }
+    }
 
     // Default to the user's saved preference (and re-apply when navigating songs).
     // Guests and users without a preference fall back to flats.
@@ -147,6 +168,18 @@ export default function SongPage() {
                                                     <i className="fa-solid fa-pencil mr-1"></i>
                                                     Edit
                                                 </Link>
+                                                {' · '}
+                                                <button
+                                                    type="button"
+                                                    className="text-red-700 dark:text-red-400 hover:underline cursor-pointer bg-transparent border-0 p-0"
+                                                    onClick={() => {
+                                                        setDeleteError("");
+                                                        setDeleteOpen(true);
+                                                    }}
+                                                >
+                                                    <i className="fa-solid fa-trash mr-1"></i>
+                                                    Delete
+                                                </button>
                                             </>
                                         ) : (
                                             <Link to={`/song/${song.slug}/fork`}>
@@ -239,6 +272,38 @@ export default function SongPage() {
                     </div>
                 </section>
             ) : null}
+
+            <Modal
+                isOpen={deleteOpen}
+                onClose={() => {
+                    if (!isDeleting) setDeleteOpen(false);
+                }}
+                header="Delete song"
+                position="center"
+                size="sm"
+                isDismissable={!isDeleting}
+            >
+                <p className="mb-4">Delete this song? This cannot be undone.</p>
+                {deleteError ? (
+                    <p className="mb-4 text-red-700 dark:text-red-400" role="alert">{deleteError}</p>
+                ) : null}
+                <Flex gap="gap-2" className="justify-end">
+                    <Button
+                        variant="secondary"
+                        disabled={isDeleting}
+                        onClick={() => setDeleteOpen(false)}
+                    >
+                        Cancel
+                    </Button>
+                    <Button
+                        className="!bg-red-800 !border-red-700 hover:!bg-red-700"
+                        disabled={isDeleting}
+                        onClick={handleConfirmDelete}
+                    >
+                        {isDeleting ? "Deleting..." : "Delete"}
+                    </Button>
+                </Flex>
+            </Modal>
         </>
     );
 }
